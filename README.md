@@ -8,3 +8,8 @@ inflow of the reactor and the combined activities of all the individuals.
 
 This model is based on the [IbM](https://github.com/Computational-Platform-IbM/IbM) created in another repository. However, that model is based on _Nitrospira_, whereas this model will be based around
 anaerobic fermentation of glucose. The code of this model is mostly written in [Julia](https://julialang.org/), but will also contain parts in Java.
+
+- docs contains documentation such as methods
+- lib contains the code
+- planning contains the excel-sheets that are used for initialisation
+- results contains the results after a simulation is finished
