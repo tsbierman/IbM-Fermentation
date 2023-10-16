@@ -7,4 +7,4 @@ The individuals are connected to each other by the bulk liquid. The concentratio
 inflow of the reactor and the combined activities of all the individuals.
 
 This model is based on the [IbM](https://github.com/Computational-Platform-IbM/IbM) created in another repository. However, that model is based on _Nitrospira_, whereas this model will be based around
-anaerobic fermentation of glucose. The code of this model is mostly written in [Julia](https://julialang.org/).
+anaerobic fermentation of glucose. The code of this model is mostly written in [Julia](https://julialang.org/), but will also contain parts in Java.
