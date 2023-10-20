@@ -32,7 +32,7 @@ function loadPresetFile(filename)
     settings.dynamicDT = values[names .== "Dynamic dT"][1]                  # [Bool]
     
     if settings.dynamicdt
-        dynamicDT = General()
+        dynamicDT = General()   # Extra structure to store in the other structure
         dynamicDT.nIterThreshold = values[names .== "nIterThreshold"]
         dynamicDT.iterThresholdDecrease = values[names .== "iterThresholdDecrease"]
         dynamicDT.iterThresholdIncrease = values[names .== "iterThresholdIncrease"]
@@ -49,14 +49,15 @@ function loadPresetFile(filename)
         constants.dynamicDT = dynamicDT
     end
 
-    # constants (Diffusion)
+    # Constants (Diffusion)
     names, values = file["Diffusion"]["A"], file["Diffusion"]["B"]
     constants.compoundNames = names
     nCompounds = length(constants.compoundNames)
     constants.diffusion_rates = values                                      # [m2/h]
 
-    # constants (Operational parameters)
-    names, values = file["Parameters"]["A1:A12"], file["Parameters"]["B1:B12"] #Without specific numbers, this one includes some empty cells
+    # Constants (Operational parameters)
+    names_temp, values_temp = file["Parameters"]["A"], file["Parameters"]["B"]
+    names, values = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)) # It takes some extra empty rows, this removes that
     constants.pHsetpoint = values[names .== "pH setpoint"]                  # [-]
     constants.T = values[names .== "Temperature (K)"]                       # [K]
     constants.Vr = values[names .== "Representative volume"] * 1000         # [L]
@@ -72,7 +73,8 @@ function loadPresetFile(filename)
     end
 
     # Constants (Bacteria)
-    names, values = file["Bacteria"]["A1:A16"], file["bacteria"]["B1:B16"]  # Without specific numbers, this one includes some empty cells
+    names_temp, values_temp = file["Bacteria"]["A"], file["Bacteria"]["B"]  
+    names, values = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)) # It takes some extra empty rows, this removes that
     constants.bac_MW = values[names .== "Molecular weight bacterium"]       # [g/mol]
     constants.bac_rho = values[names .== "Density bacterium"]               # [g/m3]
     constants.max_nBac = values[names .== "Maximum nBacteria"]              # [-] Maybe find better way of calculating this
@@ -81,7 +83,7 @@ function loadPresetFile(filename)
     constants.max_bac_mass_grams = values[names .== "Maximum mass bacterium"] # [g]
     constants.bac_max_radius = values[names .== "Maximum radius bacterium"] # [m]
     constants.kDist = values[names .== "kDist"]                             # [-]
-    constants.max_granule_radius = min(constants.max_granule_radius, values[names .== "Maximum granule radius"]) # [m]
+    constants.max_granule_radius = min(constants.max_granule_radius, values[names .== "Maximum granule radius"]) # [m] Either based on grid size or set value
     constants.kDet = values[names .== "Detachment constant"]                # [1/m2.h]
     settings.detachment = values[names .== "Detachment method"][1]          # [mechanistic, naive, none]
 
@@ -115,9 +117,9 @@ function loadPresetFile(filename)
     settings.parallelized = values[names .== "Parallelisation"][1]
 
     # Constants (influent)
-    # Without specific numbers, this one includes some empty cells
-    names, values, condition_type = file["Influent"]["A1:A8"], file["Influent"]["B1:B8"], file["Influent"]["D1:D8"]
-    
+    names_temp, values_temp, condition_type_temp = file["Influent"]["A"], file["Influent"]["B"], file["Influent"]["D"] 
+    names, values = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)), collect(skipmissing(condition_type_temp)) # It takes some extra empty rows, this removes that
+
     if names != constants.compoundNames
         throw(ErrorException("Compounds do not have the same name or are not in the same order"))
     end
@@ -139,8 +141,40 @@ function loadPresetFile(filename)
 
     # Constants (Equilibrium constants & charge matrix)
     thermodynamic_parameters = file["ThermoParam"]
-    section_starts = findall(thermodynamic_parameters["A"] .== constants.compoundNames[1])
-    section_ends = findall(thermodynamic_parameters["A"] .== constants.compoundNames[end])
+    names = thermodynamic_parameters["A"]
+    section_starts = findall(names .== constants.compoundNames[1])
+    section_ends = findall(names .== constants.compoundNames[end])
+    H2O_index = findall(names .== "H2O")
+    H_index = findall(names .== "H")
+    dG_rows = collect(section_starts[1]:section_ends[1])
+
+    if thermodynamic_parameters["A"][dG_rows] != constants.compoundNames
+        throw(ErrorException("Compounds do not have the same name or are not in the same order"))
+    end
+
+    dG_rows = push!(vec(dG_rows), H2O_index[1], H_index[1])
+
+    preferred_state = thermodynamic_parameters["H"][dG_rows]
+
+    Keq_start = section_starts[2][1]
+    Keq_end = section_ends[2][1] + 2 # For adding H20 and H    
+    constants.Keq = thermodynamic_parameters["B$Keq_start:E$Keq_end"]
+
+    charge_start = section_starts[3][1]
+    charge_end = section_ends[3][1] # For adding H2O and H
+    charge_rows = collect(section_starts[3]:section_ends[3])
+
+    if thermodynamic_parameters["A"][charge_rows] != constants.compoundNames
+        throw(ErrorException("Compounds do not have the same name or are not in the same order"))
+    end
+
+    carge_end = charge_end + 2
+    constants.chrM = thermodynamic_parameters["B$Keq_start:F$Keq_end"]
+    idx = findall(chrM .== "NA")
+    chrM[idx] .= 0
+
+    # Constants (Ks and Ki)
+
 
     return [grid, bac_init, constants, settings, init_params]
 end
@@ -154,7 +188,34 @@ file = XLSX.readxlsx(file_loc)
 thermodynamic_parameters= file["ThermoParam"]
 names2, values2 = file["Diffusion"]["A"], file["Diffusion"]["B"]
 compoundNames = names2
-findall(thermodynamic_parameters["A"] .== compoundNames[end])
+names = thermodynamic_parameters["A"]
+section_starts = findall(names .== compoundNames[1])
+section_ends = findall(thermodynamic_parameters["A"] .== compoundNames[end])
+dG_rows = collect(section_starts[1][1]:section_ends[1][1])
+H2O_index = findall(names .== "H2O")
+H_index = findall(names .== "H")
+dG_rows = push!(vec(dG_rows), H2O_index[1][1], H_index[1][1])
+thermodynamic_parameters["H"][dG_rows]
+
+Keq_start = section_starts[3][1]
+Keq_end = section_ends[3][1]
+Keq_rows = collect(section_starts[3][1]:section_ends[2][1])
+# Keq_rows = push!(vec(Keq_rows), H2O_index[2][1], H_index[2][1])
+chrM = thermodynamic_parameters["B$Keq_start:F$Keq_end"]
+idx = findall(chrM .== "NA")
+chrM[idx] .= 0
+chrM
+
+
+# dG_rows = [dG_rows, H2O_index[1],H_index[1]]
+
+# typeof(dG_rows[2])
+# thermodynamic_parameters["G"][dG_rows]
+# thermodynamic_parameters["A"][dG_rows] == compoundNames
+
+# names, values, cond = file["Influent"]["A"], file["Influent"]["B"], file["Influent"]["D"]
+# cond = collect(skipmissing(cond))
+# cond
 
 # names, values = file["Initial condition"]["A"], file["Initial condition"]["B"]
 # names2, values2, condition_type = file["Influent"]["A1:A8"], file["Influent"]["B1:B8"], file["Influent"]["D1:D8"]
