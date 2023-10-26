@@ -145,6 +145,7 @@ function loadPresetFile(filename)
     # Constants (Equilibrium constants & charge matrix)
     thermodynamic_parameters = file["ThermoParam"]
     names = thermodynamic_parameters[:,1]
+    nColumns = length(file["ThermoParam"][2,:])-4 # -4 due to Compound names, preferred subspecies, compound phase and cell with text 
 
     # Divide in sections and locate H2O and H indices
     section_starts = findall(names .== constants.compoundNames[1])
@@ -192,7 +193,7 @@ function loadPresetFile(filename)
     constants.speciesNames = collect(skipmissing(ks_file[:,1][2:end,1]))
 
     if collect(skipmissing(ki_file[:,1][2:end,1])) != constants.speciesNames
-        throw(ErrorException("Species do not have the same name or are not in the same order"))
+        throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
 
     # Get names of compounds, make a unique set and extract matrix of values
@@ -206,7 +207,7 @@ function loadPresetFile(filename)
     constants.Ki = zeros(length(constants.speciesNames),length(uniq_compounds))
 
     # Loop to check whether a compound has a Ks and Ki, if yes, store value
-    for (index, value) in enumerate(uniq_compounds)
+    for (index, uniq) in enumerate(uniq_compounds)
         columnidx = findall(value .== comp_names_ks)
         if length(columnidx) != 0
             constants.Ks[:,columnidx] = values_ks[:,columnidx]
@@ -218,6 +219,48 @@ function loadPresetFile(filename)
         end
     end
 
+    # Reactive indices
+    constants.reactive_indices = zeros(length(uniq_compounds), 1)
+    # TODO Need to consider whether the LinearIndices are actually required or that it could also be done with CartesianIndex
+    if settings.speciation
+        sz = (nCompounds+2, nColumns)
+
+        for (index, uniq) in enumerate(uniq_compounds)
+            I = findall(constants.compoundNames .== uniq)[1][1]
+            J = preferred_state[I]
+            constants.reactive_indices[index] = LinearIndices(sz)[CartesianIndex.(I,J)]
+        end
+    else
+        for (index, uniq) in enumerate(uniq_compounds)
+            constants.reactive_indices[index] = findall(constants.compoundNames .== uniq)
+        end
+    end
+
+    # Constants (Yield, eDonor, mu_max, maint)
+    yield_mu_file = file["Yield-Mu"]
+    bac_names = yield_mu_file[2:end,1]
+    names = yield_mu_file[1,2:end-1]
+    values = yield_mu_file[2:end,2:end-1]
+
+    if bac_names != constants.speciesNames
+        throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
+    end
+
+    yield = values[:, findall(names .== "Yield")[1][2]]
+    eD = values[:, findall(names .== "eD")[1][2]]
+
+    constants.maintenance = values[:, findall(names .== "Maintenance")[1][2]]
+    constants.mu_max = values[:, findall(names .== "Max growth rate")[1][2]]
+
+    # Test is any of the maintenance or mu is unknown (missing)
+    if ismissing(any(constants.maintenance .== 1)) || ismissing(any(constants.mu_max)) # The 1 is arbitrary, but needed a comparison to yield a "missing"
+        constants.maintenance = NaN
+        constants.mu_max = NaN
+        println("Maintenance and maximum growth rate are not set, thus calculating dynamically. \nPlease make sure the equations and species match up in the code.\n")
+    end
+
+
+
     return [grid, bac_init, constants, settings, init_params]
 end
 
@@ -227,28 +270,51 @@ import XLSX # Not needed in this file
 file_loc = string(Base.source_dir(), "\\","test_file.xlsx") # Not needed in this file
 file = XLSX.readxlsx(file_loc)
 
-file_ks = file["Ks"]
-file_ki = file["Ki"]
 
-speciesNames = collect(skipmissing(file_ks[:,1][2:end,1]))
-comp_names_ks = collect(skipmissing(file_ks[1,1:end-1]))
-comp_names_ki = collect(skipmissing(file_ki[1,1:end-1]))
+yield_mu_file = file["Yield-Mu"]
+names = yield_mu_file[1,2:end-1]
+values = yield_mu_file[2:end,2:end-1]
+values[:,findall(names .== "eD")[1][2]]
 
-x = unique([comp_names_ks;comp_names_ki])
+mu = values[:,findall(names .== "Max growth rate")[1][2]]
+maint = values[:,findall(names .== "Maintenance")[1][2]]
+# names2, values2 = file["Diffusion"]["A"], file["Diffusion"]["B"]
+# compoundNames = names2
 
-ks_vals = reshape(collect(skipmissing(file_ks[2:end,2:end-1])),length(speciesNames), length(comp_names_ks))
-ki_vals = reshape(collect(skipmissing(file_ki[2:end,2:end-1])),length(speciesNames), length(comp_names_ki))
+# preferred_state = file["ThermoParam"]["G2:G11"]
 
-temp = zeros(length(speciesNames),length(x))
+# I = findall(compoundNames .== "CO2")[1][1]
+# J = preferred_state[I]
+# sz = (10,5)
+# index = LinearIndices(sz)[CartesianIndex.(I,J)]
 
-for (index, value) in enumerate(x)
-    columnidx = findall(value .== comp_names_ki)
-    if length(columnidx) != 0
-        temp[:,columnidx] = ki_vals[:,columnidx]
-    end
-end
+# length(file["ThermoParam"][2,:])-4
 
-temp
+
+
+
+# file_ks = file["Ks"]
+# file_ki = file["Ki"]
+
+# speciesNames = collect(skipmissing(file_ks[:,1][2:end,1]))
+# comp_names_ks = collect(skipmissing(file_ks[1,1:end-1]))
+# comp_names_ki = collect(skipmissing(file_ki[1,1:end-1]))
+
+# x = unique([comp_names_ks;comp_names_ki])
+
+# ks_vals = reshape(collect(skipmissing(file_ks[2:end,2:end-1])),length(speciesNames), length(comp_names_ks))
+# ki_vals = reshape(collect(skipmissing(file_ki[2:end,2:end-1])),length(speciesNames), length(comp_names_ki))
+
+# temp = zeros(length(speciesNames),length(x))
+
+# for (index, value) in enumerate(x)
+#     columnidx = findall(value .== comp_names_ki)
+#     if length(columnidx) != 0
+#         temp[:,columnidx] = ki_vals[:,columnidx]
+#     end
+# end
+
+# temp
 
 # names, values = file["ThermoParam"][:,8], file["Bacteria"][:,2]
 # names
