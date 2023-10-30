@@ -20,8 +20,8 @@ function loadPresetFile(filename)
     grid.ny = values_discr[names_discr .== "ny"]                                        # [-]
     grid.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"]    # [m]
 
-    constants.Vg = (grid.dx ^ 3) * 1000                                     # [L]
-    constants.max_granule_radius = ((grid.nx - 4) * grid.dx) / 2            # [m]
+    constants.Vg = (grid.dx .^ 3) * 1000                                     # [L]
+    constants.max_granule_radius = ((grid.nx .- 4) .* grid.dx) ./ 2            # [m]
 
     # initialise constants (Time)
     constants.simulation_end = values_discr[names_discr .== "Simulation end"]           # [h]
@@ -33,7 +33,7 @@ function loadPresetFile(filename)
     settings.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                  # [Bool]
 
     # Only if dynamic time stepping is enabled
-    if settings.dynamicdt
+    if settings.dynamicDT
         dynamicDT = General()   # Extra structure to store in the other structure
         dynamicDT.nIterThreshold = values_discr[names_discr .== "nIterThreshold"]
         dynamicDT.iterThresholdDecrease = values_discr[names_discr .== "iterThresholdDecrease"]
@@ -58,15 +58,14 @@ function loadPresetFile(filename)
     constants.diffusion_rates = values_diff                                      # [m2/h]
 
     # Constants (Operational parameters)
-    names_temp, values_temp = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2]))
-    names_para, values_para = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)) # It takes some extra empty rows, this removes that
+    names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2])) # It takes some extra empty rows, this removes that
     constants.pHsetpoint = values_para[names_para .== "pH setpoint"]                  # [-]
     constants.T = values_para[names_para .== "Temperature (K)"]                       # [K]
     constants.Vr = values_para[names_para .== "Representative volume"] * 1000         # [L]
     constants.reactor_density = values_para[names_para .== "Density reactor"]         # [g/L]
 
     settings.variableHRT = values_para[names_para .== "Variable HRT"][1]              # [Bool]
-    init_params.invHRT = 1/values_para[names_para .== "HRT"]                          # [1/h]
+    init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                          # [1/h]
 
     # Only if varaible HRT is enabled
     if settings.variableHRT
@@ -95,7 +94,7 @@ function loadPresetFile(filename)
     constants.diffusion_accuracy = values_solv[names_solv .== "Diffusion tolerance"]              # [-]
     constants.steadystate_tolerance = values_solv[names_solv .== "Steady state RES threshold"]    # [mol/L/h]
     tol_abs = values_solv[names_solv .== "Concentration tolerance"]                               # [mol/L]
-    constants.correction_concentration_steady_state = tol_abs/constants.steadystate_tolerance
+    constants.correction_concentration_steady_state = tol_abs ./ constants.steadystate_tolerance
     constants.RESmethod = values_solv[names_solv .== "RES determination method"][1]
 
     constants.nDiffusion_per_SScheck = values_solv[names_solv .== "nIters diffusion per SS check"]
@@ -129,10 +128,6 @@ function loadPresetFile(filename)
     constants.Dir_k = condition_type .== "D"
     constants.influent_concentrations = values_infl                                  # [mol/L]
 
-    # WAS HERE WITH CORRECTING NAMES
-
-
-
     # Constants (initial conditions)
     names_init, values_init = collect(skipmissing(file["Initial condition"][:,1])), collect(skipmissing(file["Initial condition"][:,2]))
 
@@ -158,7 +153,8 @@ function loadPresetFile(filename)
     dG_rows = collect(section_starts[1]:section_ends[1])
 
     # Check the order of the compounds names
-    if thermodynamic_parameters[:,1][dG_rows] != constants.compoundNames
+    compound_names_matrix = reshape(constants.compoundNames, length(constants.compoundNames),:) # Change shape to compare with thermodynamic names
+    if thermodynamic_parameters[:,1][dG_rows] != (compound_names_matrix)
         throw(ErrorException("Compounds do not have the same name or are not in the same order"))
     end
 
@@ -178,15 +174,15 @@ function loadPresetFile(filename)
     charge_rows = collect(section_starts[3]:section_ends[3])
 
     # Check order of compounds
-    if thermodynamic_parameters[:,1][charge_rows] != constants.compoundNames
+    if thermodynamic_parameters[:,1][charge_rows] != compound_names_matrix
         throw(ErrorException("Compounds do not have the same name or are not in the same order"))
     end
 
     # Extract charge matrix and substitute everything without charge
-    carge_end = charge_end + 2 # For adding H2O and H
-    constants.chrM = thermodynamic_parameters[Keq_start:Keq_end, 2:6]
-    idx = findall(chrM .== "NA")
-    chrM[idx] .= 0
+    charge_end = charge_end + 2 # For adding H2O and H
+    constants.chrM = thermodynamic_parameters[charge_start:charge_end, 2:6]
+    idx = findall(constants.chrM .== "NA")
+    constants.chrM[idx] .= 0
 
     # Constants (Ks and Ki)
     ks_file = file["Ks"]
@@ -235,7 +231,7 @@ function loadPresetFile(filename)
         end
     else
         for (index, uniq) in enumerate(uniq_compounds)
-            constants.reactive_indices[index] = findall(constants.compoundNames .== uniq)
+            constants.reactive_indices[index] = findall(constants.compoundNames .== uniq)[1]
         end
     end
 
@@ -243,20 +239,20 @@ function loadPresetFile(filename)
     yield_mu_file = file["Yield-Mu"]
     bac_names = collect(skipmissing(yield_mu_file[2:end,1]))
     names_Ymu = collect(skipmissing(yield_mu_file[1,2:end-1]))
-    values_Ymu = collect(skipmissing(yield_mu_file[2:end,2:end-1]))
+    values_Ymu = reshape(collect(skipmissing(yield_mu_file[2:end,2:end-1])), length(bac_names), length(names_Ymu))
 
     if bac_names != constants.speciesNames
         throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
+    
+    yield = values_Ymu[:, findall(names_Ymu .== "Yield")]
+    eD = values_Ymu[:, findall(names_Ymu .== "eD")]
 
-    yield = values_Ymu[:, findall(names_Ymu .== "Yield")[1][2]]
-    eD = values_Ymu[:, findall(names_Ymu .== "eD")[1][2]]
-
-    constants.maintenance = values_Ymu[:, findall(names_Ymu .== "Maintenance")[1][2]]
-    constants.mu_max = values_Ymu[:, findall(names_Ymu .== "Max growth rate")[1][2]]
+    constants.maintenance = values_Ymu[:,findall(names_Ymu .== "Maintenance")]
+    constants.mu_max = values_Ymu[:,findall(names_Ymu .== "Max growth rate")]
 
     # Test is any of the maintenance or mu is unknown (missing)
-    if ismissing(any(constants.maintenance .== 1)) || ismissing(any(constants.mu_max)) # The 1 is arbitrary, but needed a comparison to yield a "missing"
+    if ismissing(any(constants.maintenance .== 1)) || ismissing(any(constants.mu_max .== 1)) # The 1 is arbitrary, but needed a comparison to yield a "missing"
         constants.maintenance = NaN
         constants.mu_max = NaN
         println("Maintenance and maximum growth rate are not set, thus calculating dynamically. \nPlease make sure the equations and species match up in the code.\n")
@@ -264,10 +260,9 @@ function loadPresetFile(filename)
 
     # Constants (ReactionMatrix)
     bac_names_RM = collect(skipmissing(file["ReactionMatrix"][1, 2:end]))
-    bac_names_RM = bac_names_RM[1:3:end]
     reaction_names = collect(skipmissing(file["ReactionMatrix"][2,2:end]))
-    values_reacM = collect(skipmissing(file["ReactionMatrix"][3:end, 2:end]))
     compounds = collect(skipmissing(file["ReactionMatrix"][3:end,1]))
+    values_reacM = reshape(collect(skipmissing(file["ReactionMatrix"][3:end, 2:end])), length(compounds), length(reaction_names))
 
     first_compoundindex = findall(constants.compoundNames[1] .== compounds)
     last_compoundindex = findall(constants.compoundNames[end] .== compounds)
@@ -276,7 +271,8 @@ function loadPresetFile(filename)
         throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
 
-    if compounds[first_compoundindex:last_compoundindex] != constants.compoundNames
+
+    if compounds[first_compoundindex[1]:last_compoundindex[1]] != constants.compoundNames
         throw(ErrorException("Compounds do not have the same name, or are not in the same order"))
     end
 
@@ -289,8 +285,8 @@ function loadPresetFile(filename)
 
     for species = 1:length(constants.speciesNames)
         # get anabolism and catabolism
-        cata = values_reacM[:, iCat[species][2]]
-        ana = values_reacM[:, iAnab[species][2]]
+        cata = values_reacM[:, iCat[species]]
+        ana = values_reacM[:, iAnab[species]]
 
         # get eDonor and Yield
         eD_species = eD[species]
@@ -304,14 +300,14 @@ function loadPresetFile(filename)
 
         # Calculate metabolism matrix entry TODO: make sure this is correct!
         # It seems to me that if eD is also used in anabolism that this equation does not hold anymore!
-        constants.MatrixMet[:, species] = cata/Y + ana
+        constants.MatrixMet[:, species] = cata ./ Y .+ ana
 
         # Set decay matrix entry
-        constants.MatrixDecay[:, species] = values_reacM[:, iDecay[species][2]]
+        constants.MatrixDecay[:, species] = values_reacM[:, iDecay[species]]
     end
 
     # Initialisation of bacteria
-    settings.model_type = values_bac[names_bac .== "Initialisation method"]
+    settings.model_type = values_bac[names_bac .== "Initialisation method"][1]
 
     if settings.model_type in ("granule", "mature granule")
         bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"]
@@ -321,31 +317,46 @@ function loadPresetFile(filename)
         bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"]
         bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"]
     else
-        throw(ErrorException("Initialisation method <$(setting.model_type)> is not a valid method."))
+        throw(ErrorException("Initialisation method <$(settings.model_type)> is not a valid method."))
     end
 
     return [grid, bac_init, constants, settings, init_params]
 end
 
 
+file_loc = string(Base.source_dir(), "\\","test_file.xlsx")
+grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc)
 
-import XLSX # Not needed in this file
-file_loc = string(Base.source_dir(), "\\","test_file.xlsx") # Not needed in this file
-file = XLSX.readxlsx(file_loc)
 
-bac_names = file["ReactionMatrix"][1, 2:end]
-bac_names = bac_names[1:3:end]
-values_reacM = file["ReactionMatrix"][3:end, 2:end]
-reaction_names = file["ReactionMatrix"][2,2:end]
+# file_loc = string(Base.source_dir(), "\\","test_file.xlsx") # Not needed in this file
+# file = XLSX.readxlsx(file_loc)
 
-compounds = file["ReactionMatrix"][3:end,1]
-cat_indices = findall(reaction_names .== "Cat")
-ana_indices = findall(reaction_names .== "Anab")
 
-cata = values_reacM[:, cat_indices[1][2]]
-ana = values_reacM[:, ana_indices[1][2]]
+# names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2]))
+# 1/values_para[names_para .== "HRT"][1] 
 
-names
+# names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
+# dx = values_discr[names_discr .== "dx"]                                        # [m]
+
+
+
+# import XLSX # Not needed in this file
+# file_loc = string(Base.source_dir(), "\\","test_file.xlsx") # Not needed in this file
+# file = XLSX.readxlsx(file_loc)
+
+# bac_names = file["ReactionMatrix"][1, 2:end]
+# bac_names = bac_names[1:3:end]
+# values_reacM = file["ReactionMatrix"][3:end, 2:end]
+# reaction_names = file["ReactionMatrix"][2,2:end]
+
+# compounds = file["ReactionMatrix"][3:end,1]
+# cat_indices = findall(reaction_names .== "Cat")
+# ana_indices = findall(reaction_names .== "Anab")
+
+# cata = values_reacM[:, cat_indices[1][2]]
+# ana = values_reacM[:, ana_indices[1][2]]
+
+# names
 # yield_mu_file = file["Yield-Mu"]
 # names2 = yield_mu_file[1,2:end-1]
 # values2 = yield_mu_file[2:end,2:end-1]
