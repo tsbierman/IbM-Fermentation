@@ -324,5 +324,5 @@ function loadPresetFile(filename)
 end
 
 
-file_loc = string(Base.source_dir(), "\\","test_file.xlsx")
-grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc);
+# file_loc = string(Base.source_dir(), "\\","test_file.xlsx")
+# grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc);

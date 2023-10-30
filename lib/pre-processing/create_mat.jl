@@ -1,6 +1,10 @@
 #Initialise structs that will have to be used later
 # Structs need to be declared at top level
 
+loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
+include(loading_file)
+
+
 struct General
     properties::Dict{Symbol, Any}
 end
@@ -11,6 +15,9 @@ Base.setproperty!(x::General, property::Symbol, value) = getfield(x, :properties
 Base.propertynames(x::General) = keys(getfield(x, :properties))
 
 import XLSX
-filename = string(Base.source_dir(), "\\","test_file.xlsx")
-# Should later look something like this:
-# filename = ".\\Documents\\Universiteit\\Master\\Jaar 2\\MEP\\Code\\IbM-Fermentation\\IbM-Fermentation\\lib\\pre-processing\\test_file.xlsx"
+
+# This needs to be changed if the test_file is moved to another directory.
+code_folder = dirname(dirname(Base.source_dir()))
+filename = string(code_folder, "\\planning\\test_file.xlsx")
+
+grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
