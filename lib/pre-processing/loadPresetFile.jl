@@ -13,7 +13,7 @@ function loadPresetFile(filename)
     file = XLSX.readxlsx(filename)
 
     # initialise grid
-    names_discr, values_discr = file["Discretization"][:,1], file["Discretization"][:,2]
+    names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
     grid.dx = values_discr[names_discr .== "dx"]                                        # [m]
     grid.dy = values_discr[names_discr .== "dy"]                                        # [m]
     grid.nx = values_discr[names_discr .== "nx"]                                        # [-]
@@ -52,13 +52,13 @@ function loadPresetFile(filename)
     end
 
     # Constants (Diffusion)
-    names_diff, values_diff = file["Diffusion"][:,1], file["Diffusion"][:,2]
+    names_diff, values_diff = collect(skipmissing(file["Diffusion"][:,1])), collect(skipmissing(file["Diffusion"][:,2]))
     constants.compoundNames = names_diff
     nCompounds = length(constants.compoundNames)
     constants.diffusion_rates = values_diff                                      # [m2/h]
 
     # Constants (Operational parameters)
-    names_temp, values_temp = file["Parameters"][:,1], file["Parameters"][:,2]
+    names_temp, values_temp = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2]))
     names_para, values_para = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)) # It takes some extra empty rows, this removes that
     constants.pHsetpoint = values_para[names_para .== "pH setpoint"]                  # [-]
     constants.T = values_para[names_para .== "Temperature (K)"]                       # [K]
@@ -76,8 +76,7 @@ function loadPresetFile(filename)
     end
 
     # Constants (Bacteria)
-    names_temp, values_temp = file["Bacteria"][:,1], file["Bacteria"][:,2]  
-    names_bac, values_bac = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)) # It takes some extra empty rows, this removes that
+    names_bac, values_bac = collect(skipmissing(file["Bacteria"][:,1])), collect(skipmissing(file["Bacteria"][:,2]))  # It takes some extra empty rows, this removes that
     constants.bac_MW = values_bac[names_bac .== "Molecular weight bacterium"]       # [g/mol]
     constants.bac_rho = values_bac[names_bac .== "Density bacterium"]               # [g/m3]
     constants.max_nBac = values_bac[names_bac .== "Maximum nBacteria"]              # [-] Maybe find better way of calculating this
@@ -92,7 +91,7 @@ function loadPresetFile(filename)
 
 
     # Constants (Solver)
-    names_solv, values_solv = file["Solver"][:,1], file["Solver"][:,2]
+    names_solv, values_solv = collect(skipmissing(file["Solver"][:,1])), collect(skipmissing(file["Solver"][:,2]))
     constants.diffusion_accuracy = values_solv[names_solv .== "Diffusion tolerance"]              # [-]
     constants.steadystate_tolerance = values_solv[names_solv .== "Steady state RES threshold"]    # [mol/L/h]
     tol_abs = values_solv[names_solv .== "Concentration tolerance"]                               # [mol/L]
@@ -135,27 +134,27 @@ function loadPresetFile(filename)
 
 
     # Constants (initial conditions)
-    names, values = file["Initial condition"][:,1], file["Initial condition"][:,2]
+    names_init, values_init = collect(skipmissing(file["Initial condition"][:,1])), collect(skipmissing(file["Initial condition"][:,2]))
 
-    if names != constants.compoundNames
+    if names_init != constants.compoundNames
         throw(ErrorException("Compounds do not have the same name or are not in the same order"))
     end
 
     # For the species with a Dirichlet, the influent concentration is taken as the bulk concentration
-    init_params.init_concs = values                                             # [mol/L]
+    init_params.init_concs = values_init                                             # [mol/L]
     init_params.init_bulk_conc = init_params.init_concs                         # [mol/L]
     init_params.init_bulk_conc[constants.Dir_k] = constants.influent_concentrations[constants.Dir_k]
 
     # Constants (Equilibrium constants & charge matrix)
     thermodynamic_parameters = file["ThermoParam"]
-    names = thermodynamic_parameters[:,1]
+    names_thermo = thermodynamic_parameters[:,1]
     nColumns = length(file["ThermoParam"][2,:])-4 # -4 due to Compound names, preferred subspecies, compound phase and cell with text 
 
     # Divide in sections and locate H2O and H indices
-    section_starts = findall(names .== constants.compoundNames[1])
-    section_ends = findall(names .== constants.compoundNames[end])
-    H2O_index = findall(names .== "H2O")
-    H_index = findall(names .== "H")
+    section_starts = findall(names_thermo .== constants.compoundNames[1])
+    section_ends = findall(names_thermo .== constants.compoundNames[end])
+    H2O_index = findall(names_thermo .== "H2O")
+    H_index = findall(names_thermo .== "H")
     dG_rows = collect(section_starts[1]:section_ends[1])
 
     # Check the order of the compounds names
@@ -212,12 +211,12 @@ function loadPresetFile(filename)
 
     # Loop to check whether a compound has a Ks and Ki, if yes, store value
     for (index, uniq) in enumerate(uniq_compounds)
-        columnidx = findall(value .== comp_names_ks)
+        columnidx = findall(uniq .== comp_names_ks)
         if length(columnidx) != 0
             constants.Ks[:,columnidx] = values_ks[:,columnidx]
         end
 
-        columnidx = findall(value .== comp_names_ki)
+        columnidx = findall(uniq .== comp_names_ki)
         if length(columnidx) != 0
             constants.Ki[:,columnidx] = values_ki[:,columnidx]
         end
@@ -242,19 +241,19 @@ function loadPresetFile(filename)
 
     # Constants (Yield, eDonor, mu_max, maint)
     yield_mu_file = file["Yield-Mu"]
-    bac_names = yield_mu_file[2:end,1]
-    names = yield_mu_file[1,2:end-1]
-    values = yield_mu_file[2:end,2:end-1]
+    bac_names = collect(skipmissing(yield_mu_file[2:end,1]))
+    names_Ymu = collect(skipmissing(yield_mu_file[1,2:end-1]))
+    values_Ymu = collect(skipmissing(yield_mu_file[2:end,2:end-1]))
 
     if bac_names != constants.speciesNames
         throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
 
-    yield = values[:, findall(names .== "Yield")[1][2]]
-    eD = values[:, findall(names .== "eD")[1][2]]
+    yield = values_Ymu[:, findall(names_Ymu .== "Yield")[1][2]]
+    eD = values_Ymu[:, findall(names_Ymu .== "eD")[1][2]]
 
-    constants.maintenance = values[:, findall(names .== "Maintenance")[1][2]]
-    constants.mu_max = values[:, findall(names .== "Max growth rate")[1][2]]
+    constants.maintenance = values_Ymu[:, findall(names_Ymu .== "Maintenance")[1][2]]
+    constants.mu_max = values_Ymu[:, findall(names_Ymu .== "Max growth rate")[1][2]]
 
     # Test is any of the maintenance or mu is unknown (missing)
     if ismissing(any(constants.maintenance .== 1)) || ismissing(any(constants.mu_max)) # The 1 is arbitrary, but needed a comparison to yield a "missing"
@@ -264,16 +263,16 @@ function loadPresetFile(filename)
     end
 
     # Constants (ReactionMatrix)
-    bac_names = file["ReactionMatrix"][1, 2:end]
-    bac_names = bac_names[1:3:end]
-    reaction_names = file["ReactionMatrix"][2,2:end]
-    values_reacM = file["ReactionMatrix"][3:end, 2:end]
-    compounds = file["ReactionMatrix"][3:end,1]
+    bac_names_RM = collect(skipmissing(file["ReactionMatrix"][1, 2:end]))
+    bac_names_RM = bac_names_RM[1:3:end]
+    reaction_names = collect(skipmissing(file["ReactionMatrix"][2,2:end]))
+    values_reacM = collect(skipmissing(file["ReactionMatrix"][3:end, 2:end]))
+    compounds = collect(skipmissing(file["ReactionMatrix"][3:end,1]))
 
     first_compoundindex = findall(constants.compoundNames[1] .== compounds)
     last_compoundindex = findall(constants.compoundNames[end] .== compounds)
 
-    if bac_names != constants.speciesNames
+    if bac_names_RM != constants.speciesNames
         throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
 
@@ -312,17 +311,15 @@ function loadPresetFile(filename)
     end
 
     # Initialisation of bacteria
-    names_temp, values_temp = file["Bacteria"][:,1], file["Bacteria"][:,2]  
-    names, values = collect(skipmissing(names_temp)), collect(skipmissing(values_temp)) # It takes some extra empty rows, this removes that
-    settings.model_type = values[names .== "Initialisation method"]
+    settings.model_type = values_bac[names_bac .== "Initialisation method"]
 
     if settings.model_type in ("granule", "mature granule")
-        bac_init.granule_radius = values[names .== "Starting granule radius"]
-        bac_init.start_nBac = values[names .== "Starting number of bacteria (granule)"]
+        bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"]
+        bac_init.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"]
 
     elseif settings.model_type in ("suspension")
-        bac_init.start_nColonies = values[names .== "Starting number of microcolonies (suspension)"]
-        bac_init.start_nBacPerColony = values[names .== "Starting number of bacteria per microcolony (suspension)"]
+        bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"]
+        bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"]
     else
         throw(ErrorException("Initialisation method <$(setting.model_type)> is not a valid method."))
     end
