@@ -14,39 +14,39 @@ function loadPresetFile(filename)
 
     # initialise grid
     names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
-    grid.dx = values_discr[names_discr .== "dx"]                                        # [m]
-    grid.dy = values_discr[names_discr .== "dy"]                                        # [m]
-    grid.nx = values_discr[names_discr .== "nx"]                                        # [-]
-    grid.ny = values_discr[names_discr .== "ny"]                                        # [-]
-    grid.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"]    # [m]
+    grid.dx = values_discr[names_discr .== "dx"][1]                                        # [m]
+    grid.dy = values_discr[names_discr .== "dy"][1]                                        # [m]
+    grid.nx = values_discr[names_discr .== "nx"][1]                                        # [-]
+    grid.ny = values_discr[names_discr .== "ny"][1]                                        # [-]
+    grid.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"][1]    # [m]
 
-    constants.Vg = (grid.dx .^ 3) * 1000                                     # [L]
-    constants.max_granule_radius = ((grid.nx .- 4) .* grid.dx) ./ 2            # [m]
+    constants.Vg = (grid.dx ^ 3) * 1000                                     # [L]
+    constants.max_granule_radius = ((grid.nx - 4) * grid.dx) / 2            # [m]
 
     # initialise constants (Time)
-    constants.simulation_end = values_discr[names_discr .== "Simulation end"]           # [h]
-    constants.dT = values_discr[names_discr .== "Initial dT diffusion"]                 # [h]
-    constants.dT_bac = values_discr[names_discr .== "Initial dT bacteria"]              # [h]
-    constants.dT_save = values_discr[names_discr .== "dT save"]                         # [h]
-    constants.dT_backup = values_discr[names_discr .== "dT backup"]                     # [h]
+    constants.simulation_end = values_discr[names_discr .== "Simulation end"][1]           # [h]
+    constants.dT = values_discr[names_discr .== "Initial dT diffusion"][1]                 # [h]
+    constants.dT_bac = values_discr[names_discr .== "Initial dT bacteria"][1]              # [h]
+    constants.dT_save = values_discr[names_discr .== "dT save"][1]                         # [h]
+    constants.dT_backup = values_discr[names_discr .== "dT backup"][1]                     # [h]
 
     settings.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                  # [Bool]
 
     # Only if dynamic time stepping is enabled
     if settings.dynamicDT
         dynamicDT = General()   # Extra structure to store in the other structure
-        dynamicDT.nIterThreshold = values_discr[names_discr .== "nIterThreshold"]
-        dynamicDT.iterThresholdDecrease = values_discr[names_discr .== "iterThresholdDecrease"]
-        dynamicDT.iterThresholdIncrease = values_discr[names_discr .== "iterThresholdIncrease"]
-        dynamicDT.initRESThresholdIncrease = values_discr[names_discr .== "initial RES threshold increase"]
-        dynamicDT.nItersCycle = values_discr[names_discr .== "nIters per cycle"]
-        dynamicDT.tolerance_no_convergence = values_discr[names_discr .== "tolerance no-convergence"]
-        dynamicDT.maxRelDiffBulkConc = values_discr[names_discr .== "maximum relative bulk conc chnage"]
+        dynamicDT.nIterThreshold = values_discr[names_discr .== "nIterThreshold"][1]
+        dynamicDT.iterThresholdDecrease = values_discr[names_discr .== "iterThresholdDecrease"][1]
+        dynamicDT.iterThresholdIncrease = values_discr[names_discr .== "iterThresholdIncrease"][1]
+        dynamicDT.initRESThresholdIncrease = values_discr[names_discr .== "initial RES threshold increase"][1]
+        dynamicDT.nItersCycle = values_discr[names_discr .== "nIters per cycle"][1]
+        dynamicDT.tolerance_no_convergence = values_discr[names_discr .== "tolerance no-convergence"][1]
+        dynamicDT.maxRelDiffBulkConc = values_discr[names_discr .== "maximum relative bulk conc change"][1]
         
-        dynamicDT.maxDT = values_discr[names_discr .== "Maximum dT diffusion"]          # [h]
-        dynamicDT.minDT = values_discr[names_discr .== "Minimum dT diffusion"]          # [h]
-        dynamicDT.maxDT_bac = values_discr[names_discr .== "Maximum dT bacteria"]       # [h]
-        dynamicDT.minDT_bac = values_discr[names_discr .== "Minimum dT bacteria"]       # [h]
+        dynamicDT.maxDT = values_discr[names_discr .== "Maximum dT diffusion"][1]          # [h]
+        dynamicDT.minDT = values_discr[names_discr .== "Minimum dT diffusion"][1]          # [h]
+        dynamicDT.maxDT_bac = values_discr[names_discr .== "Maximum dT bacteria"][1]       # [h]
+        dynamicDT.minDT_bac = values_discr[names_discr .== "Minimum dT bacteria"][1]       # [h]
 
         constants.dynamicDT = dynamicDT
     end
@@ -59,45 +59,45 @@ function loadPresetFile(filename)
 
     # Constants (Operational parameters)
     names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2])) # It takes some extra empty rows, this removes that
-    constants.pHsetpoint = values_para[names_para .== "pH setpoint"]                  # [-]
-    constants.T = values_para[names_para .== "Temperature (K)"]                       # [K]
-    constants.Vr = values_para[names_para .== "Representative volume"] * 1000         # [L]
-    constants.reactor_density = values_para[names_para .== "Density reactor"]         # [g/L]
+    constants.pHsetpoint = values_para[names_para .== "pH setpoint"][1]                  # [-]
+    constants.T = values_para[names_para .== "Temperature (K)"][1]                       # [K]
+    constants.Vr = values_para[names_para .== "Representative volume"][1] * 1000         # [L]
+    constants.reactor_density = values_para[names_para .== "density reactor"][1]         # [g/L]
 
-    settings.variableHRT = values_para[names_para .== "Variable HRT"][1]              # [Bool]
-    init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                          # [1/h]
+    settings.variableHRT = values_para[names_para .== "Variable HRT"][1]                 # [Bool]
+    init_params.invHRT = 1 / values_para[names_para .== "HRT"][1]                        # [1/h]
 
     # Only if varaible HRT is enabled
     if settings.variableHRT
-        constants.bulk_setpoint = values_para[names_para .== "Setpoint"]              # [mol/L]
+        constants.bulk_setpoint = values_para[names_para .== "Setpoint"][1]              # [mol/L]
         compound_name = values_para[names_para .== "Compound setpoint"][1] 
         constants.setpoint_index = findall(constants.compoundNames .== compound_name) # [CartasianIndex]
     end
 
     # Constants (Bacteria)
     names_bac, values_bac = collect(skipmissing(file["Bacteria"][:,1])), collect(skipmissing(file["Bacteria"][:,2]))  # It takes some extra empty rows, this removes that
-    constants.bac_MW = values_bac[names_bac .== "Molecular weight bacterium"]       # [g/mol]
-    constants.bac_rho = values_bac[names_bac .== "Density bacterium"]               # [g/m3]
-    constants.max_nBac = values_bac[names_bac .== "Maximum nBacteria"]              # [-] Maybe find better way of calculating this
+    constants.bac_MW = values_bac[names_bac .== "Molecular weight bacterium"][1]       # [g/mol]
+    constants.bac_rho = values_bac[names_bac .== "Density bacterium"][1]               # [g/m3]
+    constants.max_nBac = values_bac[names_bac .== "Maximum nBacteria"][1]              # [-] Maybe find better way of calculating this
     constants.inactivationEnabled = values_bac[names_bac .== "Inactivation enabled"][1] # [Bool]
-    constants.min_bac_mass_grams = values_bac[names_bac .== "Minimum mass bacterium"] # [g]
-    constants.max_bac_mass_grams = values_bac[names_bac .== "Maximum mass bacterium"] # [g]
-    constants.bac_max_radius = values_bac[names_bac .== "Maximum radius bacterium"] # [m]
-    constants.kDist = values_bac[names_bac .== "kDist"]                             # [-]
-    constants.max_granule_radius = min(constants.max_granule_radius, values_bac[names_bac .== "Maximum granule radius"]) # [m] Either based on grid size or set value
-    constants.kDet = values_bac[names_bac .== "Detachment constant"]                # [1/m2.h]
+    constants.min_bac_mass_grams = values_bac[names_bac .== "Minimum mass bacterium"][1] # [g]
+    constants.max_bac_mass_grams = values_bac[names_bac .== "Maximum mass bacterium"][1] # [g]
+    constants.bac_max_radius = values_bac[names_bac .== "Maximum radius bacterium"][1] # [m]
+    constants.kDist = values_bac[names_bac .== "kDist"][1]                             # [-]
+    constants.max_granule_radius = min(constants.max_granule_radius, values_bac[names_bac .== "Maximum granule radius"][1]) # [m] Either based on grid size or set value
+    constants.kDet = values_bac[names_bac .== "Detachment constant"][1]                # [1/m2.h]
     settings.detachment = values_bac[names_bac .== "Detachment method"][1]          # [mechanistic, naive, none]
 
 
     # Constants (Solver)
     names_solv, values_solv = collect(skipmissing(file["Solver"][:,1])), collect(skipmissing(file["Solver"][:,2]))
-    constants.diffusion_accuracy = values_solv[names_solv .== "Diffusion tolerance"]              # [-]
-    constants.steadystate_tolerance = values_solv[names_solv .== "Steady state RES threshold"]    # [mol/L/h]
-    tol_abs = values_solv[names_solv .== "Concentration tolerance"]                               # [mol/L]
-    constants.correction_concentration_steady_state = tol_abs ./ constants.steadystate_tolerance
+    constants.diffusion_accuracy = values_solv[names_solv .== "Diffusion tolerance"][1]              # [-]
+    constants.steadystate_tolerance = values_solv[names_solv .== "Steady state RES threshold"][1]    # [mol/L/h]
+    tol_abs = values_solv[names_solv .== "Concentration tolerance"][1]                               # [mol/L]
+    constants.correction_concentration_steady_state = tol_abs / constants.steadystate_tolerance
     constants.RESmethod = values_solv[names_solv .== "RES determination method"][1]
 
-    constants.nDiffusion_per_SScheck = values_solv[names_solv .== "nIters diffusion per SS check"]
+    constants.nDiffusion_per_SScheck = values_solv[names_solv .== "nIters diffusion per SS check"][1]
 
     settings.pHbulkCorrection = values_solv[names_solv .== "pH bulk concentration corrected"][1]
     settings.pHincluded = values_solv[names_solv .== "pH solving included"][1]
@@ -105,7 +105,7 @@ function loadPresetFile(filename)
     settings.speciation = values_solv[names_solv .== "Speciation included"][1] || settings.pHincluded
 
     if settings.pHincluded
-        constants.pHtolerance = values_solv[names_solv .== "pH solver tolerance"]
+        constants.pHtolerance = values_solv[names_solv .== "pH solver tolerance"][1]
     else
         constants.pHtolerance = NaN
     end
@@ -310,12 +310,12 @@ function loadPresetFile(filename)
     settings.model_type = values_bac[names_bac .== "Initialisation method"][1]
 
     if settings.model_type in ("granule", "mature granule")
-        bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"]
-        bac_init.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"]
+        bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"][1]
+        bac_init.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"][1]
 
     elseif settings.model_type in ("suspension")
-        bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"]
-        bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"]
+        bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"][1]
+        bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"][1]
     else
         throw(ErrorException("Initialisation method <$(settings.model_type)> is not a valid method."))
     end
@@ -325,145 +325,4 @@ end
 
 
 file_loc = string(Base.source_dir(), "\\","test_file.xlsx")
-grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc)
-
-
-# file_loc = string(Base.source_dir(), "\\","test_file.xlsx") # Not needed in this file
-# file = XLSX.readxlsx(file_loc)
-
-
-# names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2]))
-# 1/values_para[names_para .== "HRT"][1] 
-
-# names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
-# dx = values_discr[names_discr .== "dx"]                                        # [m]
-
-
-
-# import XLSX # Not needed in this file
-# file_loc = string(Base.source_dir(), "\\","test_file.xlsx") # Not needed in this file
-# file = XLSX.readxlsx(file_loc)
-
-# bac_names = file["ReactionMatrix"][1, 2:end]
-# bac_names = bac_names[1:3:end]
-# values_reacM = file["ReactionMatrix"][3:end, 2:end]
-# reaction_names = file["ReactionMatrix"][2,2:end]
-
-# compounds = file["ReactionMatrix"][3:end,1]
-# cat_indices = findall(reaction_names .== "Cat")
-# ana_indices = findall(reaction_names .== "Anab")
-
-# cata = values_reacM[:, cat_indices[1][2]]
-# ana = values_reacM[:, ana_indices[1][2]]
-
-# names
-# yield_mu_file = file["Yield-Mu"]
-# names2 = yield_mu_file[1,2:end-1]
-# values2 = yield_mu_file[2:end,2:end-1]
-# x = values2[:,findall(names2 .== "eD")[1][2]]
-
-# names2, values2 = file["Diffusion"]["A"], file["Diffusion"]["B"]
-# compoundNames = names2
-
-# eD_index = findall(compoundNames .== x[1])
-# cata[eD_index][1] == -1
-
-
-# for species = 1:length(compounds)
-#     println(species)
-# end
-
-
-
-# mu = values[:,findall(names .== "Max growth rate")[1][2]]
-# maint = values[:,findall(names .== "Maintenance")[1][2]]
-# names2, values2 = file["Diffusion"]["A"], file["Diffusion"]["B"]
-# compoundNames = names2
-# length(compoundNames)
-
-# preferred_state = file["ThermoParam"]["G2:G11"]
-
-# I = findall(compoundNames .== "CO2")[1][1]
-# J = preferred_state[I]
-# sz = (10,5)
-# index = LinearIndices(sz)[CartesianIndex.(I,J)]
-
-# length(file["ThermoParam"][2,:])-4
-
-
-
-
-# file_ks = file["Ks"]
-# file_ki = file["Ki"]
-
-# speciesNames = collect(skipmissing(file_ks[:,1][2:end,1]))
-# comp_names_ks = collect(skipmissing(file_ks[1,1:end-1]))
-# comp_names_ki = collect(skipmissing(file_ki[1,1:end-1]))
-
-# x = unique([comp_names_ks;comp_names_ki])
-
-# ks_vals = reshape(collect(skipmissing(file_ks[2:end,2:end-1])),length(speciesNames), length(comp_names_ks))
-# ki_vals = reshape(collect(skipmissing(file_ki[2:end,2:end-1])),length(speciesNames), length(comp_names_ki))
-
-# temp = zeros(length(speciesNames),length(x))
-
-# for (index, value) in enumerate(x)
-#     columnidx = findall(value .== comp_names_ki)
-#     if length(columnidx) != 0
-#         temp[:,columnidx] = ki_vals[:,columnidx]
-#     end
-# end
-
-# temp
-
-# names, values = file["ThermoParam"][:,8], file["Bacteria"][:,2]
-# names
-# # values[names .== "Simulation end"]
-
-# thermodynamic_parameters= file["ThermoParam"]
-# names2, values2 = file["Diffusion"]["A"], file["Diffusion"]["B"]
-# compoundNames = names2
-# names = thermodynamic_parameters["A"]
-# section_starts = findall(names .== compoundNames[1])
-# section_ends = findall(thermodynamic_parameters["A"] .== compoundNames[end])
-# dG_rows = collect(section_starts[1][1]:section_ends[1][1])
-# H2O_index = findall(names .== "H2O")
-# H_index = findall(names .== "H")
-# dG_rows = push!(vec(dG_rows), H2O_index[1][1], H_index[1][1])
-# thermodynamic_parameters["H"][dG_rows]
-
-# Keq_start = section_starts[3][1]
-# Keq_end = section_ends[3][1] + 2
-# Keq_rows = collect(section_starts[3][1]:section_ends[2][1])
-# # Keq_rows = push!(vec(Keq_rows), H2O_index[2][1], H_index[2][1])
-# chrM = thermodynamic_parameters[Keq_start:Keq_end, 2:6]
-# idx = findall(chrM .== "NA")
-# chrM[idx] .= 0
-# chrM
-
-
-# dG_rows = [dG_rows, H2O_index[1],H_index[1]]
-
-# typeof(dG_rows[2])
-# thermodynamic_parameters["G"][dG_rows]
-# thermodynamic_parameters["A"][dG_rows] == compoundNames
-
-# names, values, cond = file["Influent"]["A"], file["Influent"]["B"], file["Influent"]["D"]
-# cond = collect(skipmissing(cond))
-# cond
-
-# names, values = file["Initial condition"]["A"], file["Initial condition"]["B"]
-# names2, values2, condition_type = file["Influent"]["A1:A8"], file["Influent"]["B1:B8"], file["Influent"]["D1:D8"]
-# Dir_k = condition_type .== "D"
-
-# values[Dir_k] = values2[Dir_k]
-
-
-# typeof(values[names .== "Compound setpoint"][1])
-
-
-# names, values = file["Parameters"]["A1:A12"], file["Parameters"]["B1:B12"]
-# names2, values2 = file["Diffusion"]["A"], file["Diffusion"]["B"]
-# compoundNames = names2
-# (compound_name = values[names .== "Compound setpoint"][1])
-# (findall(compoundNames .== compound_name))
+grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc);
