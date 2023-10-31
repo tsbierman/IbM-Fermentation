@@ -326,3 +326,13 @@ end
 
 # file_loc = string(Base.source_dir(), "\\","test_file.xlsx")
 # grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc);
+
+# a = reshape([11;2;13;14;15], 5, :)
+# b = reshape([10;20;12;4;20], :, 5)
+
+# c = a .- b
+
+# d = findmax(minimum(c, dims = 1))
+a = range(1,10,10)
+repeat(a, 1,2)
+
