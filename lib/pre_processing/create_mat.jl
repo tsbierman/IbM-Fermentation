@@ -118,13 +118,18 @@ end
 
 # Import everything necessary
 import XLSX
+using JavaCall
 using Random
+
+
 
 #Initialise structs that will have to be used later
 # Structs need to be declared at top level
 
 loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
 include(loading_file)
+
+
 
 struct General
     properties::Dict{Symbol, Any}
@@ -160,7 +165,7 @@ elseif settings.model_type in ("suspension")
     xrange = [margin, grid.dx*grid.nx - margin]
     yrange = xrange # assume square domain
 
-    r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/5 * diameter if all cell next to each other.
+    r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
     bac.x, bac.y = distribute_microcolonies(bac_init.start_nColonies, bac_init.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
 end
 

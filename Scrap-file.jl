@@ -20,10 +20,10 @@
 
 # rand((1:5), (15,1))
 
-file_loc = string(Base.source_dir(), "\\planning\\test_file.xlsx")
-grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc)
+# file_loc = string(Base.source_dir(), "\\planning\\test_file.xlsx")
+# grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc)
 
-findall(constants.speciesNames .== "B2")[1]
+# findall(constants.speciesNames .== "B2")[1]
 
 # typeof(length(constants.speciesNames))
 # using Random
