@@ -1,5 +1,7 @@
 using Test
 import XLSX
+loading_file = string(dirname(Base.source_dir()), "\\lib\\pre-processing\\loadPresetFile.jl")
+include(loading_file)
 
 struct General
     properties::Dict{Symbol, Any}
@@ -13,7 +15,7 @@ Base.propertynames(x::General) = keys(getfield(x, :properties))
 
 @testset "loadPresetFile" begin
     filename = string(Base.source_dir(), "\\","test_file.xlsx")
-    grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc)
+    grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
 
     #Test Discretization
     @test grid.dx == 2e-6
