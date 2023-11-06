@@ -129,14 +129,8 @@ end
 
 # Import everything necessary
 import XLSX
-using JavaCall
 using Random
 using Plots
-
-# This only needs to be initialised once, not more, not less.
-JavaCall.addClassPath(string(pwd(), "\\lib\\bacteria\\shovingQuadTreekDist.jar"))
-JavaCall.addClassPath(string(pwd(), "\\lib\\bacteria\\Results.java"))
-JavaCall.init()
 
 # Get directories of files that need to be called
 loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")

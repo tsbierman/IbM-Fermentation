@@ -1,6 +1,6 @@
 using Test
 import XLSX
-loading_file = string(dirname(Base.source_dir()), "\\lib\\pre-processing\\loadPresetFile.jl")
+loading_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\loadPresetFile.jl")
 include(loading_file)
 
 struct General
