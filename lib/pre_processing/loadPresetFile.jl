@@ -313,7 +313,7 @@ function loadPresetFile(filename)
         bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"][1]
         bac_init.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"][1]
 
-    elseif settings.model_type in ("suspension")
+    elseif settings.model_type in ("suspension",)
         bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"][1]
         bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"][1]
     else

@@ -5,11 +5,15 @@ of x and y coordinates within the circle.
 """
     # Create estimate that is actually in the circle
     Ns = round(4 / pi * N + 2.5 * sqrt(N) + 100)
-    X = rand(1, Ns) * (2*r) .- r # Random decimal time Diameter, shifted to be around 0.
-    Y = rand(1, Ns) * (2*r) .- r
-    I = findall(sqrt.(X .^2 .+ Y .^2) <= r) # Check which are within radius
-    X = X[I[1:N]] .+ x_centre # Select and move to existing centre
-    Y = Y[I[1:N]] .+ y_centre
+    X = rand(1, Int(Ns)) * (2*r) .- r # Random decimal time Diameter, shifted to be around 0.
+    Y = rand(1, Int(Ns)) * (2*r) .- r
+    
+    I = findall(sqrt.(X .^2 .+ Y .^2) .<= r) # Check which are within radius
+    X = X[I[1:N],:] .+ x_centre # Select and move to existing centre
+    Y = Y[I[1:N],:] .+ y_centre
+
+    X = reshape(X, 1, :)
+    Y = reshape(Y, 1, :)
 
     # Alternative: This generates only points that are already in the circle, no need to check the distance.
     # radius = r * sqrt(rand(N,1))
@@ -27,8 +31,8 @@ It stores the set that is the furthest away. This is done for n sets of coordina
 It returns x and y coordinates of all the suitable cells.
 """
     m = 20 # Amount of potential candidates that will be generated
-    X = zeros(n, 1)
-    Y = zeros(n, 1)
+    X = zeros(n)
+    Y = zeros(n)
     X[1] = x_centre
     Y[1] = y_centre
     npoints = 1
@@ -57,7 +61,7 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
     to create a cluster of microbial cells at every starting point. It returns two arrays that are the coordinates of all the cells.
     """
     # Estimate how many colonies per axis and create equally spaced locations for the colonies
-    nsections = ceil(sqrt(nColonies) * 1.1)
+    nsections = Int(ceil(sqrt(nColonies) * 1.1))
     xlist = transpose(range(xrange[1], xrange[2], nsections))
     ylist = transpose(range(yrange[1], yrange[2], nsections))
 
@@ -81,12 +85,12 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
 
     x = x[i]
     y = y[i]
-
+    
     # For every coordinate (1 cell), generate a colony around the cell and store its coordinates    
-    for index in 1:eachindex(x)
+    for index in eachindex(x)
         x_microcol, y_microcol = blue_noise_circle(nBacPerCol, x[index], y[index], r_colony)
         x = [x;x_microcol[2:end]]
-        y = [y:y_microcol[2:end]]
+        y = [y;y_microcol[2:end]]
     end
     return x, y
 end
@@ -97,39 +101,52 @@ function AMXinside(bac, grid, constants)
     This function assigns all the bacteria a specie. It assigns the closest to the centre AMX. The others are random
     """
     # Calculate distance from the centre and sort based on distance
-    distance = sqrt((bac.x .- (grid.nX / 2 * grid.dx)) .^2 + (bac.y .- (grid.nY / 2 * grid.dy)) .^2)
-    I = sortperm(distance, dims=1)
+    distance = sqrt.((bac.x .- (grid.nx / 2 * grid.dx)) .^2 + (bac.y .- (grid.ny / 2 * grid.dy)) .^2)
+    I = sortperm(distance)
 
     # Determine index of AMX specie. Randomly assign species to bacteria and see how many are AMX
-    iAMX = findall(constants.speciesNames .== "AMX")[1]
+    iAMX = findall(constants.speciesNames .== "B2")[1]
     nAMX = sum(rand(1:length(constants.speciesNames), size(bac.x)) .== iAMX)
 
     # Generate storage for species and select nAMX closest to centre to be AMX
     species = zeros(size(bac.x))
-    species[I[1:nAMX]] = iAMX
+    species[I[1:nAMX]] .= iAMX
 
     # Generate random specie index for all the bacteria that do not have a specie (so 0 in species)
     # 1 less so we miss a specie. Then everything equal or higher than iAMX will shift upwards
-    species_other = rand(1:length(constants.speciesNames) - 1, size(species[species .== 0]))
-    species_other[species_other .>= iAMX] = species_other[species_other .>= iAMX] + 1
+    species_other = rand(1:length(constants.speciesNames) .- 1, size(species[species .== 0]))
+    species_other[species_other .>= iAMX] = species_other[species_other .>= iAMX] .+ 1
     species[I[nAMX+1:end]] = species_other
     return species
+end
+
+function shoving_loop(bac, grid, constants, n)
+    for gg in 1:n
+        bac = bacteria_shove(bac, grid, constants)
+    end
+    return bac
 end
 
 # Import everything necessary
 import XLSX
 using JavaCall
 using Random
+using Plots
 
+# This only needs to be initialised once, not more, not less.
+JavaCall.addClassPath(string(pwd(), "\\lib\\bacteria\\shovingQuadTreekDist.jar"))
+JavaCall.addClassPath(string(pwd(), "\\lib\\bacteria\\Results.java"))
+JavaCall.init()
 
-
-#Initialise structs that will have to be used later
-# Structs need to be declared at top level
-
+# Get directories of files that need to be called
 loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
 include(loading_file)
 
+shove_file = string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl")
+include(shove_file)
 
+# Initialise structs that will have to be used later
+# Structs need to be declared at top level
 
 struct General
     properties::Dict{Symbol, Any}
@@ -159,7 +176,7 @@ if settings.model_type in ("granule", "mature granule")
 
     bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid.nx / 2 * grid.dx, grid.ny / 2 * grid.dy, bac_init.granule_radius)
 
-elseif settings.model_type in ("suspension")
+elseif settings.model_type in ("suspension",)
 
     margin = 0.2 * grid.dx * grid.nx # 20% of simulation domain as margin for letting suspensions growth (empirical)
     xrange = [margin, grid.dx*grid.nx - margin]
@@ -171,16 +188,14 @@ end
 
 # Set parameters for every of the bacteria
 bac.molarMass = ones(length(bac.x), 1) * molarMass
-bac.radius = ones(length(bac.x), 1) * radius
+bac.radius = ones(length(bac.x)) * radius
 bac.active = BitArray(ones(size(bac.x))) # Will give error if set to anything else than 0 or 1
 
-# Doesnt work for now, will figure out later how this would work!!!!! FINISH THIS
-# for gg in 1:5
-#     bac = bacteria_shove(bac, grid, constants) # To prevent overlap at the start
-# end
+# Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
+bac = shoving_loop(bac, grid, constants, 5)
 
 if settings.model_type in ("granule", "mature granule")
-    keep = sqrt((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
+    keep = sqrt.((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
     println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
     bac.x = bac.x[keep]
     bac.y = bac.y[keep]
@@ -197,8 +212,8 @@ end
 
 println("$(length(bac.x)) starting bacteria in the system")
 
-for specie in 1:eachindex(constants.speciesNames)
-    println("\t $(sum(bac.species .== specie)) $(constants.speciesNames[species])")
+for specie in eachindex(constants.speciesNames)
+    println("\t $(sum(bac.species .== specie)) $(constants.speciesNames[specie])")
 end
 
 println(">>>>>>>>>>>>>> DONE!")
