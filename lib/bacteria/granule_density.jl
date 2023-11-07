@@ -1,4 +1,4 @@
-function granule_density(bac, constants)
+function granule_density!(bac, constants)
     """
     Updates the density of the granule
     bac is a struct containing all bacteria information

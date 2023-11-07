@@ -12,12 +12,12 @@
 # a = transpose(range(2,11,10))
 # b = transpose(range(11,20,10))
 
-# using InvertedIndices
-# a = range(1,15,15)
+using InvertedIndices
+a = range(1,15,15)
 # b = reshape(a, 3,5)
 
-# c = a .>= 7
-# a = a[c]
+c = a .>= 7
+a = a[Not(c)]
 # a
 
 # rand((1:5), (15,1))
@@ -54,10 +54,23 @@
 
 # a = randperm(15)
 # a = reshape(a, 15,:)
-dx = rand(1:30)
-dy = rand(1:30)
-println(dx,"\n", dy)
-option_a = (dx * dy)
-option_b = ((dx/2)^2 + (dy/2)^2)/2 * pi
-option_c = ((dx + dy)/2 / 2)^2 * pi
-println(option_a,"\n", option_b,"\n", option_c)
+# dx = rand(1:30)
+# dy = rand(1:30)
+# println(dx,"\n", dy)
+# option_a = (dx * dy)
+# option_b = ((dx/2)^2 + (dy/2)^2)/2 * pi
+# option_c = ((dx + dy)/2 / 2)^2 * pi
+# println(option_a,"\n", option_b,"\n", option_c)
+
+
+
+# a = General()
+
+# a.number = 15
+
+# function changer(a)
+#     a.number = 16
+# end
+
+# changer(a)
+# a.number

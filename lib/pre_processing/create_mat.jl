@@ -122,7 +122,7 @@ end
 
 function shoving_loop(bac, grid, constants, n)
     for gg in 1:n
-        bac = bacteria_shove(bac, grid, constants)
+        bac = bacteria_shove!(bac, grid, constants)
     end
     return bac
 end
@@ -131,6 +131,7 @@ end
 import XLSX
 using Random
 using Plots
+using InvertedIndices
 
 # Get directories of files that need to be called
 loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
