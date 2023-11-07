@@ -1,9 +1,4 @@
-a = ones(15)
-a[5] = 10
-a[9] = 2
-b = a .> 1
-d = a .> 5
-c = b .& d
+a = ones(10) * 2
+b = ones(10) * 3
 
-typeof(b)
-e = BitArray(ones(15))
+a .* b
