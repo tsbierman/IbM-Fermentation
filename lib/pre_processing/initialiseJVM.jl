@@ -6,3 +6,4 @@ using JavaCall
 JavaCall.addClassPath(string(pwd(), "\\lib\\bacteria\\shovingQuadTreekDist.jar"))
 JavaCall.addClassPath(string(pwd(), "\\lib\\bacteria\\Results.java"))
 JavaCall.init()
+println("DONE INITIALISING!")
