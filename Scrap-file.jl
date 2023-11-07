@@ -52,6 +52,12 @@
 # sqrt.(a)
 
 
-a = randperm(15)
-a = reshape(a, 15,:)
-
+# a = randperm(15)
+# a = reshape(a, 15,:)
+dx = rand(1:30)
+dy = rand(1:30)
+println(dx,"\n", dy)
+option_a = (dx * dy)
+option_b = ((dx/2)^2 + (dy/2)^2)/2 * pi
+option_c = ((dx + dy)/2 / 2)^2 * pi
+println(option_a,"\n", option_b,"\n", option_c)
