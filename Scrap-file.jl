@@ -1,4 +1,6 @@
-a = ones(10) * 2
-b = ones(10) * 3
+b = randperm(15)
+println(b)
 
-a .* b
+c = sortperm(b)
+println(c)
+b[c]
