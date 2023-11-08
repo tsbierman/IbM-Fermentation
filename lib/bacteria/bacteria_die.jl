@@ -4,7 +4,7 @@ function bacteria_die!(bac, constants)
     bac is a struct that contains all the information regarding the bacteria
     constants is a struct containing all simulation constants
     """
-    include("killBacs.jl")
+    include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
 
     mask_tooSmall = bac.molarMass * constants.bac_MW .< constants.min_bac_mass_grams
     nCellsTooSmall = sum(mask_tooSmall)
