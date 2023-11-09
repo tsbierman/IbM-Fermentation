@@ -1,7 +1,5 @@
 using Test
 import XLSX
-loading_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\loadPresetFile.jl")
-include(loading_file)
 
 create_mat_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
@@ -31,7 +29,7 @@ end
 
 @testset "blue_noise_circle" begin
     n, x_centre, y_centre, radius = 30, 129, 129, 80
-    candidate_x, candidate_y = blue_noise_circle(n, x_centre, y_centre, radius) # Generate 30 points around centre 129,129 with max radius of 80
+    candidate_x, candidate_y = blue_noise_circle(n, x_centre, y_centre, radius) # Generate 30 points around centre (129,129) with max radius of 80
     @test size(candidate_x) == size(candidate_y) == (n,) # Test size of Vectors
     @test typeof(candidate_x) == typeof(candidate_y) == Vector{Float64} # Test type of returned Vectors
     @test all(sqrt.((candidate_x .- x_centre) .^2 + (candidate_y .- y_centre) .^2) .<= radius ) == true # Check all points within radius
@@ -53,7 +51,7 @@ end
 end
 
 @testset "bacteria_shove" begin
-    new_bac = bacteria_shove(bac, grid, constants)
+    new_bac = bacteria_shove!(bac, grid, constants)
     @test size(new_bac.x) == size(new_bac.y)
     @test size(new_bac.x) == size(bac.x)
     @test typeof(new_bac.x) == typeof(new_bac.y)

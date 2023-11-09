@@ -8,9 +8,11 @@ function bacteria_inactivate!(bac, constants)
     mask_positiveGrowthRate = bac.mu .> 0
     mask_possible_reactivation = .!bac.active .& mask_positiveGrowthRate # These bacteria were inactive but have a positive growth rate
 
-    bac.active[mask_tooSmall .& bac.active] = 0 # active but too small --> inactivates
+    bac.active[mask_tooSmall .& bac.active] .= 0 # active but too small --> inactivates
     # When possible 10% change of reactivation
-    random_reactivation = rand(sum(mask_possible_reactivation)) .< 0.1 
+    activation_chance = rand(sum(mask_possible_reactivation))
+    print(activation_chance)
+    random_reactivation = activation_chance .< 0.1 
     bac.active[mask_possible_reactivation] = random_reactivation
 
     # Reactivation is implicitely done already by inactive bacteria being able to grow.

@@ -19,8 +19,8 @@ function bacteria_divide!(bac, constants)
 
         # Generate radial coordinates (random angle, fixed distance) and convert to cartesian coordiantes
         phi = rand(nCellsTooBig) * 2 * pi
-        new_x = bac.x[mask_tooBig] + bac.radius[mask_tooBig] .* cos(phi)
-        new_y = bac.y[mask_tooBig] + bac.radius[mask_tooBig] .* sin(phi)
+        new_x = bac.x[mask_tooBig] + bac.radius[mask_tooBig] .* cos.(phi)
+        new_y = bac.y[mask_tooBig] + bac.radius[mask_tooBig] .* sin.(phi)
 
         # Copy the other properties
         new_species = bac.species[mask_tooBig]
@@ -28,7 +28,7 @@ function bacteria_divide!(bac, constants)
         new_active = BitArray(ones(nCellsTooBig))
 
         # Split mass over parent and child
-        new_molarMass = bac.molarMass[mask_tooBig] .* (0.45 + 0.1 * rand(nCellsTooBig)) # Mass of new cell is somewhere random between 0.45 and 0.55 of old mass
+        new_molarMass = bac.molarMass[mask_tooBig] .* (0.45 .+ 0.1 * rand(nCellsTooBig)) # Mass of new cell is somewhere random between 0.45 and 0.55 of old mass
         bac.molarMass[mask_tooBig] = bac.molarMass[mask_tooBig] - new_molarMass # Parent cell keeps remaining part
         # Update radius of both
         new_radius = ((new_molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) .^ (1/3)
