@@ -132,6 +132,7 @@ import XLSX
 using Random
 using Plots
 using InvertedIndices
+using Statistics
 
 # Get directories of files that need to be called
 loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
