@@ -1,57 +1,37 @@
-# file_loc = string(Base.source_dir(), "\\","test_file.xlsx")
-# grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc);
+# a = rand(5,3) * 2
+# display(a)
 
-# a = reshape([11;2;13;14;15], 5, :)
-# b = reshape([10;20;12;4;20], :, 5)
+# b = findall((a .> 0.5) .& (a .< 1.5))
+# b = 0.5 .< a .< Inf
+# for i in eachindex(b)
+#     println(i)
+#     println("DONE")
+# end
 
-# d = zeros(4,1)
-# println(typeof(d[1:end]))
-# c = d[1:end] .- b
+# b[3]
 
-# d = findmax(minimum(c, dims = 1))
-# a = transpose(range(2,11,10))
-# b = transpose(range(11,20,10))
+# a = zeros(3,3,3)
+# a[1,1,2] = 1
+# a[1,1,3] = 10
+# c = findall(a[1,1,:] .!= 0)
+# b = a[1,1,c]
 
-# using InvertedIndices
-# a = range(1,15,15)
-# b = reshape(a, 3,5)
+# for value in b
+#     println(value)
+# end
 
-# c = a .>= 7
-# a = a[c]
-# a
+2 + 1:2 + 3
 
-# rand((1:5), (15,1))
+a = 1:15
+c = [1;3;4;5;8;10;14;15]
+b = BitArray([1;0;1;1;1;0;0;1;0;1;0;0;0;1;1])
+using InvertedIndices
 
-# file_loc = string(Base.source_dir(), "\\planning\\test_file.xlsx")
-# grid, bac_init, constants, settings, init_params = loadPresetFile(file_loc)
-
-# findall(constants.speciesNames .== "B2")[1]
-
-# typeof(length(constants.speciesNames))
-# using Random
-# a = randperm(15)
-# b = [1;15;3;8;4;5]
-# print(size(b))
-# a = reshape(a, 15,1)
-# println(a)
-# I = sortperm(b)
-# a[I]
-# zeros(size(a))
-# x, y = rand_circle(20, 30, 30, 15)
-# d[1] = 30
-# d[1:end] .- x
-# println(size(x))
-
-# X = zeros(30, 1)
-# X[1] = 20
-
-# print(typeof(X))
-
-# a = range(1, 15, 15)
-# a = reshape(a, 3, 5)
-# sqrt.(a)
+a[Not(c)]
+mean(a)
 
 
-a = randperm(15)
-a = reshape(a, 15,:)
+a = BitArray([1;1;1;0;0])
+b = BitArray([0;0;1;1;1])
 
+a .& .!b

@@ -122,7 +122,7 @@ end
 
 function shoving_loop(bac, grid, constants, n)
     for gg in 1:n
-        bac = bacteria_shove(bac, grid, constants)
+        bac = bacteria_shove!(bac, grid, constants)
     end
     return bac
 end
@@ -131,6 +131,8 @@ end
 import XLSX
 using Random
 using Plots
+using InvertedIndices
+using Statistics
 
 # Get directories of files that need to be called
 loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
@@ -158,7 +160,7 @@ filename = string(code_folder, "\\planning\\test_file.xlsx")
 println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
 grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
 
-# Molar mass is 60% of maximum weigth
+# Initial Molar Mass is 60% of maximum molar Mass
 molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW
 radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)
 

@@ -1,7 +1,8 @@
-function bacteria_shove(bac, grid, constants)
+function bacteria_shove!(bac, grid, constants)
     """
     Functions calls a Java function that shoves bacteria so no overlap is present in the aggregate
     bac is a struct that contains all the information regarding the bacteria
+    grid is a struct containing all infromation about the grid
     constants is a struct containing all simulation constants
     """
 
