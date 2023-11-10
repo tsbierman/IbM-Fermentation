@@ -20,21 +20,8 @@
 #     println(value)
 # end
 
-2 + 1:2 + 3
+a = zeros(10, 2)
 
-a = 1:15
-c = [1;3;4;5;8;10;14;15]
-b = BitArray([1;0;1;1;1;0;0;1;0;1;0;0;0;1;1])
-using InvertedIndices
-
-a[Not(c)]
-mean(a)
-
-
-a = BitArray([1;1;1;0;0])
-b = BitArray([0;0;1;1;1])
-
-a .& .!b
-using Random
-Random.seed!(1)
-rand(2)
+for i in axes(a)[1]
+    println(i)
+end
