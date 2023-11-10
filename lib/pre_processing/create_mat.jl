@@ -127,19 +127,81 @@ function shoving_loop(bac, grid, constants, n)
     return bac
 end
 
+function create_mat(filename)
+    # Get directories of files that need to be called
+    loading_file = string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl")
+    include(loading_file)
+
+    shove_file = string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl")
+    include(shove_file)
+
+    println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
+    grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
+
+    # Initial Molar Mass is 60% of maximum molar Mass
+    molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW
+    radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)
+
+    println(">>>>>>>>>>>>>>>> INITIALISING BACTERIA")
+
+    bac = General()
+
+    if settings.model_type in ("granule", "mature granule")
+
+        bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid.nx / 2 * grid.dx, grid.ny / 2 * grid.dy, bac_init.granule_radius)
+
+    elseif settings.model_type in ("suspension",)
+
+        margin = 0.2 * grid.dx * grid.nx # 20% of simulation domain as margin for letting suspensions growth (empirical)
+        xrange = [margin, grid.dx*grid.nx - margin]
+        yrange = xrange # assume square domain
+
+        r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
+        bac.x, bac.y = distribute_microcolonies(bac_init.start_nColonies, bac_init.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
+    end
+
+    # Set parameters for every of the bacteria
+    bac.molarMass = ones(length(bac.x)) * molarMass
+    bac.radius = ones(length(bac.x)) * radius
+    bac.active = BitArray(ones(size(bac.x))) # Will give error if set to anything else than 0 or 1
+
+    # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
+    bac = shoving_loop(bac, grid, constants, 5)
+
+    if settings.model_type in ("granule", "mature granule")
+        keep = sqrt.((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
+        println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
+        bac.x = bac.x[keep]
+        bac.y = bac.y[keep]
+        bac.radius = bac.radius[keep]
+        bac.molarMass = bac.molarMass[keep]
+        bac.active = bac.active[keep]
+    end
+
+    if settings.model_type == "mature granule"
+        bac.species = AMXinside(bac, grid, constants)
+    else
+        bac.species = rand((1:length(constants.speciesNames)), size(bac.x)) # Random species
+    end
+
+    println("$(length(bac.x)) starting bacteria in the system")
+
+    for specie in eachindex(constants.speciesNames)
+        println("\t $(sum(bac.species .== specie)) $(constants.speciesNames[specie])")
+    end
+
+    println(">>>>>>>>>>>>>> DONE!")
+
+    return grid, bac, constants, settings, init_params
+
+end
+
 # Import everything necessary
 import XLSX
 using Random
 using Plots
 using InvertedIndices
 using Statistics
-
-# Get directories of files that need to be called
-loading_file = string(Base.source_dir(), "\\","loadPresetFile.jl")
-include(loading_file)
-
-shove_file = string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl")
-include(shove_file)
 
 # Initialise structs that will have to be used later
 # Structs need to be declared at top level
@@ -157,59 +219,4 @@ Base.propertynames(x::General) = keys(getfield(x, :properties))
 code_folder = dirname(dirname(Base.source_dir()))
 filename = string(code_folder, "\\planning\\test_file.xlsx")
 
-println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
-grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
-
-# Initial Molar Mass is 60% of maximum molar Mass
-molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW
-radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)
-
-println(">>>>>>>>>>>>>>>> INITIALISING BACTERIA")
-
-bac = General()
-
-if settings.model_type in ("granule", "mature granule")
-
-    bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid.nx / 2 * grid.dx, grid.ny / 2 * grid.dy, bac_init.granule_radius)
-
-elseif settings.model_type in ("suspension",)
-
-    margin = 0.2 * grid.dx * grid.nx # 20% of simulation domain as margin for letting suspensions growth (empirical)
-    xrange = [margin, grid.dx*grid.nx - margin]
-    yrange = xrange # assume square domain
-
-    r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
-    bac.x, bac.y = distribute_microcolonies(bac_init.start_nColonies, bac_init.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
-end
-
-# Set parameters for every of the bacteria
-bac.molarMass = ones(length(bac.x), 1) * molarMass
-bac.radius = ones(length(bac.x)) * radius
-bac.active = BitArray(ones(size(bac.x))) # Will give error if set to anything else than 0 or 1
-
-# Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
-bac = shoving_loop(bac, grid, constants, 5)
-
-if settings.model_type in ("granule", "mature granule")
-    keep = sqrt.((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
-    println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
-    bac.x = bac.x[keep]
-    bac.y = bac.y[keep]
-    bac.radius = bac.radius[keep]
-    bac.molarMass = bac.molarMass[keep]
-    bac.active = bac.active[keep]
-end
-
-if settings.model_type == "mature granule"
-    bac.species = AMXinside(bac, grid, constants)
-else
-    bac.species = rand((1:length(constants.speciesNames)), size(bac.x)) # Random species
-end
-
-println("$(length(bac.x)) starting bacteria in the system")
-
-for specie in eachindex(constants.speciesNames)
-    println("\t $(sum(bac.species .== specie)) $(constants.speciesNames[specie])")
-end
-
-println(">>>>>>>>>>>>>> DONE!")
+create_mat(filename);

@@ -35,3 +35,6 @@ a = BitArray([1;1;1;0;0])
 b = BitArray([0;0;1;1;1])
 
 a .& .!b
+using Random
+Random.seed!(1)
+rand(2)

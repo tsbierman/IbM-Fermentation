@@ -5,10 +5,9 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
     constants is a struct containing all simulation constants
     settings is a struct contains the simulation parameters
     """
-    println(pwd())
 
     if settings.detachment in ("none", "SBR")
-        return
+        return bac
 
     elseif settings.detachment == "naive"
         include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
@@ -97,10 +96,10 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         end
 
 
-    # elseif settings.detachment == "suspension"
-    elseif settings.model_type == "suspension"
+    elseif settings.detachment == "suspension"
+    # elseif settings.model_type == "suspension"
         # Remove cells when they grow slower than dilution rate
-        mask_remove = bac.mu .< (1 / invHRT)
+        mask_remove = bac.mu .< invHRT
         nCellsDetach = sum(mask_remove)
 
         if nCellsDetach > 0
