@@ -25,3 +25,9 @@ a = zeros(10, 2)
 for i in axes(a)[1]
     println(i)
 end
+
+b = 1:4
+c = reshape(b, 1,1,:)
+d = BitArray(ones(10,10))
+d[5,5] = 0
+e = .!d .* c
