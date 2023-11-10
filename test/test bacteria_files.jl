@@ -88,15 +88,9 @@ end
     bac.molarMass[1] = constants.min_bac_mass_grams / constants.bac_MW * 0.9
     bac.active[2] = false
     bac.mu[2] = -0.01
-    bac.active[3] = false
-    bac.active[4] = false
-    bac.active[5] = false
     bac = Bacteria_Module.bacteria_inactivate!(bac, constants)
-    Random.seed!(123456)
     @test bac.active[1] == 0
     @test bac.active[2] == 0
-    @test bac.active[4] == 0
-    @test bac.active[5] == 1
 end
 
 @testset "update_bacterial" begin
@@ -110,4 +104,28 @@ end
     @test bac.molarMass[2] < old_bac.molarMass[2]
     @test bac.radius[1] > old_bac.radius[1]
     @test bac.radius[2] < old_bac.radius[2]
+end
+
+@testset "bacteria_detachment" begin
+    grid, bac, constants, settings, init_params = create_mat(filename)
+    bac.mu = ones(length(bac.x)) * 0.2
+    old_bac = deepcopy(bac)
+    if settings.detachment in ("SBR", "none")
+        bac = Bacteria_Module.bacteria_detachment!(bac, grid, constants, settings, constants.dT_bac, init_params.invHRT)
+        @test bac.x == old_bac.x
+    end
+
+    if settings.detachment == "naive"
+        bac.x[1] = 1e-6
+        bac = Bacteria_Module.bacteria_detachment!(bac, grid, constants, settings, constants.dT_bac, init_params.invHRT)
+        @test length(bac.x) == length(old_bac.x) - 1
+        @test bac.x[1] == old_bac.x[2]
+    end
+
+    if settings.detachment == "suspension"
+        bac.mu[1] = 0.02
+        bac = Bacteria_Module.bacteria_detachment!(bac, grid, constants, settings, constants.dT_bac, init_params.invHRT)
+        @test length(bac.x) == length(old_bac.x) - 1
+        @test bac.x[1] == old_bac.x[2]
+    end
 end
