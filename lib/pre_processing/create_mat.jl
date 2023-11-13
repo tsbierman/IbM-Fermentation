@@ -202,6 +202,7 @@ using Random
 using Plots
 using InvertedIndices
 using Statistics
+using DSP
 
 # Initialise structs that will have to be used later
 # Structs need to be declared at top level
