@@ -21,8 +21,8 @@ function determine_where_bacteria_in_grid(grid, bac)
 
     # Fill matrices
     for i in axes(bac_grid)[1]
-        ix = bac_grid[i, 1]
-        iy = bac_grid[i, 2]
+        ix = Int(bac_grid[i, 1])
+        iy = Int(bac_grid[i, 2])
         grid2bac[iy, ix, grid2nBacs[iy, ix] + 1] = i
         grid2nBacs[iy, ix] = grid2nBacs[iy, ix] + 1
     end

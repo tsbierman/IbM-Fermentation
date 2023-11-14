@@ -56,6 +56,34 @@
 # d[1:6] .= 0
 # findall(d .!= 0)
 
-a = [1 2 3; 4 5 6]
-a[end] = 10
-a
+a = [1, 2, 3, 4, 5, 6]
+
+b = repeat(a, 6)
+# c = transpose(repeat(a, 6))
+
+
+# x = transpose(repeat(a, 1, 6))
+# y = transpose(repeat(a, inner=(1,6)))
+
+# tempX = nodeMidCoordinatesX[1:5]
+# x = repeat(tempX,inner=4)
+# x = repeat(tempX,4)
+# println(x)
+
+a = BitArray(ones(3,3))
+a[[1 3 4 7]] .= 0
+println(a)
+b = transpose(a)
+collect(Base.Iterators.flatten(b))
+
+
+# Very important plotting of circles
+# using Plots
+# function circleShape(h, k, r)
+#     thet = LinRange(0, 2*pi, 500)
+#     return h .+ r * sin.(thet), k .+ r*cos.(thet)
+# end
+
+# plot(circleShape(0,0,1), seriestype = [:shape,],
+# legend = false, aspect_ratio=1, fillalpha = 0.2,
+# linealpha=0.2, c=:blue, linecolor=:blue)
