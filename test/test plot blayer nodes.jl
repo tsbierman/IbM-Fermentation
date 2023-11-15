@@ -63,24 +63,31 @@ plot_diff_Y = plot_centre_Y[collect(flattened)]
 
 # Plotting for both granule and suspension mode
 if settings.model_type == "granule"
-    scatter(bac.x, bac.y, mc =:green, ms=2.5, ylimits = (2.300e-4,2.85e-4), xlimits = (2.300e-4,2.85e-4)) # plot bacteria (limits for granule)
-    scatter!(plot_centre_X, plot_centre_Y, mc=:black, ms = 0.6, ylimits = (2.300e-4,2.85e-4), xlimits = (2.300e-4,2.85e-4)) # plot grid centres (limits for granule)
+    scatter(plot_centre_X, plot_centre_Y, mc=:black, ms = 0.6, ylimits = (2.300e-4,2.85e-4), xlimits = (2.300e-4,2.85e-4)) # plot grid centres (limits for granule)
+    for index in eachindex(bac.x)
+        plot!(circleShape(bac.x[index], bac.y[index], bac.radius[index]), seriestype = [:shape,],
+        c=:green, fillalpha=0.5, linealpha=0.5, legend = false, aspect_ratio=1)
+    end
     scatter!(plot_init_diff_X, plot_init_diff_Y, ms=2, mc=:red, ylimits = (2.300e-4,2.85e-4), xlimits = (2.300e-4,2.85e-4)) # plot initial diffusion nodes
     # Test whether they are all within offset
     hline!([y_min, y_max])
     vline!([x_min, x_max])
-    scatter!(plot_diff_Y, plot_diff_X, mc=:blue, ms = 2, ylimits = (2.300e-4,2.85e-4), xlimits = (2.300e-4,2.85e-4)) # plot grid centres (limits for granule)
+    scatter!(plot_diff_X, plot_diff_Y, mc=:blue, ms = 2, ylimits = (2.300e-4,2.85e-4), xlimits = (2.300e-4,2.85e-4)) # plot grid centres (limits for granule)
     
     for index in eachindex(bac.x)
         plot!(circleShape(bac.x[index], bac.y[index], grid.blayer_thickness), seriestype = [:shape,], 
         legend = false, aspect_ratio=1, fillalpha=0.1, linealpha=0.1)
     end
+    # savefig("Granule_diffusion_nodes.png")
 
 elseif settings.model_type == "suspension"
-    scatter(bac.x, bac.y, mc =:green, ms=2) # plot bacteria
-    scatter!(plot_centre_X, plot_centre_Y, mc=:black, ms = 0.5, fillalpha=0.1) # plot grid centres 
-    scatter!(plot_init_diff_X, plot_init_diff_Y, ms=0.2, mc=:red, fillalpha=0.1)
-    # ylimits= (y_min - 0.1e-4, y_max + 0.1e-4), xlimits = (x_min - 0.1e-4, x_max + 0.1e-4))
+    scatter(plot_centre_X, plot_centre_Y, mc=:black, ms = 0.5, fillalpha=0.1) # plot grid centres 
+    for index in eachindex(bac.x)
+        plot!(circleShape(bac.x[index], bac.y[index], bac.radius[index]), seriestype = [:shape,],
+        c=:green, fillalpha=0.5, linealpha=0.5, legend = false, aspect_ratio=1)
+    end
+    scatter!(plot_init_diff_X, plot_init_diff_Y, ms=0.2, mc=:red, fillalpha=0.1,
+    ylimits= (y_min - 0.1e-4, y_max + 0.1e-4), xlimits = (x_min - 0.1e-4, x_max + 0.1e-4))
     # Test whether they are all within offset
     hline!([y_min, y_max])
     vline!([x_min, x_max])
@@ -90,5 +97,6 @@ elseif settings.model_type == "suspension"
         plot!(circleShape(bac.x[index], bac.y[index], grid.blayer_thickness), seriestype = [:shape,], 
         legend = false, aspect_ratio=1, fillalpha=0.1, linealpha=0.1)
     end
+    # savefig("Suspension_diffusion_nodes_all.png")
 end
 plot!(aspect_ratio = 1, legend=false)
