@@ -4,7 +4,7 @@ using InvertedIndices
 using Random
 
 include(string(pwd(),"\\lib\\bacteria\\Bacteria_Module.jl"))
-using .Bacteria_Module
+# using .Bacteria_Module
 
 create_mat_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
