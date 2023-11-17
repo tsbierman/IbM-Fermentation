@@ -56,9 +56,9 @@
 # d[1:6] .= 0
 # findall(d .!= 0)
 
-a = [1, 2, 3, 4, 5, 6]
+# a = [1, 2, 3, 4, 5, 6]
 
-b = repeat(a, 6)
+# b = repeat(a, 6)
 # c = transpose(repeat(a, 6))
 
 
@@ -70,20 +70,20 @@ b = repeat(a, 6)
 # x = repeat(tempX,4)
 # println(x)
 
-a = BitArray(ones(3,3))
-a[[1 3 4 7]] .= 0
-println(a)
-b = transpose(a)
-collect(Base.Iterators.flatten(b))
+# a = BitArray(ones(3,3))
+# a[[1 3 4 7]] .= 0
+# println(a)
+# b = transpose(a)
+# collect(Base.Iterators.flatten(b))
 
+# a = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]
+# b = reshape(a, 2, 3, 3)
+# c = sum(b, dims=(1,2))
+# dropdims(c, dims=(1,2))
 
-# Very important plotting of circles
-# using Plots
-# function circleShape(h, k, r)
-#     thet = LinRange(0, 2*pi, 500)
-#     return h .+ r * sin.(thet), k .+ r*cos.(thet)
-# end
+a = ones(4,5) * 2
+b = ones(4,5)
 
-# plot(circleShape(0,0,1), seriestype = [:shape,],
-# legend = false, aspect_ratio=1, fillalpha = 0.2,
-# linealpha=0.2, c=:blue, linecolor=:blue)
+b[[3 4 5 10]] .= 5
+c = a .* b
+sum(c)

@@ -203,6 +203,9 @@ using Plots
 using InvertedIndices
 using Statistics
 using DSP
+using DifferentialEquations
+using ODE
+
 
 # Initialise structs that will have to be used later
 # Structs need to be declared at top level
