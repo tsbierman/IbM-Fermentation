@@ -22,12 +22,12 @@ function initTime!(grid, bac, init_params, constants, settings)
 
     # Initialise concentrations and pH
     conc = zeros(grid.ny, grid.nx, length(constants.compoundNames))
-    conc = Lib_Module.set_concentrations(conc, bulk_concs, diffusion_region)
+    conc = Lib_Module.set_concentrations!(conc, bulk_concs, diffusion_region)
     reaction_matrix = zeros(grid.ny, grid.nx, size(conc,3))
     pH = ones(grid.ny, grid.nx) .* constants.pHsetpoint
 
     # Set bulk layer concentrations
-    conc = Lib_Module.set_concentrations(conc, bulk_concs, .!diffusion_region)
+    conc = Lib_Module.set_concentrations!(conc, bulk_concs, .!diffusion_region)
 
     settings.parallelized = false # at init: compute sequentially
     # Calculate reaction matrix

@@ -1,4 +1,4 @@
-function set_concentrations(conc_old, set_concs, mask)
+function set_concentrations!(conc_old, set_concs, mask)
     """
     Sets the initial concentration in the bioaggregate
 

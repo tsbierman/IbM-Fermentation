@@ -1,4 +1,7 @@
 module Lib_Module
+using DSP
+
+include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
 calc_bulk_file = string(pwd(), "\\lib\\calculate_bulk_concentrations.jl")
 include(calc_bulk_file)
