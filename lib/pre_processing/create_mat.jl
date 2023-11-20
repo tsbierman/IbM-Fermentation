@@ -196,24 +196,20 @@ function create_mat(filename)
 
 end
 
+include(string(pwd(), "\\lib\\Struct_Module.jl"))
+
 # Import everything necessary
 import XLSX
 using Random
 using Plots
 using InvertedIndices
 using Statistics
+using DSP
+using DifferentialEquations
+using ODE
 
 # Initialise structs that will have to be used later
 # Structs need to be declared at top level
-
-struct General
-    properties::Dict{Symbol, Any}
-end
-General() = General(Dict{Symbol, Any}())
-
-Base.getproperty(x::General, property::Symbol) = getfield(x, :properties)[property]
-Base.setproperty!(x::General, property::Symbol, value) = getfield(x, :properties)[property] = value
-Base.propertynames(x::General) = keys(getfield(x, :properties))
 
 # This needs to be changed if the test_file is moved to another directory.
 code_folder = dirname(dirname(Base.source_dir()))
