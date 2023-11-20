@@ -4,19 +4,9 @@ using InvertedIndices
 using Random
 
 include(string(pwd(),"\\lib\\bacteria\\Bacteria_Module.jl"))
-# using .Bacteria_Module
 
 create_mat_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
-
-struct General
-    properties::Dict{Symbol, Any}
-end
-General() = General(Dict{Symbol, Any}())
-
-Base.getproperty(x::General, property::Symbol) = getfield(x, :properties)[property]
-Base.setproperty!(x::General, property::Symbol, value) = getfield(x, :properties)[property] = value
-Base.propertynames(x::General) = keys(getfield(x, :properties))
 
 filename = string(Base.source_dir(), "\\","test_file.xlsx")
 @testset "bacteria_divide" begin

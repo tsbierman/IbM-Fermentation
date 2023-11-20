@@ -147,17 +147,17 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
     Tp = 1              # Initialisation
     u = [conc; 1; 0]    # Add numbers for H2O and H concentrations (even though H is always empty)
     # u contains the total concentration of the compunds (summation of all species)
-    NaHCO3 = conc[findall(compoundNames .== "Na")] # Assume all Na comes from NaHCO3
+    NaHCO3 = conc[findall(compoundNames .== "Na")][1] # Assume all Na comes from NaHCO3
     w = 1                                          # Correction 
 
     spcM = zeros(size(chrM)) # Store the calculated species
     Sh = 10 ^(-pH)           # Concentration of protons
 
     while abs(Tp) > Tol
-        u[findall(compoundNames .== "Na")] = NaHCO3         # "Add" NaHCO3 from previous iteration to the system
-        u[findall(compoundNames .== "CO2")] = NaHCO3        # "Add" NaHCO3 from previous iteration to the system
+        u[findall(compoundNames .== "Na")] .= NaHCO3         # "Add" NaHCO3 from previous iteration to the system
+        u[findall(compoundNames .== "CO2")] .= NaHCO3        # "Add" NaHCO3 from previous iteration to the system
 
-        Denm = (1 + Keq[:, 1] / w) * Sh^3 + Keq[:, 2] * Sh^2 + Keq[:, 2] .* Keq[:, 3] * Sh + Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
+        Denm = (1 .+ Keq[:, 1] / w) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
         # Calculate concentrations for all the species. Even when not all species are occupied for some compounds,
         # thus some Keq are 0, the general formula will still work. Unnecessary parts will cancel outflow
@@ -172,14 +172,14 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
     end
 
     # Set Na and CO2 concentrations again for bulk
-    conc[findall(compoundNames .== "Na")] = NaHCO3
-    conc[findall(compoundNames .== "CO2")] = NaHCO3
+    conc[findall(compoundNames .== "Na")] .= NaHCO3
+    conc[findall(compoundNames .== "CO2")] .= NaHCO3
 
     return conc
 end
 
 
-function calculate_bulk_concentration(bac, constants, prev_conc, invHRT, reactionMatrix, dT, settings)
+function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reactionMatrix, dT, settings)
     """
     Function to calculate the bulk layer concentrations. Assumes that the simulated
     bio-aggregate is representative of the entire reactor.
@@ -204,7 +204,7 @@ function calculate_bulk_concentration(bac, constants, prev_conc, invHRT, reactio
     # For easy use: unpack constants
     Keq = constants.Keq                                 # Matrix with Equilibrium constants for all compounds and deprotonations
     chrM = constants.chrM                               # Matrix with charges for all compounds and deprotonations
-    compoundNames = constants.compoundsNames            # Compound Names (without H2O and H)
+    compoundNames = constants.compoundNames            # Compound Names (without H2O and H)
     pH = constants.pHsetpoint                           # pH
     Vr = constants.Vr                                   # [L] Representative volume of reactor that is modelled
     Vg = constants.Vg                                   # [L] Volume of a grid cell
@@ -259,7 +259,7 @@ function calculate_bulk_concentration(bac, constants, prev_conc, invHRT, reactio
     # Apply pH correction to bulk_concentrations
     if settings.pHbulkCorrection
         # Hardcoded stuff
-        bulk_concentrations[findall(compoundNames .== "SO4")] = bulk_concentrations[findall(compoundNames .== "NH3")] ./ 2
+        bulk_concentrations[findall(compoundNames .== "SO4")] = bulk_concentrations[findall(compoundNames .== "A")] ./ 2 # A was originaly NH3, but not present in testfile
         bulk_concentrations = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations)
 
         if any(bulk_concentrations .< 0)

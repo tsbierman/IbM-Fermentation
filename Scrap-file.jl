@@ -40,17 +40,17 @@
 #     println(i)
 # end
 
-# a = range(1,50,50)
-# b = reshape(a, 10, 5)
-# c = b.> 8
+a = range(1,50,50)
+b = reshape(a, 10, 5)
+c = b.> 8
 
-# kernel = ones(3,3) ./ -8
-# kernel[2,2] = 1
-# # println(b)
-# # b[2:end-1, 2:end-1]
+kernel = ones(3,3) ./ -8
+kernel[2,2] = 1
+# println(b)
+# b[2:end-1, 2:end-1]
 
-# using DSP
-# conv(c, kernel)[2:end-1, 2:end-1] .> 1e-15
+using DSP
+conv(c, kernel)[2:end-1, 2:end-1] .> 1e-15
 
 # d = BitArray(ones(5,3))
 # d[1:6] .= 0
@@ -81,9 +81,9 @@
 # c = sum(b, dims=(1,2))
 # dropdims(c, dims=(1,2))
 
-a = ones(4,5) * 2
-b = ones(4,5)
+# a = ones(4,5) * 2
+# b = ones(4,5)
 
-b[[3 4 5 10]] .= 5
-c = a .* b
-sum(c)
+# b[[3 4 5 10]] .= 5
+# c = a .* b
+# sum(c)

@@ -161,7 +161,7 @@ function loadPresetFile(filename)
     # Combine a section with the H2O and H indices
     dG_rows = push!(vec(dG_rows), H2O_index[1], H_index[1])
 
-    preferred_state = thermodynamic_parameters[:,8][dG_rows]
+    preferred_state = thermodynamic_parameters[:,7][dG_rows]
 
     # Get next section indices
     Keq_start = section_starts[2][1]
