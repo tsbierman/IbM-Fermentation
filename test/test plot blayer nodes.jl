@@ -40,6 +40,7 @@ plot_centre_Y = repeat(nodeMidCoordinatesY, inner=length(nodeMidCoordinatesX))
 x_Nodes, y_Nodes = getDiffusionNodes(bac, grid)
 x_init_diff = nodeMidCoordinatesX[x_Nodes]
 y_init_diff = nodeMidCoordinatesY[y_Nodes]
+
 # All combinations of those
 plot_init_diff_X = repeat(x_init_diff, length(y_init_diff))
 plot_init_diff_Y = repeat(y_init_diff, inner=length(x_init_diff))

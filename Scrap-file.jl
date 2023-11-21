@@ -40,21 +40,24 @@
 #     println(i)
 # end
 
-a = range(1,50,50)
-b = reshape(a, 10, 5)
-c = b.> 8
+# a = range(1,50,50)
+# b = reshape(a, 10, 5)
+# c = b.> 8
 
-kernel = ones(3,3) ./ -8
-kernel[2,2] = 1
-# println(b)
-# b[2:end-1, 2:end-1]
+# kernel = ones(3,3) ./ -8
+# kernel[2,2] = 1
+# # println(b)
+# # b[2:end-1, 2:end-1]
 
-using DSP
-conv(c, kernel)[2:end-1, 2:end-1] .> 1e-15
+# using DSP
+# conv(c, kernel)[2:end-1, 2:end-1] .> 1e-15
 
 # d = BitArray(ones(5,3))
 # d[1:6] .= 0
-# findall(d .!= 0)
+# a = findall(d .!= 0)
+# for coor in a
+#     println(coor[1])
+# end
 
 # a = [1, 2, 3, 4, 5, 6]
 
@@ -72,6 +75,7 @@ conv(c, kernel)[2:end-1, 2:end-1] .> 1e-15
 
 # a = BitArray(ones(3,3))
 # a[[1 3 4 7]] .= 0
+
 # println(a)
 # b = transpose(a)
 # collect(Base.Iterators.flatten(b))
@@ -87,3 +91,37 @@ conv(c, kernel)[2:end-1, 2:end-1] .> 1e-15
 # b[[3 4 5 10]] .= 5
 # c = a .* b
 # sum(c)
+
+
+
+
+
+# -------------------------- START PRIORITYQUEUE --------------------------
+# using DataStructures
+# pq = PriorityQueue()
+
+# for i in range(10,1,10)
+#     push!(pq, string(Int(i+1), ",", Int(i+1)) => i)
+# end
+# push!(pq, "4,89" => 4.90)
+# pq[string(4, ",", 89)] = 50
+# pq
+
+# offSet = [0  0  1 -1; 1 -1 0 0]
+# for nb in 1:length(offSet[1,:])
+#     x_index_nb = 5 + offSet[1, nb]
+#     y_index_nb = 5 + offSet[2, nb]
+
+#     println("Index x $(x_index_nb)")
+#     println("Index y $(y_index_nb)")
+
+# end
+
+# c = findfirst(a, ",")
+
+# d = "236,5"
+# e = findfirst(",", d)
+# f = parse(Int64, d[1:e[1]-1])
+# g = parse(Int64, d[e[1]+1:end])
+# println(typeof(f))
+# --------------------------END PRIORITYQUEUE----------------------------
