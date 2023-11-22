@@ -47,6 +47,7 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
     include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
     include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
     include(string(pwd(), "\\lib\\detachment\\calculateLocalDetachmentRate.jl"))
+    include(string(pwd(), "\\lib\\detachment\\recalculateT.jl"))
     include(string(pwd(), "\\test\\plotLogicalGrid.jl")) # For testing visualisation
 
     # Extract variables
@@ -145,7 +146,7 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
                 Far[y_index_nb, x_index_nb] = 0 # remove from Far
                 Narrow_band[y_index_nb, x_index_nb] = 1 # Add to Narrow_band
                 push!(T_queue, string(y_index_nb, ",", x_index_nb) => T_val) # Add to the queue
-                nStack = nStack + 1
+                queue_size = queue_size + 1
             else    # if not in Far, it is in Narrow_band already, update value
                 T_queue[string(y_index_nb, ",", x_index_nb)] = T_val
             end
