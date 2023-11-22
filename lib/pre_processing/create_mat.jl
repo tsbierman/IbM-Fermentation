@@ -207,12 +207,12 @@ using Statistics
 using DSP
 using DifferentialEquations
 using ODE
+using DataStructures
 
 # Initialise structs that will have to be used later
 # Structs need to be declared at top level
 
 # This needs to be changed if the test_file is moved to another directory.
-code_folder = dirname(dirname(Base.source_dir()))
-filename = string(code_folder, "\\planning\\test_file.xlsx")
+filename = string(pwd(), "\\planning\\test_file.xlsx")
 
 create_mat(filename);
