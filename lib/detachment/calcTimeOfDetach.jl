@@ -154,10 +154,14 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
         end
     end
 
+    # return plotLogicalGrid(detachment_grid, Visited) # Plot test for all Visited
+    return plotLogicalGrid(detachment_grid, Far) # Plot test for Far
+
+
     return T
 end
 
-# Required for visualisation
+# ----------------------- START VISUALISATION -----------------------------
 # # Read_file
 # using Plots
 # # Initilising 
@@ -167,3 +171,5 @@ end
 # grid, bac, constants, settings, init_params = create_mat(filename)
 # grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
 # calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
+
+# ----------------------- END VISUALISATION -----------------------------

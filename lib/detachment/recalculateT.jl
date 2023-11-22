@@ -17,7 +17,7 @@ function recalculateT(T, x_index, y_index, kDet, grid, Visited, x_centre, y_cent
 
     if left_visited
         if right_visited    # If both neighbouring T's are already definite
-            Tx = mininum(T[y_index, x_index - 1], T[y_index, x_index + 1]) # take minimum of both
+            Tx = minimum([T[y_index, x_index - 1], T[y_index, x_index + 1]]) # take minimum of both
         else                # If only left is definite
             Tx = T[y_index, x_index - 1] # Copy its value
         end
@@ -32,7 +32,7 @@ function recalculateT(T, x_index, y_index, kDet, grid, Visited, x_centre, y_cent
 
     if top_visited
         if bottom_visited    # If both neighbouring T's are already definite
-            Ty = mininum(T[y_index - 1, x_index], T[y_index + 1, x_index]) # take minimum of both
+            Ty = minimum([T[y_index - 1, x_index], T[y_index + 1, x_index]]) # take minimum of both
         else                # If only top is definite
             Ty = T[y_index + 1, x_index] # Copy its value
         end
