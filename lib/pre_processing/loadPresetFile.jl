@@ -219,7 +219,7 @@ function loadPresetFile(filename)
     end
 
     # Reactive indices
-    constants.reactive_indices = zeros(length(uniq_compounds), 1)
+    constants.reactive_indices = zeros(Int, length(uniq_compounds))
     # TODO Need to consider whether the LinearIndices are actually required or that it could also be done with CartesianIndex
     if settings.speciation
         sz = (nCompounds+2, nColumns)
