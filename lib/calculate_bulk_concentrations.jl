@@ -112,7 +112,7 @@ function correct_negative_concentrations(conc)
     negative_indices = findall(conc .< 0)
 
     if length(negative_indices) > 0
-        warn("DEBUG: noActionRequired, debug: negative concentration encountered and corrected")
+        @warn("DEBUG: noActionRequired, debug: negative concentration encountered and corrected")
         for neg_index in negative_indices
             # if [NH3] < 0, then remove excess consumption from [NO2]
             if neg_index == 1
@@ -263,7 +263,7 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         bulk_concentrations = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations)
 
         if any(bulk_concentrations .< 0)
-            warn("DEBUG:actionRequired, debug: negative bulk concentration encountered after pH control... correction required?")
+            @warn("DEBUG:actionRequired, debug: negative bulk concentration encountered after pH control... correction required?")
             bulk_concentrations = bulk_concentrations .* (bulk_concentrations .> 0)
         end
     end

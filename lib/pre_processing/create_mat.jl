@@ -196,8 +196,6 @@ function create_mat(filename)
 
 end
 
-include(string(pwd(), "\\lib\\Struct_Module.jl"))
-
 # Import everything necessary
 import XLSX
 using Random
@@ -210,9 +208,14 @@ using ODE
 using DataStructures
 
 # Initialise structs that will have to be used later
-# Structs need to be declared at top level
+include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
 # This needs to be changed if the test_file is moved to another directory.
 filename = string(pwd(), "\\planning\\test_file.xlsx")
 
-create_mat(filename);
+try
+    create_mat(filename)
+catch e
+    println("World version error, trying again")
+    create_mat(filename)
+end;
