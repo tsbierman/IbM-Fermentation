@@ -1,4 +1,4 @@
-function calculate_reaction_matrix(grid2bac, grid2nBacs, bac, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings)
+function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings)
     """
     Calculate how many compoundNames are consumed per grid cell due to bacterial activity. 
     Also updates the growth rate of the respective bacteria.
@@ -27,10 +27,10 @@ function calculate_reaction_matrix(grid2bac, grid2nBacs, bac, diffRegion, conc, 
     include(string(pwd(), "\\lib\\reaction_matrix\\rMatrix_section.jl"))
 
     pHincluded = settings.pHincluded
-    nChunks == nChunks_dir ^2
+    nChunks = nChunks_dir ^2
 
     # convert init pH (single value) to pH matrix
-    if isscalar(pH)
+    if isa(pH, Number)
         pH = ones(size(grid2nBacs)) * pH
     end
 

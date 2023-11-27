@@ -31,7 +31,7 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
     include(string(pwd(), "\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
 
     # Extract variables from parameters
-    pH_bulk = constant[1]
+    pH_bulk = constants[1]
     pHincluded = constants[2]
     pHtolerance = constants[3]
     T = constants[4]
@@ -53,12 +53,12 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
     for x_index in axes(conc,2)
         for y_index in axes(conc, 1)
             if .!diffRegion[y_index, x_index] # If in bulk
-                ph_new[y_index, x_index] = pH_bulk
+                pH_new[y_index, x_index] = pH_bulk
                 # No bacteria in bulk, so no mu or reaction_matrix update
 
             else # In diffusion layer, so pH calculation needs to be performed
                 # Calculate pH & speciation
-                if speciation
+                if Bool(speciation)
                     Sh_old = 10^(-pH[y_index, x_index])
                     # In the following line, Concentration is a 1D vector (nComp), if problems, turn into 3D matrix (reshape(A, :, 1, 1))
                     spcM, Sh = solve_pH(Sh_old, [reshape(conc[y_index, x_index, :], :); 1; 0], Keq, chrM, pHincluded, pHtolerance) # Calculate speciation and proton concentration
@@ -79,8 +79,8 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
 
                     speciesGrid = bac_species[iBacs] # Species for present bacteria
                     unique_species = unique(speciesGrid) # Which species are present
-
-                    for curr_species in unique_species
+    
+                    for curr_species in Int.(unique_species)
                         if isnan(mu_max_list[1]) # if not given as input, calculate
                             mu_max, maint = determine_max_growth_rate_and_maint(curr_species, T, Sh)
                         else
@@ -95,13 +95,14 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
                         M = calculate_monod(Ks[curr_species, :], Ki[curr_species, :], reactive_conc)    # Calculate the Monod-factor for mu-calculations
                         mu_noMaintenance = mu_max * M                                           # [1/h]
                         mu_withMaintenance = mu_noMaintenance - maint                           # [1/h]
-                        mu[iBacs[speciesGrid .== curr_species]] = mu_withMaintenance        # add the calculated mu at the right location to the storage
+                        mu[iBacs[speciesGrid .== curr_species]] .= mu_withMaintenance        # add the calculated mu at the right location to the storage
 
                         # Calculate cumulative mass of active bacteria in grid cell
                         cumulative_mass = sum(bac_molarMass[iBacs[speciesGrid .== curr_species]] .* bac_active[iBacs[speciesGrid .== curr_species]]) # [molX]
 
                         # Update reaction_matrix element for this grid cell
                         concentrationChange = mMetabolism[:, curr_species] * mu_noMaintenance           # [mol_i/molX/h] Biomass specific change
+                        
                         if mu_withMaintenance < 0
                             concentrationChange = concentrationChange .- mDecay[:, curr_species] * mu_withMaintenance
                         end

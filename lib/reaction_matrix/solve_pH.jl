@@ -13,7 +13,6 @@ function calculate_spcM!(spcM, Sh, Keq, StV)
     spcM[:,3] = (StV .* Sh^2 .* Keq[:,2]) ./ Denm                     # First deprotonation
     spcM[:,4] = (StV .* Sh .* Keq[:,2] .* Keq[:,3]) ./ Denm           # Second deprotonation
     spcM[:,5] = (StV .* Keq[:,2] .* Keq[:,3] .* Keq[:,4]) ./ Denm     # Third deprotonation
-
     return spcM
 end
 
@@ -34,7 +33,7 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
     Sh: proton concentration
     """
 
-    if !calculate_pH
+    if !Bool(calculate_pH)
         # Assume steady pH value, only calculate speciation
         spcM = zeros(size(chrM))
         Sh = Sh_ini
@@ -82,8 +81,8 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
         if any(spcM .< 0)
             @warn("DEBUG:actionRequired, debug: negative concentration encountered after pH calculation...")
         end
-
-        if (Sh < 1e14 || Sh > 1)
+        
+        if (Sh < 1e-14 || Sh > 1)
             @warn("DEBUG:actionRequired, debug: pH found outside of 1-14 range...")
         end
 

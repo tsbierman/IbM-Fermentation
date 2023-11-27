@@ -62,7 +62,7 @@ function loadPresetFile(filename)
     constants.pHsetpoint = values_para[names_para .== "pH setpoint"][1]                  # [-]
     constants.T = values_para[names_para .== "Temperature (K)"][1]                       # [K]
     constants.Vr = values_para[names_para .== "Representative volume"][1] * 1000         # [L]
-    constants.reactor_density = values_para[names_para .== "density reactor"][1]         # [g/L]
+    constants.reactor_density = values_para[names_para .== "Density reactor"][1]         # [g/L]
 
     settings.variableHRT = values_para[names_para .== "Variable HRT"][1]                 # [Bool]
     init_params.invHRT = 1 / values_para[names_para .== "HRT"][1]                        # [1/h]
