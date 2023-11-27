@@ -14,7 +14,7 @@ function calculate_monod(Ks, Ki, conc)
     # Apply Ki
     for index in eachindex(Ki)
         if Ki[index] != 0
-            M = M * Ki[index] / (Ki[idnex] + conc[index])
+            M = M * Ki[index] / (Ki[index] + conc[index])
         end
     end
 
