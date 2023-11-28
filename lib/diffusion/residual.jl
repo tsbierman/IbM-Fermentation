@@ -10,6 +10,6 @@ function residual(phi, rhs, L_lhs)
 
     r: the calculated residuals
     """
-    r = rhs - conv(phi, L_lhs)[2:end-1,2:end-1]
+    r = rhs .- conv(phi, L_lhs)[2:end-1,2:end-1]
     return r
 end
