@@ -3,7 +3,7 @@ function initTime!(grid, bac, init_params, constants, settings)
     Initialises values from preset parameters for the initialisation of Time struct
     """
     include(string(pwd(), "\\lib\\Lib_Module.jl"))
-    # STILL NEED TO INCLUDE THE CALCULATE_REACTION_MATRIX FILE
+    include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
 
     # Calculate boundary conditions
     bulk_concs, invHRT = Lib_Module.calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT, 0, constants.dT_bac, settings)
