@@ -29,6 +29,7 @@ function isReached_compound(RES, method, steadystate_tolerance)
         @error("RES method <$(method)> is not a valid method")
 
     end
+    SSreached = SSdif <= steadystate_tolerance
     return SSreached
 end
 

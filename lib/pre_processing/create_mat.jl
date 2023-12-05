@@ -128,13 +128,6 @@ function shoving_loop(bac, grid, constants, n)
 end
 
 function create_mat(filename)
-    # Get directories of files that need to be called
-    loading_file = string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl")
-    include(loading_file)
-
-    shove_file = string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl")
-    include(shove_file)
-
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
     grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
 
@@ -212,6 +205,9 @@ include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
 # This needs to be changed if the test_file is moved to another directory.
 filename = string(pwd(), "\\planning\\test_file.xlsx")
+
+include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
+include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
 
 try
     create_mat(filename)

@@ -13,10 +13,10 @@ include(string(pwd(),"\\lib\\reaction_matrix\\rMatrix_section.jl"))
 include(string(pwd(),"\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
 
 
-create_mat_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\create_mat.jl")
+create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
 
-filename = string(Base.source_dir(), "\\","test_file.xlsx")
+filename = string(pwd(), "\\test\\test_file.xlsx")
 grid, bac, constants, settings, init_params = create_mat(filename)
 grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid, bac)
 diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)

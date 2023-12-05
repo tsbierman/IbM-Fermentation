@@ -1,5 +1,5 @@
 # The sole purpose of this file is to initialise the Java Virtual Machine (JVM)
-# This only needs to run once, so it wont be necessary to comment when create_mat is run multiple thermodynamic_parameters
+# This only needs to run once, so it wont be necessary to comment when create_mat is run multiple times
 
 using JavaCall
 
