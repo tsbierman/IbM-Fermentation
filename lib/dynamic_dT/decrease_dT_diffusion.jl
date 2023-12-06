@@ -5,7 +5,7 @@ function decrease_dT_diffusion!(Time, msg, dx, constants)
     
     prev = Time.dT
 
-    Time.dT = maximum(Time.dT * 0.9, Time.minDT)
+    Time.dT = maximum([Time.dT * 0.9, Time.minDT])
     if Time.dT != prev # only set changed_dT if time actually changed_dT
         Time.changed_dT = Time.current
     end
