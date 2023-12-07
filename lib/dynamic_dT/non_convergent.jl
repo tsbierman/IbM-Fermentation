@@ -13,7 +13,7 @@ function non_convergent(iRES, RESvalues, tol)
         no_conv_positive = abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < tol &&    # Checks difference between current and previous maximum(RES)
         abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-2])) < 2*tol                        # Checks difference between current and pre-previous maximum(RES), together they check whether convergence goes fast enough
         no_conv_negative = maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1]) > 0 &&           # Checks whether current error (iRES) is larger than previous
-        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < 1e-5                         # Checks difference between current and previous maximum(RES), together they check whether divergence goes too fast
+        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < 1e-5                         # Checks difference between current and previous maximum(RES), together they check whether it diverges
         no_convergence = no_conv_positive || no_conv_negative
     else
         no_convergence = false
