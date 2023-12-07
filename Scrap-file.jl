@@ -56,4 +56,4 @@
 
 # c .* a + .!special_c .* special_b
 
-# --------------START MULTIDIMENSIONAL BITARRAYS (FOR AFTER CONVOLUTION) -----------------
+# --------------END MULTIDIMENSIONAL BITARRAYS (FOR AFTER CONVOLUTION) -----------------

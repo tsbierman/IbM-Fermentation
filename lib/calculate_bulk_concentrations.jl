@@ -147,8 +147,9 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
     Tp = 1              # Initialisation
     u = [conc; 1; 0]    # Add numbers for H2O and H concentrations (even though H is always empty)
     # u contains the total concentration of the compunds (summation of all species)
-    NaHCO3 = conc[findall(compoundNames .== "Na")][1] # Assume all Na comes from NaHCO3
-    w = 1                                          # Correction 
+    NaHCO3 = conc[findall(compoundNames .== "CO2")][1] # Assume all CO2 comes from NaHCO3, as initial guess
+    # w = 1     # This is the water concentrations. Due to the magnitude of the equilibrium constant (Keq), it does not matter whether we choose 1 or 55.
+                # If it is desired to implement and change this, at a "/ w" after the Keq[:,1] below in lines 161 and 165.
 
     spcM = zeros(size(chrM)) # Store the calculated species
     Sh = 10 ^(-pH)           # Concentration of protons
@@ -157,11 +158,11 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
         u[findall(compoundNames .== "Na")] .= NaHCO3         # "Add" NaHCO3 from previous iteration to the system
         u[findall(compoundNames .== "CO2")] .= NaHCO3        # "Add" NaHCO3 from previous iteration to the system
 
-        Denm = (1 .+ Keq[:, 1] / w) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
+        Denm = (1 .+ Keq[:, 1]) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
         # Calculate concentrations for all the species. Even when not all species are occupied for some compounds,
         # thus some Keq are 0, the general formula will still work. Unnecessary parts will cancel outflow
-        spcM[:,1] = (Keq[:,1] / w) .* u .* Sh^3 ./ Denm                 # Gaseous equivalent
+        spcM[:,1] = (Keq[:,1]) .* u .* Sh^3 ./ Denm                 # Gaseous equivalent
         spcM[:,2] = (u .* Sh^3) ./ Denm                                 # Fully protonated
         spcM[:,3] = (u .* Sh^2 .* Keq[:,2]) ./ Denm                     # First deprotonation
         spcM[:,4] = (u .* Sh .* Keq[:,2] .* Keq[:,3]) ./ Denm           # Second deprotonation
