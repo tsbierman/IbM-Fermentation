@@ -209,9 +209,4 @@ filename = string(pwd(), "\\planning\\test_file.xlsx")
 include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
 include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
 
-try
-    create_mat(filename)
-catch e
-    println("World version error, trying again")
-    create_mat(filename)
-end;
+create_mat(filename);

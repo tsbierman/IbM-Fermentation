@@ -10,6 +10,6 @@ function decrease_dT_diffusion!(Time, msg, dx, constants)
         Time.changed_dT = Time.current
     end
     println("$(msg), \n \tthus dT decreased to $(Time.dT)")
-    println("Neumann value of stability: $(maximum(constants.diffusion_rates * Time.dT / (dx ^ 2)))") 
+    println("Neumann value of stability: $(maximum(constants.diffusion_rates .* Time.dT ./ (dx ^ 2)))") 
     return Time
 end
