@@ -5,7 +5,7 @@ function save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directo
     
     bac:                struct containing all infromation regarding bacteria
     conc:               matrix containing all concentrations per grid cell (ny,nx,icompound)
-    bulk_concs:          vector of bulk liquid concentrations of all compounds
+    bulk_concs:         vector of bulk liquid concentrations of all compounds
     pH:                 matrix containing the pH value per grid cell (ny, nx)
     invHRT:             current 1/HRT value [1/h]
     reaction_matrix:    matrix containing all reaction rates per grid cell and compound (ny, nx, compound) [mol/L/h]
