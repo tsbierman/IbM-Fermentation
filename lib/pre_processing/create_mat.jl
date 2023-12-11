@@ -199,6 +199,7 @@ using DSP
 using DifferentialEquations
 using ODE
 using DataStructures
+using FileIO
 
 # Initialise structs that will have to be used later
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
