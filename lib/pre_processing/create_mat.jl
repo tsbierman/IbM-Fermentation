@@ -200,6 +200,8 @@ using DifferentialEquations
 using ODE
 using DataStructures
 using FileIO
+using TickTock
+using Printf
 
 # Initialise structs that will have to be used later
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
@@ -210,4 +212,5 @@ filename = string(pwd(), "\\planning\\test_file.xlsx")
 include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
 include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
 
-create_mat(filename);
+# NEED TO SAVE THIS in a file, grid, bac, constants, init_params, settings
+create_mat(filename); 
