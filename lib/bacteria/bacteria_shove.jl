@@ -28,6 +28,7 @@ function bacteria_shove!(bac, grid, constants)
     return bac
 end
 
+# ----------------------- START VISUALISATION -----------------------------
 # If some quick visualisation is desired, uncomment the following:
 # using JavaCall
 # BMQT_class = JavaCall.@jimport(shoving.BiomassQuadtree)
@@ -39,3 +40,4 @@ end
 
 # using Plots
 # plot(bac.x, bac.y, seriestype=:scatter)
+# ----------------------- START VISUALISATION -----------------------------

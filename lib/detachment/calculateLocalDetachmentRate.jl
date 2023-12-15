@@ -1,13 +1,15 @@
 function calculateLocalDetachmentRate(i, j, kDet, grid, xcentre, ycentre)
     """
-    Calculate the local detachment speed: Fdet = kdet * d^2
-    i, j: gridcell indices along the x and y axis respectively
-    kDet: Detachment constant determining how fast detachment is
-    grid: struct containing all information regarding spacial discretization
-    xcentre, ycentre, x and y centre of the coordinates
+    This function calculates the local detachment speed with the formula Fdet = kdet * d^2
 
-    Returns:
-    Fdet: speed of detachment
+    Arguments
+    i, j:               gridcell indices along the x and y axis respectively
+    kDet:               Detachment constant determining how fast detachment is
+    grid:               A "General" struct containing all parameters related to the grid
+    xcentre, ycentre:   x and y centre of the coordinates
+
+    Returns
+    Fdet:               speed of detachment
     """
 
     # Get centre of grid cell
