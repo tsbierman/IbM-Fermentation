@@ -4,15 +4,16 @@ function calculate_rhs_dirichlet(phi, L_rhs, value, diffRegion)
     and only on the diffusion region. It assumes that there is at least one layer of bulk
     liquid around the diffusion region.
 
-    phi:            matrix with starting values for 1 compound
-    L_rhs:          kernel used for the rhs convolution
-    value:          boundary value for this compound
-    diffRegion:     Binary matrix with per grid cell whether that grid cell is in the diffusion region
+    Arguments
+    phi:            A (ny, nx) matrix with starting values for 1 compound
+    L_rhs:          A kernel used for the rhs convolution
+    value:          The boundary value for this compound
+    diffRegion:     A BitMatrix with per gridcell whether that gridcell is in the diffusion region
 
     Only required if else the concentration would be 0 (outside of domain)
 
-    returns:
-    rhs:            right-hand-side of the diffusion equation due to diffusion, valid only in the diffusion region.
+    Returns
+    rhs:            The right-hand-side of the diffusion equation due to diffusion, valid only in the diffusion region.
                     Outside the region, an artifical vlaue of the bulk_concentration is set.
     """
 
@@ -30,16 +31,17 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     IMPORTANT: only runs for all dirichlet conditions as of now. Future versions should
     include variable conditions per boundary.
 
-    conc:                   concentration of each molecule in the grid [mol/L] (ny, nx, compounds)
-    reaction_matrix:        matrix with per grid cell and per compuund the change [mol/L] due to bacterial activity
-    bulk_concentrations:    vector with the bulk concentrations per compound
-    diffRegion:             Binary matrix with per grid cell whether that grid cell is in the diffusion region
-    grid:                   struct containing all information regarding the grid
-    constants:              struct containing all simulation constants
-    Time:                   struct containing all time-related variables
+    Arguments
+    conc:                   A (ny, nx, ncompounds) matrix containing the concentration of each molecule in each gridcell [mol/L] 
+    reaction_matrix:        A (ny, nx, ncompounds) matrix with per gridcell and per compound the change [mol/L] due to bacterial activity
+    bulk_concentrations:    A (ncompounds,) vector with the bulk concentrations per compound
+    diffRegion:             A BitMatrix with per gridcell whether that gridcell is in the diffusion region
+    grid:                   A "General" struct containing all parameters related to the grid
+    constants:              A "General" struct containing all the simulation constants
+    Time:                   A "General" struct containing all time-related variables
 
-    Returns:
-    concs:                  concentrations after solving the diffusion equations [mol/L]
+    Returns
+    concs:                  A (ny, nx, ncompounds) matrix containing the concentrations after solving the diffusion equations [mol/L]
     """
 
     include(string(pwd(), "\\lib\\diffusion\\V_Cycle.jl"))
@@ -78,7 +80,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
 
         # Create right hand side
         # - boundary conditions
-        rhs_bc = calculate_rhs_dirichlet(conc[:,:,icompound], L_rhs, bulk_concentrations[icompound] * 1000, diffRegion) # [ny,nx,ncompounds]
+        rhs_bc = calculate_rhs_dirichlet(conc[:,:,icompound], L_rhs, bulk_concentrations[icompound] * 1000, diffRegion)     # [ny,nx,ncompounds]
 
         # - Reaction matrix
         rhs_react = dT * 1000 * reaction_matrix[:,:,icompound]
@@ -87,20 +89,20 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
         rhs = rhs_bc .+ rhs_react
 
         # solve using multigrid
-        isSolution = false      # without running, no isSolution
+        isSolution = false      # without running, not isSolution
         while !isSolution
             conc[:,:,icompound] = V_Cycle!(conc[:,:,icompound], diffRegion, bulk_concentrations[icompound] * 1000, rhs, L_0, L_restriction, L_prolongation, 9, 0, iter_pre, iter_post, iter_final)
             residual_diffRegion = residual(conc[:,:,icompound], rhs, L_lhs)     # Check residuals
             residual_diffRegion = diffRegion .* residual_diffRegion             # Only for the diffusion region
-            isSolution = sum(residual_diffRegion .^2) <= accuracy^2             # Check whether condition is met, not the case? Another V-Cycle
+            isSolution = sum(residual_diffRegion .^2) <= accuracy^2             # Check whether condition is met, not the case? --> Another V-Cycle
         end
 
         # CHeck for negative values, raise error
         negative_concentration = conc[:,:,icompound] .< 0
         if any(negative_concentration)
-            if Time.dT != Time.minDT && abs(minimum(conc[negative_concentration])) > accuracy^2 / 100 # dT can be reduced and significant negative value
+            if Time.dT != Time.minDT && abs(minimum(conc[negative_concentration])) > accuracy^2 / 100   # dT can be reduced and significant negative value
                 throw(ErrorException("Diffusion:negative_concentration, Negative concentration encountered in diffusion solution of compound $(constants.compoundNames[icompound])"))
-            else # dT cannot be reduced, thus return corrected concentration or insignificant negative value
+            else                                                                                        # dT cannot be reduced, thus return corrected concentration or insignificant negative value
                 temp = deepcopy(conc[:,:,icompound])
                 @warn("Diffusion:negative_concentration, Negative concentration encountered in diffusion solution of compound $(constants.compoundNames[icompound]), but cannot correct dT value thus corrected $(sum(negative_concentration)) value(s) (smallest number $(minimum(temp(negative_concentration))) to 0)")
                 conc[:,:,icompound] = (conc[:,:,icompound] .> 0) .* conc[:,:,icompound]
