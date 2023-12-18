@@ -1,11 +1,15 @@
 function restriction(res_fine, L_restriction)
     """
-    Converts the matrix r to a coarser grid, based on full weighting restriction
-    res_fine: residual values on a fine-grid
-    L_restriction: restriction stencil (kernel)
+    This function converts a matrix to a coarser grid, based on full weighting restriction
 
-    for a size n of a dimension of r, the new grid will have a dimension of size (n+1)/2
+    Arguments
+    res_fine:           A (n, m) matrix with the residual values
+    L_restriction:      The restriction stencil (kernel)
+
+    Returns
+    res_coarse:         A ((n+1)/2, (m+1)/2) matrix with the restriced residual values
     """
+    
     res_coarse = conv(res_fine, L_restriction)[2:end-1,2:end-1]
     res_coarse = res_coarse[1:2:end, 1:2:end]
     return res_coarse

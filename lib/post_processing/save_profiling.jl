@@ -1,16 +1,16 @@
 function save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)
     """
-    Save important profiling arrays with information on the performance
-    of the simulation. Will overwrite the last backup in order to always 
+    This function saves important profiling arrays with information on the performance
+    of the simulation. It will overwrite the last backup in order to always 
     have the latest file.
     
-    profiling:      matrix with per dT_bac the time per functionality of the model
-    maxErrors:      vector with per dT_bac the maximum RES value
-    normOverTime:   vector with per dT_bac the norm of delta-concentrations
-    nDiffIters:     vector with per dT_bac the number of diffusion iterations
-    bulk_history:   vector with per dT_bac the bulk concentration of each compound
-    Time:           struct containing all information regarding timings
-    directory:      directory where results are to be stored in
+    profiling:          A matrix with per dT_bac the time per functionality of the model
+    maxErrors:          A vector with per dT_bac the maximum RES value
+    normOverTime:       A vector with per dT_bac the norm of delta-concentrations
+    nDiffIters:         A vector with per dT_bac the number of diffusion iterations
+    bulk_history:       A vector with per dT_bac the bulk concentration of each compound
+    Time                A Time struct with decreased dT (diffusion)
+    directory:          The directory where results are to be stored in
     """
 
     # Name file

@@ -1,12 +1,15 @@
 function init_save_profile(constants, grid)
     """
-    Initialise the results struct for the number of saves that are going
-    to happen. Utilizes datatypes within the required precision with the lowest storage requirements.
+    This function initialises the resulting structs that will contain saved information.
+    It utilizes datatypes within the required precision with the lowest storage requirements.
     
-    constants: struct containing all simulation constants
-    grid: struct containing all information regarding the grid
+    Arguments
+    constants:              A "General" struct containing all the simulation constants
+    grid:                   A "General" struct containing all parameters related to the grid
     
-    Results: structs containing all variables to be saved, initialised for the number of saves that are going to be made
+    Returns
+    XXX_saved               A "General" struct that containing all variables of "General" struct XXX, that need to be saved
+                            They are initialised for the number of saves that are going to be made
     """
     include(string(pwd(), "\\lib\\Struct_Module"))
 
@@ -41,16 +44,17 @@ end
 
 function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, constants, directory)
     """
-    Save important variables along the central axis of the bio-aggregate
+    This function saves important variables of the whole simulation domain
+    It does so in other structs that are generated or loaded
     
-    bac:                    struct containing all information regarding the bacteria
-    conc:                   matrix containing all concentrations per grid cell as of (ix, iy, compound)
-    bulk_concentrations:    vector of the bulk liquid concentration of all compounds
-    pH:                     matrix containing the pH value per grid cell as (ix, iy)
-    Time:                   simulation time
-    grid:                   struct containing all information regarding the grid
-    constants:              struct containing all simulation constants
-    directory:              directory where results are to be stored in
+    bac:                    A "General" struct containing all parameters related to the bacteria
+    conc:                   A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
+    bulk_concentrations:    A (ncompounds,) vector of the bulk liquid concentrations of all compounds
+    pH:                     A (ny, nx) matrix containing the pH value per grid cell
+    Time:                   The simulation time (not the struct!)
+    grid:                   A "General" struct containing all parameters related to the grid
+    constants:              A "General" struct containing all the simulation constants
+    directory:              The directory where results are to be stored in
     """
 
     # Initialise of load previous values

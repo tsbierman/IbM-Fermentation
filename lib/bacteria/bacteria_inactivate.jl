@@ -1,17 +1,23 @@
 function bacteria_inactivate!(bac, constants)
     """
     This function inactivates any bacteria that are below the minimum mass threshold
-    bac is a struct that contains all information regarding the bacteria
-    constant is a struct containing all simulation constants    
-    """
-    mask_tooSmall = bac.molarMass * constants.bac_MW .< constants.min_bac_mass_grams # marks too small bacteria
-    mask_positiveGrowthRate = bac.mu .> 0
-    mask_possible_reactivation = .!bac.active .& mask_positiveGrowthRate # These bacteria were inactive but have a positive growth rate
+    When bacteria are not active but have positive growth, they have a 10 % change to become active again
+    
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    constants:          A "General" struct containing all the simulation constants  
 
-    bac.active[mask_tooSmall .& bac.active] .= 0 # active but too small --> inactivates
+    Returns
+    bac:                A bac struct with updates activation status
+    """
+    mask_tooSmall = bac.molarMass * constants.bac_MW .< constants.min_bac_mass_grams    # marks too small bacteria
+    mask_positiveGrowthRate = bac.mu .> 0
+    mask_possible_reactivation = .!bac.active .& mask_positiveGrowthRate                # These bacteria were inactive but have a positive growth rate
+
+    bac.active[mask_tooSmall .& bac.active] .= 0                                        # active but too small --> inactivates
+
     # When possible 10% change of reactivation
     activation_chance = rand(sum(mask_possible_reactivation))
-    print(activation_chance)
     random_reactivation = activation_chance .< 0.1 
     bac.active[mask_possible_reactivation] = random_reactivation
 

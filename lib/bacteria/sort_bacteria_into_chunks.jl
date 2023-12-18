@@ -3,8 +3,15 @@ function sort_bacteria_into_chunks!(bac, grid, chunks, focus_region, nChunks_dir
     This function reorganises the indices in the bac for easier access in parallel computing
     Bacteria in the same chunk are next to each other
 
-    Bac is a struct containing all information regarding the bacteria
-    Chunks is a struct with start and end indices per chunk
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    grid:               A "General" struct containing all parameters related to the grid
+    chunks:             A "General" struct containing the start and end cooridinates of the chunks
+    focus_region:       A "General" struct containing the x and y coordinates of the focus_region (diffusion region)
+    nChunks_dir:        The amount of chunks that are generated in each direction
+    
+    Returns
+    bac:                A reordened bac struct   
     """
 
     # Calculate which gridcell each bacteria is in

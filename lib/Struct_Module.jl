@@ -1,3 +1,9 @@
+"""
+This file contains the definition of the General struct
+This struct is used to store variables and be able to 
+dynamically add or change its properties 
+"""
+
 struct General
     properties::Dict{Symbol, Any}
 end

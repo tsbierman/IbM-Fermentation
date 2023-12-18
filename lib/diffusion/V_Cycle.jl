@@ -1,24 +1,24 @@
 function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolongation, maxDepth, depth, iter_pre, iter_post, iter_final)
     """
-    A recursive V_Cycle Multigrid for solving the Diffusion equation on a uniform grid
+    This function is a recursive V_Cycle Multigrid for solving the Diffusion Equation on a uniform grid
     
-    phi:                matrix x in Ax=b, is either concentration (phi) or error (e)
-    diffRegion:         matrix with per gridcell whether that cell in the diffusion region
-    bulk_value:         boundary value of the compound outside of the diffusion region
+    phi:                The matrix x in Ax=b, is either concentration (phi) or error (e)
+    diffRegion:         A BitMatrix indicating per gridcell whether that cell is in the diffusion region
+    bulk_value:         The boundary value of the compound outside of the diffusion region
                         so, the value in the bulk/dirichlet boundary condition
-    f:                  matrix b in Ax = b, is either rhs of diffusion-reaction equation, or residuals after residuals restriction
-    L_0:                basis of the laplacian stencil
-    L_restriction:      stencil for restriction
-    L_prolongation:     stencil for prolongation
-    maxDepth:           minimum number of gridcells in the highest recursion of the V-cycle, i.e,
-                        at the deepest level of recursion, the grid is at least (maxDepth, maxDepth)
-    depth:              current depth (starting at 0)
-    iter_pre:           number of smoothing steps before recursion
-    iter_post:          number of smoothing steps after error correction
-    iter_final:         number of smoothing steps on deepest level
+    f:                  The matrix b in Ax = b, is either rhs of diffusion-reaction equation, or residuals after residuals restriction
+    L_0:                The basis of the laplacian stencil
+    L_restriction:      The stencil for restriction
+    L_prolongation:     The stencil for prolongation
+    maxDepth:           The minimum number of gridcells in the highest recursion of the V-cycle, 
+                        i.e, at the deepest level of recursion, the grid is at least (maxDepth, maxDepth)
+    depth:              The current depth (starting at 0)
+    iter_pre:           The number of smoothing steps before recursion
+    iter_post:          Thenumber of smoothing steps after error correction
+    iter_final:         The number of smoothing steps on deepest level
 
     returns:
-    phi:                advanced matrix x towards the solution in Ax=b
+    phi:                The matrix x advanced towards the solution in Ax=b
     """
 
     include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
@@ -37,17 +37,18 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
 
     # Compute Residual errors
     r = residual(phi, f, L_lhs)
-    r = diffRegion .* r             # bulk_region has by definition RES=0
+    r = diffRegion .* r                                         # bulk_region has by definition RES=0
 
     # Restriction
-    rhs = restriction(r, L_restriction)             # Restrict residuals to a coarser grid. This new grid is the rhs in Ae = r
-    next_diffRegion = diffRegion[1:2:end, 1:2:end]  # Adjust diffusion region similarly as the restriction has been done
+    rhs = restriction(r, L_restriction)                         # Restrict residuals to a coarser grid. This new grid is the rhs in Ae = r
+    next_diffRegion = diffRegion[1:2:end, 1:2:end]              # Adjust diffusion region similarly as the restriction has been done
 
-    eps = zeros(size(rhs))                          # Initial guess is 0's as when all errors are 0 we have perfect solution
+    eps = zeros(size(rhs))                                      # Initial guess is 0's as when all errors are 0 we have perfect solution
 
     # Stop recursion at smallest grid size, otherwise continue recursion
     next_bulk_value = 0                                                         # Next iterations deal with errors and Residuals. In bulk RES and error are 0.
-    if ceil(sqrt(length(phi))) <= maxDepth                                      # If the length of a dimension is too smallest
+    if ceil(sqrt(length(phi))) <= maxDepth                                      # If the length of a dimension is the smallest size or smaller
+
         # stop recursion, but do some final smoothing with the last restricted residuals and error
         L_lhs_deeper = [0 0 0; 0 1 0; 0 0 0] .- ((1/2)^(2*(depth+1))) * L_0     # Create a new stencil for this final depth
         for itr in 1:iter_final

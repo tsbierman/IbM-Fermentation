@@ -1,15 +1,16 @@
 function save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
     """
-    Save important variables required for restart at this point in time
-    Will overwrite the last backup in order to always have the latest file
+    This function saves important variables required for restart at this point in time
+    It will overwrite the last backup in order to always have the latest file
     
-    bac:                struct containing all infromation regarding bacteria
-    conc:               matrix containing all concentrations per grid cell (ny,nx,icompound)
-    bulk_concs:         vector of bulk liquid concentrations of all compounds
-    pH:                 matrix containing the pH value per grid cell (ny, nx)
-    invHRT:             current 1/HRT value [1/h]
-    reaction_matrix:    matrix containing all reaction rates per grid cell and compound (ny, nx, compound) [mol/L/h]
-    directory:          directory where results are to be stored in
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    conc:               A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
+    bulk_concs:         A (ncompounds,) vector of the bulk liquid concentrations of all compounds
+    pH:                 A (ny, nx) matrix containing the pH value per grid cell
+    invHRT:             The current 1/HRT value [1/h]
+    reaction_matrix:    A (ny, nx, ncompounds) matrix containing all reaction rates per gridcell and compound [mol/L/h]
+    directory:          The directory where results are to be stored in
     """
 
     # Name file

@@ -1,6 +1,6 @@
 function IbM(simulation_number)
     """
-    Main function to run the IbM model for the given preset file 
+    This is the main function to run the IbM model for the given preset file 
     (naming convention: sim_xxxx.mat, where xxxx is the simulation number)
     
     ->  creates a folder in the Results directory for the output of the simulation
@@ -11,6 +11,7 @@ function IbM(simulation_number)
         (signifying that the simulation has been run) after running the model
     """
 
+    # Get needed file
     include(string(pwd(), "\\lib\\integTime.jl"))
 
     # Argument check

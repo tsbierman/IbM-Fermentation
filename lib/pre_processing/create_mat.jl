@@ -1,16 +1,23 @@
 function rand_circle(N, x_centre, y_centre, r)
-""" 
-This function takes the amount of candidates required and generates a set
-of x and y coordinates within the circle.
-"""
+    """ 
+    This function generates a set of coordinates around a centre, at most r away.
+
+    Arguments
+    N:                      Amount of coordinate sets that have to be generated
+    x_centre, y_centre      X and Y coordinate around which the colony has to be generated
+    r:                      Maximum radius of the colony
+
+    Returns
+    X, Y                    Vectors [N,] containing X and Y coordinates of the candidates
+    """
     # Create estimate that is actually in the circle
     Ns = round(4 / pi * N + 2.5 * sqrt(N) + 100)
-    X = rand(1, Int(Ns)) * (2*r) .- r # Random decimal time Diameter, shifted to be around 0.
-    Y = rand(1, Int(Ns)) * (2*r) .- r
+    X = rand(1, Int(Ns)) * (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
+    Y = rand(1, Int(Ns)) * (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
     
-    I = findall(sqrt.(X .^2 .+ Y .^2) .<= r) # Check which are within radius
-    X = X[I[1:N],:] .+ x_centre # Select and move to existing centre
-    Y = Y[I[1:N],:] .+ y_centre
+    I = findall(sqrt.(X .^2 .+ Y .^2) .<= r)    # Check which are within radius
+    X = X[I[1:N],:] .+ x_centre                 # Select and move to existing centre
+    Y = Y[I[1:N],:] .+ y_centre                 # Select and move to existing centre
 
     X = reshape(X, 1, :)
     Y = reshape(Y, 1, :)
@@ -25,11 +32,19 @@ end
 
 
 function blue_noise_circle(n, x_centre, y_centre, r)
-"""
-This function evaluates coordinate candidates based on distance to the existing points.
-It stores the set that is the furthest away. This is done for n sets of coordinates. 
-It returns x and y coordinates of all the suitable cells.
-"""
+    """
+    This function calls rand_circle to generate candidate coordinates.
+    It then evaluates this coordinates and chooses to add the one with the 
+    maximum minimum distance, so furthest away from any of the exisiting points.
+
+    Arguments
+    n:                      The amount of points (bacteria) that need to be generated
+    x_centre, y_centre      The x and y centre around which points need to be generated
+    r:                      Maximum distance of points from the centre.
+
+    Returns
+    X, Y                    Vectors [n,] containing the coordinates of the bacteria
+    """
     m = 20 # Amount of potential candidates that will be generated
     X = zeros(n)
     Y = zeros(n)
@@ -57,8 +72,20 @@ end
 
 function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange)
     """
-    This function creates several microcolonies over the available grid. It does so by calling the blue_noise_circle
-    to create a cluster of microbial cells at every starting point. It returns two arrays that are the coordinates of all the cells.
+    This function creates several microcolonies over the available grid. 
+    It does so by calling the blue_noise_circle function to create a cluster 
+    of microbial cells at every starting point.
+
+    Arguments
+    nColonies:          The amount of colonies to be generated
+    nBacPerCol:         The amount of bacteria per colony
+    r_colony:           The allowed radius of a colony
+    xrange:             Minimum and maximum x-coordinate allowed
+    yrange:             Minimum and maximum y-coordinate allowed
+
+    Returns
+    x, y                Vectors [nColonies*nBacPerCol] containing all x and y coordinates, 
+                        respectively, of the bacteria
     """
     # Estimate how many colonies per axis and create equally spaced locations for the colonies
     nsections = Int(ceil(sqrt(nColonies) * 1.1))
@@ -98,11 +125,21 @@ end
 
 function AMXinside(bac, grid, constants)
     """
-    This function assigns all the bacteria a specie. It assigns the closest to the centre AMX. The others are random
+    This function assigns all the bacteria a specie. The closest to the centre are assigned with AMX,
+    the others are random. The amount assigned with AMX remains random.
+    This function is called in case of a mature granule and is Nitrospira specific.
+
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    grid:               A "General" struct containing all parameters related to the grid
+    constants:          A "General" struct containing all the simulation constants
+
+    Returns
+    species:            A vector (nBac,) containing a number, representing the species of the organism
     """
     # Calculate distance from the centre and sort based on distance
     distance = sqrt.((bac.x .- (grid.nx / 2 * grid.dx)) .^2 + (bac.y .- (grid.ny / 2 * grid.dy)) .^2)
-    I = sortperm(distance)
+    I = sortperm(distance)   # Returns indices
 
     # Determine index of AMX specie. Randomly assign species to bacteria and see how many are AMX
     iAMX = findall(constants.speciesNames .== "B2")[1]
@@ -121,6 +158,18 @@ function AMXinside(bac, grid, constants)
 end
 
 function shoving_loop(bac, grid, constants, n)
+    """
+    This function calls the bacteria_shove multiple thermodynamic_parameters
+    
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    grid:               A "General" struct containing all parameters related to the grid
+    constants:          A "General" struct containing all the simulation constants
+    n:                  Amount of times the shoving algorithm is called
+
+    Returns
+    bac:                Bac struct with updates x and y coordinates
+    """
     for gg in 1:n
         bac = bacteria_shove!(bac, grid, constants)
     end
@@ -128,12 +177,28 @@ function shoving_loop(bac, grid, constants, n)
 end
 
 function create_mat(filename)
+    """
+    This function reads an excel file and extracts all pre-set parameters from it.
+    It stores these parameters in structs, which can be used later in the simulation.
+
+    Arguments:
+    filename:           An excel file containing all parameters
+
+    Returns
+    grid:               A "General" struct containing all parameters related to the grid
+    bac:                A "General" struct containing all parameters related to the bacteria
+    constants:          A "General" struct containing all the simulation constants
+    settings:           A "General" struct containing all the settings of the simulation
+    init_params:        A "General" struct containing the parameters values at the start of the simulation
+    """
+
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
+
     grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
 
     # Initial Molar Mass is 60% of maximum molar Mass
-    molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW
-    radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)
+    molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW                           # [mol]
+    radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)     # [m]
 
     println(">>>>>>>>>>>>>>>> INITIALISING BACTERIA")
 
@@ -141,27 +206,30 @@ function create_mat(filename)
 
     if settings.model_type in ("granule", "mature granule")
 
+        # Create a single colony of bacteria around the centre
         bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid.nx / 2 * grid.dx, grid.ny / 2 * grid.dy, bac_init.granule_radius)
 
     elseif settings.model_type in ("suspension",)
 
-        margin = 0.2 * grid.dx * grid.nx # 20% of simulation domain as margin for letting suspensions growth (empirical)
+        margin = 0.2 * grid.dx * grid.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
         xrange = [margin, grid.dx*grid.nx - margin]
-        yrange = xrange # assume square domain
+        yrange = xrange                                 # assume square domain
 
+        # Create several colonies with some bacteria each
         r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
         bac.x, bac.y = distribute_microcolonies(bac_init.start_nColonies, bac_init.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
     end
 
     # Set parameters for every of the bacteria
-    bac.molarMass = ones(length(bac.x)) * molarMass
-    bac.radius = ones(length(bac.x)) * radius
-    bac.active = BitArray(ones(size(bac.x))) # Will give error if set to anything else than 0 or 1
+    bac.molarMass = ones(length(bac.x)) * molarMass         # [mol]
+    bac.radius = ones(length(bac.x)) * radius               # [m]
+    bac.active = BitArray(ones(size(bac.x)))                # Binary/Boolean
 
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
     bac = shoving_loop(bac, grid, constants, 5)
 
     if settings.model_type in ("granule", "mature granule")
+        # Remove bacteria that are outside the maximum granule radius due to shoving
         keep = sqrt.((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
         println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
         bac.x = bac.x[keep]
@@ -172,7 +240,7 @@ function create_mat(filename)
     end
 
     if settings.model_type == "mature granule"
-        bac.species = AMXinside(bac, grid, constants)
+        bac.species = AMXinside(bac, grid, constants) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
     else
         bac.species = rand((1:length(constants.speciesNames)), size(bac.x)) # Random species
     end
@@ -189,7 +257,7 @@ function create_mat(filename)
 
 end
 
-# Import everything necessary
+# Import everything necessary while still in top-level scope
 import XLSX
 using Random
 using Plots
@@ -203,14 +271,16 @@ using FileIO
 using TickTock
 using Printf
 
-# Initialise structs that will have to be used later
+# Initialise struct "General" that can dynamically add properties
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
-# This needs to be changed if the test_file is moved to another directory.
+# Get the name of the file that will run ("Could be a small simulation to let Julia optimize everything")
 filename = string(pwd(), "\\planning\\test_file.xlsx")
 
+# Include required files
 include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
 include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
 
 # NEED TO SAVE THIS in a file, grid, bac, constants, init_params, settings
+# Saving either here or let user do it from terminal
 create_mat(filename); 

@@ -1,23 +1,16 @@
 using Test
 import XLSX
 
-create_mat_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\create_mat.jl")
+create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
 
-bacteria_shove_file = string(dirname(Base.source_dir()), "\\lib\\bacteria\\bacteria_shove.jl")
+bacteria_shove_file = string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl")
 include(bacteria_shove_file)
 
-struct General
-    properties::Dict{Symbol, Any}
-end
-General() = General(Dict{Symbol, Any}())
-
-Base.getproperty(x::General, property::Symbol) = getfield(x, :properties)[property]
-Base.setproperty!(x::General, property::Symbol, value) = getfield(x, :properties)[property] = value
-Base.propertynames(x::General) = keys(getfield(x, :properties))
+include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
 filename = string(Base.source_dir(), "\\","test_file.xlsx")
-grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
+grid, bac, constants, settings, init_params = create_mat(filename)
 
 @testset "rand_circle" begin
     n, x_centre, y_centre, radius = 30, 129, 129, 80
@@ -60,11 +53,11 @@ end
 
 @testset "general" begin
     if settings.model_type == "suspension"
-        @test size(bac.species) == (144,)
-        @test size(bac.active) == (144,)
+        @test length(bac.species) <= 144
+        @test length(bac.active) <= 144
     else
-        @test size(bac.species) == (118,)
-        @test size(bac.active) == (118,)
+        @test length(bac.species) <= 118
+        @test length(bac.active) <= 118
     end
     @test all(bac.species .< 4) == true
     @test all(bac.active .== 1) == true

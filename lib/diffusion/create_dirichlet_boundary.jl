@@ -1,10 +1,13 @@
 function create_dirichlet_boundary(x, value)
     """
-    Constructs a dirichlet boundary around the given matrix x
-    x: matrix (:,:) (for 1 compound) around which to construct the boundary
-    value: boundary value for this compound
+    This function constructs a dirichlet boundary around the given matrix x
 
-    x_dirichlet: padded matrix x with the boundary condition
+    Arguements
+    x:              Matrix (any,any) (for 1 compound) around which to construct the boundary
+    value:          Boundary value for this compound
+
+    Returns
+    x_dirichlet:    Padded matrix (any+2,any+2) with the boundary value around matrix x
     """
 
     x_dirichlet = zeros(size(x) .+ 2)
