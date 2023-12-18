@@ -1,10 +1,14 @@
 function getDiffusionNodes(bac, grid)
     """
-    Determine in both X and Y direction which nodes are potentially in the diffusion region
+    This function determines in both X and Y direction which nodes are potentially in the diffusion region
 
-    bac is a struct containing all information regarding the bacteria
-    grid is a struct containing all information regarding the grid
-    It returns 2 logical arrays that signify per direction which nodes are potentially in the diffusion region
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    grid:               A "General" struct containing all parameters related to the grid
+
+    Returns
+    diffusionNodesX:    A (nx,) vector indicating which columns are potentially in the diffusion region
+    diffusionNodesY:    A (ny,) vector indicating which rows are potentially in the diffusion region
     """
 
     # Extract variables
@@ -13,7 +17,7 @@ function getDiffusionNodes(bac, grid)
     y_min = minimum(bac.y)
     y_max = maximum(bac.y)
 
-    # Define an offset, so we guarantee that it will contain the 
+    # Define an offset, so we guarantee that it will contain the correct indices
     offsetX = grid.blayer_thickness + grid.dx
     offsetY = grid.blayer_thickness + grid.dy
 
@@ -21,7 +25,7 @@ function getDiffusionNodes(bac, grid)
     nodeEndCoordinatesY = (1:grid.ny) * grid.dy
 
     # The following part is designed such that even if a small part of a grid cell
-    # is within the diffusion region (boundary_layer + some offset), it is taken into account
+    # is within the diffusion region (boundary_layer + some offset), it is true
     diffusionNodesX = (nodeEndCoordinatesX .> x_min - offsetX) .& (nodeEndCoordinatesX .- grid.dx .< x_max + offsetX)
     diffusionNodesY = (nodeEndCoordinatesY .> y_min - offsetY) .& (nodeEndCoordinatesY .- grid.dy .< y_max + offsetY)
 
@@ -30,14 +34,18 @@ end
 
 function isWithinBoundaryLayer(bac_x, bac_y, gridcell_centre, blayer_thickness)
     """
-    Determine whether cell is within boundary layer. For this, only the centre is considered
-    bac_x, bac_y are bacterial coordinates
-    gridcell_centre is centre coordinates (x,y)
-    blayer_thickness is the boundary layer blayer_thickness
-    returns a boolean
+    This function determines whether a gridcell is within the boundary layer of a bacterium. 
+    For this, only the centre of the gridcell is considered
+
+    Arguments
+    bac_x, bac_y:           The coordinates of the bacterium
+    gridcell_centre:        The coordinates of the gridcell centre (x,y)
+    blayer_thickness:       The boundary layer blayer_thickness [m]
+
+    Returns
+    isBlayer:               A boolean indicating whether the gridcell is within the boundary layer
     """
 
-    # isBlayer = sqrt((bac_x - gridcell_centre[1])^2 + (bac_y - gridcell_centre[2])^2) <= blayer_thickness
     isBlayer = blayer_thickness^2 > sum(([bac_x, bac_y] - gridcell_centre).^2)
     return isBlayer
 end
@@ -45,11 +53,18 @@ end
 
 function determine_focus_region(diffRegion)
     """
-    Determine extraction region, which:
-    - includes all diffusion nodes
-    - has an odd number of nodes in x & y direction (efficient diffusion)
-    - has at least one bulk layer node at each side
+    This function determines the extraction (focus) region, which:
+        - includes all diffusion nodes
+        - has an odd number of nodes in x & y direction (for efficient diffusion)
+        - has at least one bulk layer node at each side
+    
+    Arguments
+    diffRegion:                 A BitMatrix indicating per gridcell whether that cell is in the diffusion region
+
+    Returns
+    extraction_region:          A "General" struct containing the start and end coordinates of the region of interest
     """
+
     # Struct to save
     extraction_region = General()
 
@@ -58,9 +73,9 @@ function determine_focus_region(diffRegion)
     first_x = findfirst(x_diffRegion .!= 0)[2] - 1
     last_x = findlast(x_diffRegion .!= 0)[2] + 1
 
-    dx = last_x - first_x + 1 # number of diffusion cells
+    dx = last_x - first_x + 1           # number of diffusion cells
     if mod(dx, 2) == 0
-        first_x = first_x - 1 # make uneven
+        first_x = first_x - 1           # make uneven
     end
 
     # Determine first and last y
@@ -68,9 +83,9 @@ function determine_focus_region(diffRegion)
     first_y = findfirst(y_diffRegion .!= 0)[1] - 1
     last_y = findlast(y_diffRegion .!= 0)[1] + 1
 
-    dy = last_y - first_y + 1 # number of diffusion cells
+    dy = last_y - first_y + 1           # number of diffusion cells
     if mod(dy, 2) == 0
-        first_y = first_y - 1 # make uneven
+        first_y = first_y - 1           # make uneven
     end
 
     if first_x < 1 || last_x > size(diffRegion, 2) || first_y < 1 || last_y > size(diffRegion, 1)
@@ -96,15 +111,19 @@ end
 
 function determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
     """
-    Determine which grid cells are in the diffusion layer. The diffusion layer is defined
-    as the grid cells that are within boundary distance from a bacterium.
+    This function determines which gridcells are in the diffusion layer. The diffusion layer is defined
+    as the gridcells that are within boundary layer distance from a bacterium.
 
-    grid2bac is a nx * ny * ? matrix with the index of every bacterium in each grid cell
-    grid2nBacs is a nx * ny matrix with the number of bacteria in the grid cell
-    bac is a struct containing all information regarding the bacteria
-    grid is a struct containing all information regarding the grid
+    Arguments
+    grid2bac:           A matrix (ny, nx, ?) which contains for each gridcell which bacteria is located
+                        there. The number corresponds to the index in the bac struct
+    grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
+    bac:                A "General" struct containing all parameters related to the bacteria
+    grid:               A "General" struct containing all parameters related to the grid
     
-    Diffusion region is a logical matrix which indicates which grid cells are within diffusion region
+    Returns
+    diffusion_region:   A BitMatrix indicating per gridcell whether that cell is in the diffusion region
+    focus_region:       A "General" struct containing the start and end coordinates of the region of interest
     """
     
     # Initialise
@@ -113,20 +132,20 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
     # Get diffusion region
     diffNodesX, diffNodesY = getDiffusionNodes(bac, grid)
 
-    # In the diffusion region, appy convolution to find boundary of grid with cells with bacteria
+    # In the diffusion region, apply convolution to find the boundary of gridcells with bacteria
     kernel = ones(3,3) ./ -8
     kernel[2,2] = 1
-    hasBac = grid2nBacs[diffNodesY, diffNodesX] .> 0 # BitArray of only estimated diffusion region
-    isBacBoundary = conv(hasBac, kernel)[2:end-1,2:end-1] .> 1e-15 #some numbers end up very small, but technically larger than 0 (1e-17)
+    hasBac = grid2nBacs[diffNodesY, diffNodesX] .> 0                # A BitArray of only estimated diffusion region
+    isBacBoundary = conv(hasBac, kernel)[2:end-1,2:end-1] .> 1e-15  # Some numbers end up very small, but technically larger than 0 (1e-17)
     
     # For the boundary of bacterial grid cells, compute for the neighbouring grid cells whether
     # they are in diffusion region
-    maxOffsetX = ceil(grid.blayer_thickness / grid.dx)      # Maximum offset to check
-    dx = findfirst(diffNodesX) - 1                          # Adjust for difference of total and diffusion grid
-    maxOffsetY = ceil(grid.blayer_thickness / grid.dy)      # Maximum offset to check
-    dy = findfirst(diffNodesY) - 1                          # Adjust for difference of total and diffusion grid
+    maxOffsetX = ceil(grid.blayer_thickness / grid.dx)              # Maximum offset to check
+    dx = findfirst(diffNodesX) - 1                                  # Adjust for difference of total and diffusion grid
+    maxOffsetY = ceil(grid.blayer_thickness / grid.dy)              # Maximum offset to check
+    dy = findfirst(diffNodesY) - 1                                  # Adjust for difference of total and diffusion grid
 
-    cart_indices = findall(isBacBoundary) # Array of Cartesian indices
+    cart_indices = findall(isBacBoundary)                           # Array of Cartesian indices
     isDiffRegion = deepcopy(hasBac)
 
     for index in cart_indices                                       # For every boundary cell
@@ -136,12 +155,12 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
                     continue                                        # Skip if already in diffusion
                 else
                     # perform actual check
-                    bac_indices = findall(grid2bac[index[1] + dy, index[2] + dx, :] .!= 0) # Find which bacteria spots are occupied in the grid cell
-                    bacs = grid2bac[index[1] + dy, index[2] + dx, bac_indices]           # Get bacterial indices (greater picture)
-                    gridcell_centre = [grid.dx * (dx + di + index[2]) - grid.dx/2, grid.dy * (dy + dj + index[1]) - grid.dy/2] # Calculate centre of desired grid
+                    bac_indices = findall(grid2bac[index[1] + dy, index[2] + dx, :] .!= 0)  # Find how many bacteria spots are occupied in the grid2bac and by which
+                    bacs = grid2bac[index[1] + dy, index[2] + dx, bac_indices]              # Get bacterial indices (greater picture)
+                    gridcell_centre = [grid.dx * (dx + di + index[2]) - grid.dx/2, grid.dy * (dy + dj + index[1]) - grid.dy/2]  # Calculate centre of desired grid
 
-                    for iBac in bacs    # For every of the bacteria
-                        if isWithinBoundaryLayer(bac.x[iBac], bac.y[iBac], gridcell_centre, grid.blayer_thickness) # Check whether the grid cell is within reach
+                    for iBac in bacs                                # For every of the bacteria
+                        if isWithinBoundaryLayer(bac.x[iBac], bac.y[iBac], gridcell_centre, grid.blayer_thickness)              # Check whether the grid cell is within reach
                             isDiffRegion[Int(index[1] + dj), Int(index[2] + di)] = 1
                             break
                         end

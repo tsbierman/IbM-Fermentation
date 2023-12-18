@@ -1,12 +1,16 @@
 function integTime(simulation_file, directory)
     """
-    Integrates over Time. This function regulates the whole process
-    Simulation_file:    file where all the variables are stored into
+    This function integrates over Time. It regulates the whole process
+
+    Arguments
+    Simulation_file:    The file where all the variables are taken from
     Directory:          Directory where the output should be placed
 
-    retunrs nothing as it saves the results in files
+    Returns
+    Nothing as it saves the results in files
     """
 
+    # Include required files
     include(string(pwd(), "\\lib\\Struct_Module.jl"))
     include(string(pwd(), "\\lib\\initTime.jl"))
     include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
@@ -21,7 +25,6 @@ function integTime(simulation_file, directory)
     include(string(pwd(), "\\lib\\bacteria\\bacteria_inactivate.jl"))
     include(string(pwd(), "\\lib\\bacteria\\bacteria_die.jl"))
     include(string(pwd(), "\\lib\\bacteria\\bacteria_divide.jl"))
-
 
     include(string(pwd(), "\\lib\\diffusion\\diffusionMG.jl"))
     include(string(pwd(), "\\lib\\diffusion\\steadystate_is_reached.jl"))
@@ -42,7 +45,7 @@ function integTime(simulation_file, directory)
 
     include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
 
-    ENV["TICKTOCK_MESSAGES"] = false # Disables messages by ticktock module 
+    ENV["TICKTOCK_MESSAGES"] = false # Disables messages by TickTock module 
 
     # Load preset file
     grid, bac, constants, init_params, settings = load(simulation_file, "grid", "bac", "constants", "init_params", "settings")
@@ -75,7 +78,7 @@ function integTime(simulation_file, directory)
 
         # Initiate time and profiling information/storage from preset
         Time = General()
-        Time.current = 0 # Current time
+        Time.current = 0                    # Current time
         Time.steadystate = Time.current + (constants.nDiffusion_per_SScheck - 1) * constants.dT # When to check for steadystate
         Time.save = constants.dT_save       # When to save
         Time.backup = constants.dT_backup   # When to make backup
@@ -93,23 +96,23 @@ function integTime(simulation_file, directory)
 
             maximum_space_needed = ceil(constants.simulation_end/Time.minDT_bac)
 
-            Time.history = zeros(Float32, maximum_space_needed)             # Vector to save the time at each Steady-State
-            profiling = zeros(Float32, maximum_space_needed, 11)            # Matrix to save time spent on certain calculations
-            maxErrors = zeros(Float32, maximum_space_needed)                # Vector to store max Error per dT_bac
-            normOverTime = zeros(Float32, maximum_space_needed)             # Vector to store norm of concentration differance per dT_bac
-            nDiffIters = zeros(UInt16, maximum_space_needed)                # Vector to store number of diffusion iterations per steady state
-            bulk_history = zeros(Float32, size(bulk_concs, 1), maximum_space_needed) # Matrix to store bulk concentrations over time
-            maxInitRES = zeros(Float32, maximum_space_needed)               # Vector to store maximum initial RES values
+            Time.history = zeros(Float32, maximum_space_needed)                         # Vector to save the time at each Steady-State
+            profiling = zeros(Float32, maximum_space_needed, 11)                        # Matrix to save time spent on certain calculations
+            maxErrors = zeros(Float32, maximum_space_needed)                            # Vector to store max Error per dT_bac
+            normOverTime = zeros(Float32, maximum_space_needed)                         # Vector to store norm of concentration differance per dT_bac
+            nDiffIters = zeros(UInt16, maximum_space_needed)                            # Vector to store number of diffusion iterations per steady state
+            bulk_history = zeros(Float32, size(bulk_concs, 1), maximum_space_needed)    # Matrix to store bulk concentrations over time
+            maxInitRES = zeros(Float32, maximum_space_needed)                           # Vector to store maximum initial RES values
         else
             max_space_needed = ceil(constants.simulation_end / constants.dT_bac)
 
-            Time.history = zeros(Float32, max_space_needed)                 # Vector to save the time at each Steady-State
-            profiling = zeros(Float32, max_space_needed, 11)                # Matrix to save time spent on certain calculations
-            maxErrors = zeros(Float32, max_space_needed)                    # Vector to store max Error per dT_bac
-            normOverTime = zeros(Float32, max_space_needed)                 # Vector to store norm of concentration differance per dT_bac
-            nDiffIters = zeros(UInt16, max_space_needed)                    # Vector to store number of diffusion iterations per steady state
-            bulk_history = zeros(Float32, size(bulk_concs, 1), max_space_needed) # Matrix to store bulk concentrations over time
-            maxInitRES = zeros(Float32, max_space_needed)                   # Vector to store maximum initial RES values
+            Time.history = zeros(Float32, max_space_needed)                             # Vector to save the time at each Steady-State
+            profiling = zeros(Float32, max_space_needed, 11)                            # Matrix to save time spent on certain calculations
+            maxErrors = zeros(Float32, max_space_needed)                                # Vector to store max Error per dT_bac
+            normOverTime = zeros(Float32, max_space_needed)                             # Vector to store norm of concentration differance per dT_bac
+            nDiffIters = zeros(UInt16, max_space_needed)                                # Vector to store number of diffusion iterations per steady state
+            bulk_history = zeros(Float32, size(bulk_concs, 1), max_space_needed)        # Matrix to store bulk concentrations over time
+            maxInitRES = zeros(Float32, max_space_needed)                               # Vector to store maximum initial RES values
             Time.minDT = Time.dT
         end
         bulk_history[:,1] = bulk_concs # Is added after changing iProf, so first value should be placed already
@@ -118,13 +121,14 @@ function integTime(simulation_file, directory)
         save_slice(bac, conc, bulk_concs, pH, invHRT, 0, grid, constants, directory)
     end
 
+    # Initialise storing space
     RESvalues = zeros(length(constants.compoundNames), 200) # Reserve space for n steady state checks beforehand (can be more)
     norm_diff = zeros(200)
     res_bacsim = zeros(200, 2)
 
     iProf = findfirst(profiling .== 0)[1]       # Keep track of index of profiling (every simulated dT_bac +1 index) (starts half way if restarting from storage)
-    iDiffusion = 1                              # keep track of index of diffusion (per 1 dT_bac: iDiffusion == cycles of diffusion)
-    iRES = 0                                    # Time steady state has been calculated
+    iDiffusion = 1                              # Keep track of index of diffusion (per 1 dT_bac: iDiffusion == cycles of diffusion)
+    iRES = 0                                    # Times steady state has been calculated this dT_bac
 
     # Make bacterial grid-matrix
     grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
@@ -134,8 +138,9 @@ function integTime(simulation_file, directory)
     xRange = focus_region.x0:focus_region.x1
     yRange = focus_region.y0:focus_region.y1
 
-    # -----------------PARALLELISATION --------------------------------
+    # ----------------- START PARALLELISATION --------------------------------
     if settings.parallelized
+
         # Create chunks
         chunks = create_chunks(nChunks_dir, focus_region)
 
@@ -149,7 +154,7 @@ function integTime(simulation_file, directory)
         chunks = 0
         nChunks_dir = 0
     end
-    # -----------------PARALLELISATION --------------------------------
+    # ------------------- END PARALLELISATION --------------------------------
 
     # Time advancements (dT / dT_steadystate)
     prev_conc = copy(conc) # Store current concs before calculating diffusion
@@ -236,7 +241,7 @@ function integTime(simulation_file, directory)
                 Time.current = Time.bac
 
                 if Time.current > constants.simulation_end
-                    Time.current = constants.simulation_end - Time.dT # Fit one more calculation before ending
+                    Time.current = constants.simulation_end - Time.dT # Prevent another bacterial timestep
                 end
 
                 # Perform dynamic dT for diffusion (for next iteration)
@@ -397,7 +402,7 @@ function integTime(simulation_file, directory)
                     end
 
                     if settings.detachment == "SBR"
-                        bac.molarMass[bac.active] = maximum(bac.molarMass[bac.active] .- 0.1*constants.min_bac_mass_grams/constants.bac_MW ,eps)
+                        bac.molarMass[bac.active] = maximum([bac.molarMass[bac.active] .- 0.1*constants.min_bac_mass_grams/constants.bac_MW, eps])
                     end
                 end
             end
@@ -412,8 +417,8 @@ function integTime(simulation_file, directory)
     end
 
     # Save all important variables one last time?
-    save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)     # Slice of simulation
-    save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)   # Entire plane of simulation
-    save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
-    save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)
+    save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)         # Slice of simulation
+    save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)       # Entire plane of simulation
+    save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
+    save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)   # Save performance
 end
