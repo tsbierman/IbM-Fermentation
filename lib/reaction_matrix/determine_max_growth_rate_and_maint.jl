@@ -1,11 +1,18 @@
 function determine_max_growth_rate_and_maint(species, T, Sh)
     """
-    Determine the maximum growth rate and maintenance [h-1] for a 
+    This function determines the maximum growth rate and maintenance [h-1] for a 
     specific species under certain conditions
+    Take note that this function is completely hardcoded
+    This function is only called upon when there are no mu_max and maintenance supplied in the excel
 
-    species: Integer that indicates bacteria species
-    T: Temperature (Kelvin)
-    Sh: concentration of protons
+    Arguments
+    species:                An integer that indicates the bacteria species
+    T:                      The temperature (Kelvin)
+    Sh:                     The concentration of protons
+
+    Returns
+    mu_max:                 The calculated maximum growth rate (mu) for this specie
+    maint:                  The calculated maintenance for this specie
     """
 
     if species == 1 # AOB

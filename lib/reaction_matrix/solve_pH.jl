@@ -2,6 +2,15 @@ function calculate_spcM!(spcM, Sh, Keq, StV)
     """
     This function calculates the specieMatrix (spcM) based on the compound concentrations,
     the Keq and the proton concentration.
+
+    Arguments
+    spcM:           A (ncompounds, 5) matrix containing the current concentrations per specie
+    Sh:             The proton concentration
+    Keq:            A (ncompounds,) vector containing all equilibrium constants (Kd and Ka)
+    StV:            A (ncompounds,) vector containing the total concentration per compound (so sum(species))
+
+    Returns
+    spcM:           A (ncompounds, 5) matrix with updated concentrations per specie
     """
 
     Denm = (1 .+ Keq[:, 1]) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
@@ -19,18 +28,19 @@ end
 
 function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
     """
-    Solve the pH and speciation per grid cell using a modified Newton-Raphson algorithm
+    This function solves the pH and speciation per gridcell using a modified Newton-Raphson algorithm
 
-    Sh_ini: initial guess for the H+ concentration
-    StV: concentration vector
-    Keq: equilibrium constants per subcompound of the StV vector
-    chrM: charge per subcompound of the StV vector
-    calculate_pH: (bool) if false, then assume pH is a set value
-    Tol: Newton-Raphson tolerance
+    Arguments
+    Sh_ini:         The initial guess for the proton concentration
+    StV:            A (ncompounds,) vector containing the total concentration per compound (so sum(species))
+    Keq:            A (ncompounds,) vector containing all equilibrium constants (Kd and Ka)
+    chrM:           A (ncompounds, 5) matrix indicating the charge per specie
+    calculate_pH:   A Boolean(bool) indicating whether pH needs to be calculated, if false, pH is a set value
+    Tol:            The Newton-Raphson tolerance
 
-    Returns:
-    spcM: species matrix for the respective pH
-    Sh: proton concentration
+    Returns
+    spcM:           A (ncompounds, 5) matrix containing the current concentrations per specie for the current pH
+    Sh:             The updated proton concentration
     """
 
     if !Bool(calculate_pH)
@@ -41,21 +51,21 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
 
     else
         # Use Newton-Raphson method
-        Sh = Sh_ini # Initial guess
-        ipH = 1 # counter of convergences
-        maxIter = 20
-        err = 1 # initial error
-        F = 1 # Initial error of charge balance
+        Sh = Sh_ini                     # Initial guess
+        ipH = 1                         # counter of convergences
+        maxIter = 20                    # Max iterations
+        err = 1                         # initial error
+        F = 1                           # Initial error of charge balance
 
         # Initialisation of matrix of species
         spcM = zeros(size(chrM))
         dspcM = zeros(size(chrM))
 
         while (abs(err) > Tol) && (abs(F) > Tol) && ipH <= maxIter
-            spcM = calculate_spcM!(spcM, Sh, Keq, StV) # Fill spcM based on current Sh
+            spcM = calculate_spcM!(spcM, Sh, Keq, StV)                      # Fill spcM based on current Sh
 
-            # Evaluate charge balance for current Sh, F(Sh)
-            F = Sh + sum(spcM .* chrM) # Charge balance
+            # Evaluate charge balance for current Sh, so evaluate F(Sh)
+            F = Sh + sum(spcM .* chrM)                                      # Charge balance
 
             # Calculation of all derivated functions
             Denm = (1 .+ Keq[:, 1]) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
@@ -68,7 +78,7 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
             dspcM[:,4] = (Keq[:, 2] .* Keq[:, 3] .* StV) ./ Denm .- ((Keq[:, 2] .* Keq[:, 3] .* StV * Sh) .* aux) ./ dDenm
             dspcM[:,5] = -(Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] .* StV .* aux) ./ dDenm
 
-            # Evalutaion of the charge balance for the current Sh value, dF(Sh)
+            # Evalutaion of the charge balance for the current Sh value, so evaluate dF(Sh)
             dF = 1 + sum(spcM .* chrM)
             # Error
             err = F / dF
@@ -78,6 +88,7 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
             ipH = ipH + 1
         end
 
+        # Perform some checks
         if any(spcM .< 0)
             @warn("DEBUG:actionRequired, debug: negative concentration encountered after pH calculation...")
         end

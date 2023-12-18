@@ -9,7 +9,7 @@ function save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directo
     bulk_concs:         A (ncompounds,) vector of the bulk liquid concentrations of all compounds
     pH:                 A (ny, nx) matrix containing the pH value per grid cell
     invHRT:             The current 1/HRT value [1/h]
-    reaction_matrix:    A (ny, nx, ncompounds) matrix containing all reaction rates per grid cell and compound [mol/L/h]
+    reaction_matrix:    A (ny, nx, ncompounds) matrix containing all reaction rates per gridcell and compound [mol/L/h]
     directory:          The directory where results are to be stored in
     """
 
