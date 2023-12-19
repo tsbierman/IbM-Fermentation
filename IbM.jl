@@ -15,7 +15,7 @@ function IbM(simulation_number)
     include(string(pwd(), "\\lib\\integTime.jl"))
 
     # Argument check
-    if !isa(simulation_number, Int) && !(0 < simulation_number < 10000)
+    if !isa(simulation_number, Int) && !(0 <= simulation_number < 10000)
         throw(ArgumentError("Simulation number should be an integer in the range 1-9999"))
     end
 
