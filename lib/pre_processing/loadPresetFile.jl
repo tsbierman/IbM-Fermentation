@@ -26,6 +26,7 @@ function loadPresetFile(filename)
     names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
     grid.dx = values_discr[names_discr .== "dx"][1]                                         # [m]
     grid.dy = values_discr[names_discr .== "dy"][1]                                         # [m]
+    grid.dz = values_discr[names_discr .== "dz"][1]                                         # [m]
     grid.nx = values_discr[names_discr .== "nx"][1]                                         # [-]
     grid.ny = values_discr[names_discr .== "ny"][1]                                         # [-]
     grid.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"][1]     # [m]

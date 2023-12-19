@@ -211,7 +211,8 @@ function integTime(simulation_file, directory)
             # Perform dynamic dT for diffusion
             if settings.dynamicDT
                 if slow_convergence(iRES, RESvalues, constants) && Time.dT < Time.maxDT/2
-                    Time = increase_dT_diffusion!(Time, "Slow convergence", grid.dx, constants)
+                    # Time = increase_dT_diffusion!(Time, "Slow convergence", grid.dx, constants)
+                    Time = decrease_dT_diffusion!(Time, "Diffusion takes a long time", grid.dx, constants)
                 end
 
                 if upward_trend(iRES, RESvalues)
@@ -221,7 +222,7 @@ function integTime(simulation_file, directory)
                     Time = decrease_dT_diffusion!(Time, "Convergence is stuck", grid.dx, constants)
                 end
             else
-                if iDiffusion > 5000 && non_convergent_diffusion(iDiffusion, iRES, RESvalues, Time, constants) # This function is nowhere defined
+                if iDiffusion > 5000 && slow_convergence(iRES, RESvalues, constants)
                     # Without dynamic timestep & negative concentrations
                     # Due to too large step size, accept SS under non-convergent conditions
                     ssReached = true

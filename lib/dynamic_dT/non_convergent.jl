@@ -14,11 +14,11 @@ function non_convergent(iRES, RESvalues, tol)
 
     # Currently, a SS check is done every 2 diffusion iterations
     if iRES > 5 # If lower than 5, not enough steady state checks performed to consider non-convergent
-        no_conv_positive = abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < tol &&    # Checks difference between current and previous maximum(RES)
-        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-2])) < 2*tol                        # Checks difference between current and pre-previous maximum(RES), together they check whether convergence goes fast enough
+        no_conv_positive = abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < tol &&    # Checks difference between current and previous maximum(RES), < tol? --> not enough change
+        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-2])) < 2*tol                        # Checks difference between current and pre-previous maximum(RES), < tol? --> not enough change together they check whether convergence goes fast enough
 
-        no_conv_negative = maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1]) > 0 &&           # Checks whether current error (iRES) is larger than previous
-        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < 1e-5                         # Checks difference between current and previous maximum(RES), together they check whether it diverges
+        no_conv_negative = maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1]) > 0 &&           # Checks whether current error (iRES) is larger than previous, if so, --> not converging
+        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) > 1e-5                         # Checks difference between current and previous maximum(RES), if so --> changes to fast, together they check if there is little of a lot of divergence
 
         no_convergence = no_conv_positive || no_conv_negative
         
