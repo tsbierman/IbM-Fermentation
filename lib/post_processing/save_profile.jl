@@ -87,7 +87,7 @@ function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, co
     # reactor_properties
     reactor_saved.bulk_concs[iSave, :] = bulk_concentrations
     reactor_saved.HRT[iSave] = 1 / invHRT
-    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * 1e-6) # [g/m3], why use radius of bacteria and not diameter?
+    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * grid.dz) # [g/m3]
 
     # Save structs to file
     save(results_file, "bac_saved", bac_saved, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved", reactor_saved)
