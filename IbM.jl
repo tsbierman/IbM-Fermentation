@@ -15,8 +15,8 @@ function IbM(simulation_number)
     include(string(pwd(), "\\lib\\integTime.jl"))
 
     # Argument check
-    if !isa(simulation_number, Int) && !(0 <= simulation_number < 10000)
-        throw(ArgumentError("Simulation number should be an integer in the range 1-9999"))
+    if !isa(simulation_number, Int) || !(0 <= simulation_number < 10000)
+        throw(ArgumentError("Simulation number should be an Integer in the range 1-9999"))
     end
 
     # Check if simulation file exists
@@ -45,7 +45,7 @@ function IbM(simulation_number)
     println("> SIMULATION FINISHED >>>>>>>>>> \n")
 
     load(simulation_file, "constants")
-    @sprrintf("\n\nTotal time for simulation of %.2f hours:\n\t%.2f seconds\n", constants.simulation_end, totalTime)
+    @sprintf("\n\nTotal time for simulation of %.2f hours:\n\t%.2f seconds\n", constants.simulation_end, totalTime)
 
     # Cleanup of root directory
     mv(simulation_file, string(output_dir, "\\", simulation_file))
