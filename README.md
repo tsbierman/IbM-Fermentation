@@ -25,11 +25,11 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
 3. Open Julia (or VS Code).
     <br>- For more information about the VS Code User Interface, click [here](https://code.visualstudio.com/docs/getstarted/userinterface)
 4. Go the the **Code folder<sup>1</sup>**
-    <br><sup><sup>1</sup> Code folder: folder with `IbM.jl` file. </sup>
-    <br>→ Make sure that `pwd()` yields `~\\IbM-fermentation`, thus the folder that `IbM.jl` is in
-    <br>→ Move around with `cd("newFolder")`
-    <br>→ Moving a directory upwards can be done with `cd(dirname(pwd()))`
-    <br>→ More information about Filesystem commands can be found [here](https://docs.julialang.org/en/v1/base/file/).
+    &#09;<br><sup><sup>1</sup> Code folder: folder with `IbM.jl` file. </sup>
+    &#09;<br>→ Make sure that `pwd()` yields `~\\IbM-fermentation`, thus the folder that `IbM.jl` is in
+    &#09;<br>→ Move around with `cd("newFolder")`
+    &#09;<br>→ Moving a directory upwards can be done with `cd(dirname(pwd()))`
+    &#09;<br>→ More information about Filesystem commands can be found [here](https://docs.julialang.org/en/v1/base/file/).
 5. Create the seed-file<sup>2</sup>
     <br><sup><sup>2</sup> Seed-file: `.jld2` file that stores the variables after initialising. The file is used to execute the code </sup>
     <br>1. Modify the main Excel (lib\planning\Excels\main.xlsx) with all parameters.
