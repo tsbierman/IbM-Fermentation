@@ -46,8 +46,8 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
 6. Execute IbM code:<br>
     1. Check whether the desired seed-file (`sim_xxxx.jld2`) is located in the Code folder (folder with `IbM.jl` file). 
     2. Write `include("IbM.jl")` to *Command Window*<br>
-    3. Write  `IbM(xxxx)` to *Command Window* (❗ where xxxx is the simulation number)
-        <br>- Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.<br>
+    3. Write  `IbM(xxxx)` to *Command Window* (❗ where xxxx is the simulation number)<br>
+        - Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.<br>
 7. Get Data or Visualisation of Results (TODO: add instructions later)
 
 
