@@ -23,27 +23,29 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
 1. Download the code as .zip. Last version **TODO**. [Download code]()
 2. Extract the files to a destination (🌟 recommendation: Desktop)
 3. Open Julia (or VS Code).
-    &emsp;<br>- For more information about the VS Code User Interface, click [here](https://code.visualstudio.com/docs/getstarted/userinterface)
+    <br>&emsp;- For more information about the VS Code User Interface, click [here](https://code.visualstudio.com/docs/getstarted/userinterface)
 4. Go the the **Code folder<sup>1</sup>**
     <br><sup><sup>1</sup> Code folder: folder with `IbM.jl` file. </sup>
-    &emsp;<br>→ Make sure that `pwd()` yields `~\\IbM-fermentation`, thus the folder that `IbM.jl` is in
-    &emsp;<br>→ Move around with `cd("newFolder")`
-    &emsp;<br>→ Moving a directory upwards can be done with `cd(dirname(pwd()))`
-    &emsp;<br>→ More information about Filesystem commands can be found [here](https://docs.julialang.org/en/v1/base/file/).
+    <br>→ Make sure that `pwd()` yields `~\\IbM-fermentation`, thus the folder that `IbM.jl` is in
+    <br>&emsp;→ Move around with `cd("newFolder")`
+    <br>&emsp;→ Moving a directory upwards can be done with `cd(dirname(pwd()))`
+    <br>&emsp;→ More information about Filesystem commands can be found [here](https://docs.julialang.org/en/v1/base/file/).
 5. Create the seed-file<sup>2</sup>
     <br><sup><sup>2</sup> Seed-file: `.jld2` file that stores the variables after initialising. The file is used to execute the code </sup>
-    &emsp;<br>1. Modify the main Excel (lib\planning\Excels\main.xlsx) with all parameters.
+    <br>&emsp;1. Modify the main Excel (lib\planning\Excels\main.xlsx) with all parameters.
         <br><sup>Instruction on how to use main.xlsx can be found in *Information* sheet.</sup>
-    &emsp;<br>2. Write `include("lib\\pre_processing\\initialiseJVM.jl")` to *Command Window*
-        &emsp;&emsp;<br>- This initiates the Java Virtual Machine (JVM). This only needs to be done once per Julia session.
-    &emsp;<br>3. Write `include("lib\\pre_processing\\create_mat.jl");` to *Command Window*
-        &emsp;<br>- This will run a complete workflow with `start_up.xlsx`. This excel will be loaded out and a short simulation will be run with the saved data. This could take a while (TODO:time_indication), because Julia will have to compile everything. However, this compiling will speed up the actual simulation. For optimal simulation time, this should be done once every Julia session.
+    <br>&emsp;2. Write `include("lib\\pre_processing\\initialiseJVM.jl")` to *Command Window*
+        <br>- This initiates the Java Virtual Machine (JVM). This only needs to be done once per Julia session.
+    <br>&emsp;3. Write `include("lib\\pre_processing\\create_mat.jl");` to *Command Window*
+        <br>&emsp;&emsp;- This will run a complete workflow with `start_up.xlsx`. This excel will be loaded out and a short simulation will be run with the saved data. This could take a while (TODO:time_indication), because Julia will have to compile everything. However, this compiling will speed up the actual simulation. For optimal simulation time, this should be done once every Julia session.
         &emsp;<br>- This will create a map with the name `0000` in **results**
-    &emsp;<br>4. Write `create_mat("planning\\main.xlsx", xxxx)` to *Command Window* (❗ where xxxx is the simulation number from 1 to 9999)
-        &emsp;&emsp;<br>- This reads out the excel file and stores the variabels in `sim_xxxx.jld2` in the Code folder.
+    <br>&emsp;4. Write `create_mat("planning\\main.xlsx", xxxx)` to *Command Window* (❗ where xxxx is the simulation number from 1 to 9999)
+        <br>&emsp;&emsp;- This reads out the excel file and stores the variabels in `sim_xxxx.jld2` in the Code folder.
 6. Execute IbM code:
-    &emsp;<br>1. Check whether the desired seed-file (`sim_xxxx.jld2`) is located in the Code folder (folder with `IbM.jl` file). 
-    &emsp;<br>2. Write `include("IbM.jl")` to *Command Window*
-    &emsp;<br>3. Write  `IbM(xxxx)` to *Command Window* (❗ where xxxx is the simulation number)
-    &emsp;&emsp;<br>- Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.
+    <br>&emsp;1. Check whether the desired seed-file (`sim_xxxx.jld2`) is located in the Code folder (folder with `IbM.jl` file). 
+    <br>&emsp;2. Write `include("IbM.jl")` to *Command Window*
+    <br>&emsp;3. Write  `IbM(xxxx)` to *Command Window* (❗ where xxxx is the simulation number)
+    <br>&emsp;&emsp;- Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.
 7. Get Data or Visualisation of Results (TODO: add instructions later)
+
+
