@@ -21,7 +21,7 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
 
 ## :clipboard: Instructions for model use
 1. Download the code as .zip. Last version **TODO**. [Download code]()
-2. Extract the files to a destination (:star2: recommendation: Desktop)
+2. Extract the files to a destination (:star: recommendation: Desktop)
 3. Open Julia (or VS Code).
     - For more information about the VS Code User Interface, click [here](https://code.visualstudio.com/docs/getstarted/userinterface)
 4. Go the the **Code folder<sup>1</sup>**
@@ -33,20 +33,22 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
 5. Create the seed-file<sup>2</sup>
     <br><sup><sup>2</sup> Seed-file: `.jld2` file that stores the variables after initialising. The file is used to execute the code </sup>
     <br>1. Modify the main Excel (lib\planning\Excels\main.xlsx) with all parameters.
-      <br><sup>Instruction on how to use main.xlsx can be found in *Information* sheet.
+        <br><sup>Instruction on how to use main.xlsx can be found in *Information* sheet.</sup>
     <br>2. Write `include("lib\\pre_processing\\initialiseJVM.jl")` to *Command Window*
-        - This initiates the Java Virtual Machine (JVM). This only needs to be done once per Julia session.
+        <br>- This initiates the Java Virtual Machine (JVM). This only needs to be done once per Julia session.
     <br>3. Write `include("lib\\pre_processing\\create_mat.jl");` to *Command Window*
-        - This will run a complete workflow with `start_up.xlsx`. This excel will be loaded out and a short simulation will be run with the saved data. This could take a while (TODO:time_indication), because Julia will have to compile everything. However, this compiling will speed up the actual simulation. For optimal simulation time, this should be done once every Julia session.
-        - This will create a map with the name `0000` in **results**
+        <br>- This will run a complete workflow with `start_up.xlsx`. This excel will be loaded out and a short simulation will be run with the saved data. This could take a while (TODO:time_indication), because Julia will have to compile everything. However, this compiling will speed up the actual simulation. For optimal simulation time, this should be done once every Julia session.
+        <br>- This will create a map with the name `0000` in **results**
     <br>4. Write `create_mat("planning\\main.xlsx", xxxx)` to *Command Window* (:exclamation: where xxxx is the simulation number from 1 to 9999)
-        - This reads out the excel file and stores the variabels in `sim_xxxx.jld2` in the Code folder.
+        <br>- This reads out the excel file and stores the variabels in `sim_xxxx.jld2` in the Code folder.
 6. Execute IbM code:
     <br>1. Check whether the desired seed-file (`sim_xxxx.jld2`) is located in the Code folder (folder with `IbM.jl` file). 
     <br>2. Write `include("IbM.jl")` to *Command Window*
     <br>3. Write  `IbM(xxxx)` to *Command Window* (:exclamation: where xxxx is the simulation number)
-        - Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.
+        <br>- Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.
 7. Get Data or Visualisation of Results (TODO: add instructions later)
+
+:star:
 
 
 THOUGHTS:
