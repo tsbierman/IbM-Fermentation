@@ -10,14 +10,9 @@ function circleShape(h, k, r)
 end
 
 # Find files
-create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
-determine_diff_file = string(pwd(), "\\lib\\determine_diffusion_region.jl")
-determine_bac_file = string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl")
-
-# Include files
-include(create_mat_file)
-include(determine_diff_file)
-include(determine_bac_file)
+include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
+include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
+include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
 
 # Read_file
 filename = string(pwd(), "\\test\\test_file.xlsx")

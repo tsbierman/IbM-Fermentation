@@ -10,11 +10,10 @@ include(string(pwd(), "\\lib\\detachment\\recalculateT.jl"))
 include(string(pwd(), "\\lib\\detachment\\calcTimeOfDetach.jl"))
 include(string(pwd(), "\\lib\\detachment\\calculateLocalDetachmentRate.jl"))
 
-create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
-include(create_mat_file)
+include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
 
-filename = string(Base.source_dir(), "\\","test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename)
+filename = string(pwd(), "\\test\\test_file.xlsx")
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 
 @testset "computeRoot" begin
     @test(computeRoot(Inf, Inf, 1, 0.001) == Inf) # Artificial values for test

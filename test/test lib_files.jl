@@ -16,7 +16,7 @@ include(string(pwd(), "\\lib\\reaction_matrix\\determine_max_growth_rate_and_mai
 include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename)
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 
 debug_struct = General()
 constants.debug = debug_struct

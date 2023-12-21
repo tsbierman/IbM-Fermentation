@@ -1,16 +1,12 @@
 using Test
 import XLSX
 
-create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
-include(create_mat_file)
-
-bacteria_shove_file = string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl")
-include(bacteria_shove_file)
-
+include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
+include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
-filename = string(Base.source_dir(), "\\","test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename)
+filename = string(pwd(), "\\test\\test_file.xlsx")
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 
 @testset "rand_circle" begin
     n, x_centre, y_centre, radius = 30, 129, 129, 80

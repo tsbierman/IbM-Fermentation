@@ -16,7 +16,7 @@ function bacteria_divide!(bac, constants)
 
     cycle = 0
 
-    while sum(bac.molarMass * constants.bac_MW .> constants.max_bac_mass_grams) > 1
+    while sum(bac.molarMass * constants.bac_MW .> constants.max_bac_mass_grams) > 0
         cycle = cycle + 1
 
         # Select indices of too large bacteria
