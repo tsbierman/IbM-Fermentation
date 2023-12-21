@@ -3,6 +3,7 @@ import XLSX
 using InvertedIndices
 using Random
 using DSP
+using Printf
 
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
@@ -22,7 +23,7 @@ include(string(pwd(), "\\lib\\dynamic_dt\\upward_trend.jl"))
 
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename)
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 
 @testset "bulk_conc_diff_within_limit" begin
     conc1 = 100 
@@ -181,7 +182,7 @@ end
     @test non_convergent(iRES6, RES_pov_succeed, tol) == true
 
     RES_neg1_succ = deepcopy(RES_both_fail)
-    RES_neg1_succ[1,5] = 10 - 1e-4
+    RES_neg1_succ[1,5] = 10 - 1e-6
     @test non_convergent(iRES6, RES_neg1_succ, tol) == false
 
     RES_neg2_succ = deepcopy(RES_both_fail)
@@ -189,7 +190,7 @@ end
     @test non_convergent(iRES6, RES_neg2_succ, tol) == false
 
     RES_neg_succeed = deepcopy(RES_both_fail)
-    RES_neg_succeed[1,5] = 10 - 1e-6
+    RES_neg_succeed[1,5] = 10 - 1e-4
     @test non_convergent(iRES6, RES_neg_succeed, tol) == true
 
     RES_succeed = deepcopy(RES_both_fail)

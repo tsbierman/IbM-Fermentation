@@ -1,3 +1,5 @@
+using Printf
+
 function rand_circle(N, x_centre, y_centre, r)
     """ 
     This function generates a set of coordinates around a centre, at most r away.
@@ -176,13 +178,22 @@ function shoving_loop(bac, grid, constants, n)
     return bac
 end
 
-function create_mat(filename)
+function create_mat(filename, simulation_number)
     """
     This function reads an excel file and extracts all pre-set parameters from it.
     It stores these parameters in structs, which can be used later in the simulation.
+    Simulation_number guides how this function is used. The normal use case is a call
+    with a simulation number from 1 to 9999. This will create a .jld2 file with the variables saved.
+    The user has to call IbM(simulation_number) themselves. 
+    When 0 is used as simulation_number, create_mat will
+    still save everything, but will call IbM(0) directly. This use case is for starting up and
+    should only be called with the file (start_up.xlsx).
+    When a negative number is supplied, this function will not save the variables but will
+    return them. This is useful when testing as saving might not be desired then.
 
     Arguments:
     filename:           An excel file containing all parameters
+    simulation_number   The number the user wants this simulation stored under.
 
     Returns
     grid:               A "General" struct containing all parameters related to the grid
@@ -251,10 +262,27 @@ function create_mat(filename)
         println("\t $(sum(bac.species .== specie)) $(constants.speciesNames[specie])")
     end
 
-    println(">>>>>>>>>>>>>> DONE!")
+    if simulation_number < 0 
+        # For testing purposes
+        println(">>>>>>>>>>>>>> DONE LOADING!")
+        return grid, bac, constants, settings, init_params
 
-    return grid, bac, constants, settings, init_params
+    elseif simulation_number == 0 
+        # Run activation simulation
+        results_file = @sprintf("sim_%04d.jld2", simulation_number)
+        # Save
+        save(results_file, "grid", grid, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
+        println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
+        # Directly call IbM
+        IbM(simulation_number)
 
+    else 
+        # Normal use case
+        results_file = @sprintf("sim_%04d.jld2", simulation_number)
+        save(results_file, "grid", grid, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
+        println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
+
+    end
 end
 
 # Import everything necessary while still in top-level scope
@@ -269,18 +297,11 @@ using ODE
 using DataStructures
 using FileIO
 using TickTock
-using Printf
 
 # Initialise struct "General" that can dynamically add properties
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
-# Get the name of the file that will run ("Could be a small simulation to let Julia optimize everything")
-filename = string(pwd(), "\\planning\\test_file.xlsx")
-
 # Include required files
 include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
 include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
-
-# NEED TO SAVE THIS in a file, grid, bac, constants, init_params, settings
-# Saving either here or let user do it from terminal
-create_mat(filename); 
+include(string(pwd(), "\\IbM.jl"));

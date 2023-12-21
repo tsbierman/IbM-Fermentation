@@ -17,7 +17,7 @@ create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename)
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid, bac)
 diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
 Ks = constants.Ks

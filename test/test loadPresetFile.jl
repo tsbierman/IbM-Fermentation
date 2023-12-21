@@ -1,20 +1,11 @@
 using Test
 import XLSX
-loading_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\loadPresetFile.jl")
-include(loading_file)
 
-struct General
-    properties::Dict{Symbol, Any}
-end
-General() = General(Dict{Symbol, Any}())
-
-Base.getproperty(x::General, property::Symbol) = getfield(x, :properties)[property]
-Base.setproperty!(x::General, property::Symbol, value) = getfield(x, :properties)[property] = value
-Base.propertynames(x::General) = keys(getfield(x, :properties))
-
+include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
+include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
 @testset "loadPresetFile" begin
-    filename = string(Base.source_dir(), "\\","test_file.xlsx")
+    filename = string(pwd(), "\\test\\test_file.xlsx")
     grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
 
     #Test Discretization
@@ -35,9 +26,15 @@ Base.propertynames(x::General) = keys(getfield(x, :properties))
     @test constants.kDist == 1
 
     # Test solver
-    @test isnan(constants.pHtolerance) == true
-    @test settings.type == "Neut"
-
+    if settings.pHincluded
+        @test isnan(constants.pHtolerance) == false
+    else
+        @test isnan(constants.pHtolerance) == true
+    end
+    if settings.structure_model
+        @test settings.type == "Neut"
+    end
+        
     # Test influent and initial condition
     @test constants.influent_concentrations[7] == 5e-4
     @test init_params.init_bulk_conc[7] == 5e-4

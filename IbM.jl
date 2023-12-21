@@ -31,10 +31,10 @@ function IbM(simulation_number)
         mkdir(output_dir)
     end
 
-    # Initialising the java should be done with initialiseJVM.jl beforehand
+    # Initialising the Java should be done with initialiseJVM.jl beforehand
     # Making subfolders accesible is done with separate include statements (or play with push!(LOADPATH))
 
-    # Dont know how to disable/enable specific warnings
+    # Don't know how to disable/enable specific warnings
 
     # ============== Time advancements ====================
     println("> SIMULATION RUNNING >>>>>>>>>> \n")

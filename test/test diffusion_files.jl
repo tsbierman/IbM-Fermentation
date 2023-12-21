@@ -19,11 +19,10 @@ include(string(pwd(), "\\lib\\reaction_matrix\\rMatrix_section.jl"))
 include(string(pwd(), "\\lib\\reaction_matrix\\calculate_monod.jl"))
 include(string(pwd(), "\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
 
-create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
-include(create_mat_file)
+include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
 
-filename = string(Base.source_dir(), "\\","test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename)
+filename = string(pwd(), "\\test\\test_file.xlsx")
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 
 debug_struct = General()
 constants.debug = debug_struct
