@@ -1,7 +1,6 @@
 # pre_processing files
 include("lib\\pre_processing\\create_mat.jl")
 include("lib\\pre_processing\\loadPresetFile.jl")
-include("lib\\pre_processing\\initialiseJVM.jl")
 println(">>>>>>>>>>>>>>INCLUDED PRE_PROCESSING FILES")
 
 # General files
