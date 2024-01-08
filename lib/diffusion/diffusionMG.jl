@@ -44,8 +44,8 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     concs:                  A (ny, nx, ncompounds) matrix containing the concentrations after solving the diffusion equations [mol/L]
     """
 
-    include(string(pwd(), "\\lib\\diffusion\\V_Cycle.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\V_Cycle.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
 
     # variable declarations/unpacking
     diffusion_coef = constants.diffusion_rates # [m2/h]

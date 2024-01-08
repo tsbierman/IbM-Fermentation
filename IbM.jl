@@ -12,7 +12,7 @@ function IbM(simulation_number)
     """
 
     # Get needed file
-    include(string(pwd(), "\\lib\\integTime.jl"))
+    # include(string(pwd(), "\\lib\\integTime.jl"))
 
     # Argument check
     if !isa(simulation_number, Int) || !(0 <= simulation_number < 10000)

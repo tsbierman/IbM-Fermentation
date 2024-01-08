@@ -298,10 +298,10 @@ using DataStructures
 using FileIO
 using TickTock
 
-# Initialise struct "General" that can dynamically add properties
-include(string(pwd(), "\\lib\\Struct_Module.jl"))
+# # Initialise struct "General" that can dynamically add properties
+# include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
-# Include required files
-include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
-include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
-include(string(pwd(), "\\IbM.jl"));
+# # Include required files
+# include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
+# include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
+# include(string(pwd(), "\\IbM.jl"));

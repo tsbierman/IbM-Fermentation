@@ -22,7 +22,7 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         return bac
 
     elseif settings.detachment == "naive"
-        include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
+        # include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
         # Detachment based on distance from centre
         bac_distance_from_centre = sqrt.((bac.x .- grid.dx * grid.nx / 2) .^2 + (bac.y .- grid.dy * grid.ny / 2) .^2)
         bac_detach = bac_distance_from_centre .> constants.max_granule_radius
@@ -33,9 +33,9 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         end
 
     elseif settings.detachment == "mechanistic"
-        include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
-        include(string(pwd(), "\\lib\\detachment\\calcTimeOfDetach.jl"))
-        include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
+        # include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
+        # include(string(pwd(), "\\lib\\detachment\\calcTimeOfDetach.jl"))
+        # include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
         # Detachment based on detachment time and timestep (and size)
 
         # grid2bac is a (nx * ny * ?) matrix containing the bacteria in each grid cell (indices)

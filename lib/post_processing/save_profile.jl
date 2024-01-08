@@ -11,7 +11,7 @@ function init_save_profile(constants, grid)
     XXX_saved               A "General" struct that containing all variables of "General" struct XXX, that need to be saved
                             They are initialised for the number of saves that are going to be made
     """
-    include(string(pwd(), "\\lib\\Struct_Module"))
+    # include(string(pwd(), "\\lib\\Struct_Module"))
 
     nSaves = ceil(constants.simulation_end / constants.dT_save) + 1
 

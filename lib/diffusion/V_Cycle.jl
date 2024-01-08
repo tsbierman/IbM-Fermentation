@@ -21,10 +21,10 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
     phi:                The matrix x advanced towards the solution in Ax=b
     """
 
-    include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\prolongation.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\restriction.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\prolongation.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\restriction.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
     
     # Create a correct left-hand-side stencil according to A_lhs = I - 1/2 ^2d * L_0
     L_lhs = [0 0 0; 0 1 0; 0 0 0] .- ((1/2)^(2*depth)) * L_0
