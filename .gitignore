@@ -1,3 +1,5 @@
 test/*.xlsx
 *.png
 *.jld2
+planning/*.xlsx
+results/*/*.xlsx

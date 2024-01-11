@@ -14,7 +14,7 @@ function save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directo
     """
 
     # Name file
-    results_file = string(directory, "\\backup.jdl2")
+    results_file = string(directory, "\\backup.jld2")
 
     # Save everything
     save(results_file, "bac", bac, "bulk_concs", bulk_concs, "invHRT", invHRT, "conc", conc, "reaction_matrix", reaction_matrix, "pH", pH)

@@ -13,7 +13,8 @@ function massbal(bulk_conc, p, t)
         variableHRT:                A Boolean indicating whether HRT is variable
         bulk_setpoint:              The setpoint concentration for outflow of compound[setpoint_index]
         Dir_k:                      A (nCompounds,) BitArray of which compounds follow Dirichlet boundary condition
-        settings:                   A "General" struct containing all the settings of the simulation
+        structure_model:            A Boolean indicating whether a structure model is used
+        structure_type:             A string indicating which structure type is used
         invHRT:                     1/HRT
 
     Returns
@@ -25,15 +26,16 @@ function massbal(bulk_conc, p, t)
     bulk_setpoint = p[4]
     setpoint_index = p[5]
     Dir_k = p[6]
-    settings = p[7]
-    invHRT = p[8]
+    structure_model = p[7]
+    structure_type = p[8]
+    invHRT = p[9]
 
     dy = zeros(length(bulk_conc))
 
-    if settings.structure_model
+    if structure_model
         # These cases are quite hardcoded, therefore, they are just copied to
         # obtain something complete. I am not sure whether they make sense.
-        if settings.type == "Neut"
+        if structure_type == "Neut"
             # For index 1, if HRT is changeable and bulk concentration is not the set_point
             if variableHRT == true && (bulk_conc[1] > bulk_setpoint || bulk_conc[1] < bulk_setpoint)
                 # Only able to adjust when reaction < 0. If reaction > 0, this would mean that Cin - c < 0
@@ -64,9 +66,9 @@ function massbal(bulk_conc, p, t)
             end
 
             dy[4:end] = invHRT * (reactor_influx[4:end] .- bulk_conc[4:end]) .+ cumulative_reacted[4:end]
-            dy[5:end] = 0
+            dy[5:end] .= 0
 
-        elseif settings.type in ("Comp", "Comm", "Copr")
+        elseif structure_type in ("Comp", "Comm", "Copr")
             5
             # For index 1
             if variableHRT == true && (bulk_conc[1] > bulk_setpoint || bulk_conc[1] < bulk_setpoint)
@@ -78,10 +80,10 @@ function massbal(bulk_conc, p, t)
             end
 
             dy[2:end] = invHRT * (reactor_influx[2:end] .- bulk_conc[2:end]) .+ cumulative_reacted[2:end]
-            dy[5:end] = 0
+            dy[5:end] .= 0
 
         else
-            throw(ErrorException("Type <$(settings.type)> is not a registered set of simulations"))
+            throw(ErrorException("Type <$(structure_type)> is not a registered set of simulations"))
         end
 
     else
@@ -134,6 +136,7 @@ function correct_negative_concentrations(conc)
             end
         end
     end
+    return conc
 end
 
 
@@ -254,9 +257,12 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         # over the whole matrix per compound. This is then adjusted to a single grid cell
         cumulative_reacted = dropdims(sum(reactionMatrix, dims=(1,2)), dims=(1,2)) * Vg * f / Vr # [mol/L /h]
 
+        # Convert from Vector{Any} to Vector{Float64}
+        prev_conc = convert(Array{Float64}, prev_conc)
+
         try
             # Based on reaction_matrix, calculate new bulk concentrations with an ODE.
-            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings, invHRT]
+            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings.structure_model, settings.type, invHRT]
             prob = ODEProblem(massbal, prev_conc, (0.0, dT), parameters)
             sol = solve(prob, Tsit5(), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
             bulk_conc_temp = sol.u[end]

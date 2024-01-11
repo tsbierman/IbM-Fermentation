@@ -13,7 +13,7 @@ function init_save_slice(constants, grid)
     """
     # include(string(pwd(), "\\lib\\Struct_Module"))
 
-    nSaves = ceil(constants.simulation_end / constants.dT_save) + 1
+    nSaves = ceil(Int, constants.simulation_end / constants.dT_save) + 1
 
     # Bacterial variables
     bac_saved = General()
@@ -57,7 +57,7 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, cons
     directory:              The directory where results are to be stored in
     """
     # Initialise of load previous values
-    results_file = string(directory, "\\results1D.jdl2")
+    results_file = string(directory, "\\results1D.jld2")
     if Time == 0
         bac_saved, conc_saved, pH_saved, reactor_saved = init_save_slice(constants, grid)
     else
@@ -65,7 +65,7 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, cons
     end
     
     # Set values
-    iSave = ceil((Time+0.01) / constants.dT_save)
+    iSave = ceil(Int, (Time+0.01) / constants.dT_save)
 
     # Bacterial variables
     nBacs = length(bac.x)
@@ -78,10 +78,10 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, cons
     bac_saved.mu[iSave, 1:nBacs] = bac.mu
 
     # concentration variable
-    conc_saved[iSave, :, :] = conc[ceil(grid.ny/2), :, :]   # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
+    conc_saved[iSave, :, :] = conc[ceil(Int, grid.ny/2), :, :]   # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
 
     # pH variable
-    pH_saved[iSave, :] = pH[ceil(grid.ny/2), :]             # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
+    pH_saved[iSave, :] = pH[ceil(Int, grid.ny/2), :]             # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
 
     # reactor_properties
     reactor_saved.bulk_concs[iSave, :] = bulk_concentrations

@@ -44,8 +44,8 @@ function IbM(simulation_number)
 
     println("> SIMULATION FINISHED >>>>>>>>>> \n")
 
-    load(simulation_file, "constants")
-    @sprintf("\n\nTotal time for simulation of %.2f hours:\n\t%.2f seconds\n", constants.simulation_end, totalTime)
+    constants = load(simulation_file, "constants")
+    @printf("\n\nTotal time for simulation of %.2f hours:\n\t%.2f seconds\n", constants.simulation_end, totalTime)
 
     # Cleanup of root directory
     mv(simulation_file, string(output_dir, "\\", simulation_file))

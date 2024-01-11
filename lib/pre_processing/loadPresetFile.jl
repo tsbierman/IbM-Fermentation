@@ -148,7 +148,7 @@ function loadPresetFile(filename)
 
     # For the species with a Dirichlet, the influent concentration is taken as the bulk concentration
     init_params.init_concs = values_init                                            # [mol/L]
-    init_params.init_bulk_conc = init_params.init_concs                             # [mol/L]
+    init_params.init_bulk_conc = values_init                                        # [mol/L]
     init_params.init_bulk_conc[constants.Dir_k] = constants.influent_concentrations[constants.Dir_k]
 
     # Constants (Equilibrium constants & charge matrix)

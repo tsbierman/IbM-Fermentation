@@ -75,6 +75,7 @@ function integTime(simulation_file, directory)
     else
         # Initiate from preset values
         conc, bulk_concs, invHRT, reaction_matrix, pH, bac = initTime!(grid, bac, init_params, constants, settings)
+        
 
         # Initiate time and profiling information/storage from preset
         Time = General()
@@ -94,7 +95,7 @@ function integTime(simulation_file, directory)
             Time.maxDT_bac = constants.dynamicDT.maxDT_bac
             Time.minDT_bac = constants.dynamicDT.minDT_bac
 
-            maximum_space_needed = ceil(constants.simulation_end/Time.minDT_bac)
+            maximum_space_needed = ceil(Int, constants.simulation_end/Time.minDT_bac)
 
             Time.history = zeros(Float32, maximum_space_needed)                         # Vector to save the time at each Steady-State
             profiling = zeros(Float32, maximum_space_needed, 11)                        # Matrix to save time spent on certain calculations
@@ -301,7 +302,7 @@ function integTime(simulation_file, directory)
                     
                     # Bacteria: detachment (for now only rough detachment is implemented)
                     tick()
-                    bac = bacteria_detachment!(bac, grid, constants, settings, Time.dT_bac)
+                    bac = bacteria_detachment!(bac, grid, constants, settings, Time.dT_bac, invHRT)
                     profiling[iProf, 7] = profiling[iProf, 7] + tok()
 
                     # Display number of bacteria in system
@@ -358,6 +359,7 @@ function integTime(simulation_file, directory)
 
                     # Calculate and set bulk concentrations
                     tick()
+                    new_bulk_concs = prev_conc
                     while true
                         new_bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings)
                         if !settings.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants)
@@ -419,7 +421,7 @@ function integTime(simulation_file, directory)
 
     # Save all important variables one last time?
     save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)         # Slice of simulation
-    save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)       # Entire plane of simulation
+    # save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)       # Entire plane of simulation
     save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
     save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)   # Save performance
 end

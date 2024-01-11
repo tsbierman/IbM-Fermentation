@@ -13,7 +13,7 @@ function init_save_profile(constants, grid)
     """
     # include(string(pwd(), "\\lib\\Struct_Module"))
 
-    nSaves = ceil(constants.simulation_end / constants.dT_save) + 1
+    nSaves = ceil(Int, constants.simulation_end / constants.dT_save) + 1
 
     # Bacterial variables
     bac_saved = General()
@@ -57,8 +57,8 @@ function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, co
     directory:              The directory where results are to be stored in
     """
 
-    # Initialise of load previous values
-    results_file = string(directory, "\\results2D.jdl2")
+    # Initialise or load previous values
+    results_file = string(directory, "\\results2D.jld2")
     if Time == 0
         bac_saved, conc_saved, pH_saved, reactor_saved = init_save_profile(constants, grid)
     else
