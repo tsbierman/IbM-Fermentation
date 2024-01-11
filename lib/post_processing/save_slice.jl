@@ -67,6 +67,10 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, cons
     # Set values
     iSave = ceil(Int, (Time+0.01) / constants.dT_save)
 
+    if Time >= constants.simulation_end
+        iSave = iSave + 1
+    end
+
     # Bacterial variables
     nBacs = length(bac.x)
     bac_saved.nBacs[iSave] = nBacs

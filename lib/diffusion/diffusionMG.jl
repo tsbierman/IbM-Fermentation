@@ -17,9 +17,9 @@ function calculate_rhs_dirichlet(phi, L_rhs, value, diffRegion)
                     Outside the region, an artifical vlaue of the bulk_concentration is set.
     """
 
-    adjusted_phi = diffRegion .* phi .+ .!diffRegion * value            # Fix outside diffusion region
-    rhs_diffRegion = conv(adjusted_phi, L_rhs)[2:end-1,2:end-1]         # Convolution
-    rhs = diffRegion .* rhs_diffRegion .+ .!diffRegion * value          # Fix outside diffusion region
+    adjusted_phi = diffRegion .* phi .+ .!diffRegion * value                            # Fix outside diffusion region
+    rhs_diffRegion = conv(adjusted_phi, L_rhs)[2:end-1,2:end-1]                         # Convolution
+    rhs = diffRegion .* rhs_diffRegion .+ .!diffRegion .* ones(size(phi)) * value       # Fix outside diffusion region
 
     return rhs
 end
