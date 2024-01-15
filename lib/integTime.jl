@@ -95,7 +95,7 @@ function integTime(simulation_file, directory)
             Time.maxDT_bac = constants.dynamicDT.maxDT_bac
             Time.minDT_bac = constants.dynamicDT.minDT_bac
 
-            maximum_space_needed = ceil(Int, constants.simulation_end/Time.minDT_bac)
+            maximum_space_needed = ceil(Int, constants.simulation_end/Time.minDT_bac) + 1
 
             Time.history = zeros(Float32, maximum_space_needed)                         # Vector to save the time at each Steady-State
             profiling = zeros(Float32, maximum_space_needed, 11)                        # Matrix to save time spent on certain calculations
@@ -105,7 +105,7 @@ function integTime(simulation_file, directory)
             bulk_history = zeros(Float32, size(bulk_concs, 1), maximum_space_needed)    # Matrix to store bulk concentrations over time
             maxInitRES = zeros(Float32, maximum_space_needed)                           # Vector to store maximum initial RES values
         else
-            max_space_needed = ceil(constants.simulation_end / constants.dT_bac)
+            max_space_needed = ceil(constants.simulation_end / constants.dT_bac) + 1
 
             Time.history = zeros(Float32, max_space_needed)                             # Vector to save the time at each Steady-State
             profiling = zeros(Float32, max_space_needed, 11)                            # Matrix to save time spent on certain calculations
@@ -123,9 +123,9 @@ function integTime(simulation_file, directory)
     end
 
     # Initialise storing space
-    RESvalues = zeros(length(constants.compoundNames), 200) # Reserve space for n steady state checks beforehand (can be more)
-    norm_diff = zeros(200)
-    res_bacsim = zeros(200, 2)
+    RESvalues = zeros(length(constants.compoundNames), 500) # Reserve space for n steady state checks beforehand (can be more)
+    norm_diff = zeros(500)
+    res_bacsim = zeros(500, 2)
 
     iProf = findfirst(profiling .== 0)[1]       # Keep track of index of profiling (every simulated dT_bac +1 index) (starts half way if restarting from storage)
     iDiffusion = 1                              # Keep track of index of diffusion (per 1 dT_bac: iDiffusion == cycles of diffusion)
@@ -163,7 +163,7 @@ function integTime(simulation_file, directory)
     while Time.current < constants.simulation_end
 
         if mod(iDiffusion, constants.dynamicDT.nItersCycle) == 0
-            println("Currently at diffusion iteration $(iDiffusion) (max error: $(max(RESvalues[:, iRES])))\n")
+            println("Currently at diffusion iteration $(iDiffusion) (max error: $(maximum(RESvalues[:, iRES])))\n")
         end
 
         # diffuse (MG)
@@ -248,7 +248,7 @@ function integTime(simulation_file, directory)
 
                 # Perform dynamic dT for diffusion (for next iteration)
                 if settings.dynamicDT && multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants)
-                    Time = increase_dT_diffusion(Time, "Multiple steady states reached with more than $(constants.dynamicDT.iterThresholdIncrease) diffusion iterations", grid.dx, constants)
+                    Time = increase_dT_diffusion!(Time, "Multiple steady states reached with more than $(constants.dynamicDT.iterThresholdIncrease) diffusion iterations", grid.dx, constants)
                 end
 
                 # Calculate actual dT for integration of bacterial mass (for skipped time)
@@ -264,7 +264,7 @@ function integTime(simulation_file, directory)
                     # Reset counter for next iteration
                     iDiffusion = 1
                     iRES = 0
-                    RESvalues = zeros(length(constants.compoundNames), 200)
+                    RESvalues = zeros(length(constants.compoundNames), 500)
 
                     # Reaction_matrix & mu & pH are already calculated (steady state so still valid)
 

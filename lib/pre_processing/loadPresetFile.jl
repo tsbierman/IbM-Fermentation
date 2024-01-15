@@ -281,7 +281,6 @@ function loadPresetFile(filename)
         throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
 
-
     if compounds[first_compoundindex[1]:last_compoundindex[1]] != constants.compoundNames
         throw(ErrorException("Compounds do not have the same name, or are not in the same order"))
     end
@@ -290,13 +289,13 @@ function loadPresetFile(filename)
     iAnab = findall(reaction_names .== "Anab")
     iDecay = findall(reaction_names .== "Decay")
 
-    constants.MatrixMet = zeros(nCompounds+2, length(constants.speciesNames)) # +2 to include H2O and H
-    constants.MatrixDecay = zeros(nCompounds+2, length(constants.speciesNames)) # +2 to include H2O and H
+    constants.MatrixMet = zeros(nCompounds, length(constants.speciesNames))
+    constants.MatrixDecay = zeros(nCompounds, length(constants.speciesNames))
 
     for species = 1:length(constants.speciesNames)
         # get anabolism and catabolism
-        cata = values_reacM[:, iCat[species]]
-        ana = values_reacM[:, iAnab[species]]
+        cata = values_reacM[first_compoundindex[1]:last_compoundindex[1], iCat[species]]
+        ana = values_reacM[first_compoundindex[1]:last_compoundindex[1], iAnab[species]]
 
         # get eDonor and Yield
         eD_species = eD[species]
@@ -313,7 +312,7 @@ function loadPresetFile(filename)
         constants.MatrixMet[:, species] = cata ./ Y .+ ana
 
         # Set decay matrix entry
-        constants.MatrixDecay[:, species] = values_reacM[:, iDecay[species]]
+        constants.MatrixDecay[:, species] = values_reacM[first_compoundindex[1]:last_compoundindex[1], iDecay[species]]
     end
 
     # Initialisation of bacteria

@@ -117,7 +117,7 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
                         concentrationChange = concentrationChange * cumulative_mass                     # [mol_i/h] Total change for this specie
 
                         # Fill in matrix
-                        reaction_matrix[y_index, x_index, :] .+ reshape(concentrationChange, 1, 1, :)   # [mol_i/h]
+                        reaction_matrix[y_index, x_index, :] = reaction_matrix[y_index, x_index, :] .+ concentrationChange  # [mol_i/h]
                     end
                 end
             end
