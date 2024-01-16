@@ -45,8 +45,6 @@ function integTime(simulation_file, directory)
 
     # include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
 
-    ENV["TICKTOCK_MESSAGES"] = false # Disables messages by TickTock module 
-
     # Load preset file
     grid, bac, constants, init_params, settings = load(simulation_file, "grid", "bac", "constants", "init_params", "settings")
     debug = General()

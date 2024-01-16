@@ -14,6 +14,8 @@ function IbM(simulation_number)
     # Get needed file
     # include(string(pwd(), "\\lib\\integTime.jl"))
 
+    ENV["TICKTOCK_MESSAGES"] = false # Disables messages by TickTock module 
+
     # Argument check
     if !isa(simulation_number, Int) || !(0 <= simulation_number < 10000)
         throw(ArgumentError("Simulation number should be an Integer in the range 1-9999"))
