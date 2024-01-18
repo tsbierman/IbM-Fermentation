@@ -100,7 +100,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
         # CHeck for negative values, raise error
         negative_concentration = conc[:,:,icompound] .< 0
         if any(negative_concentration)
-            if Time.dT != Time.minDT && abs(minimum(conc[negative_concentration])) > accuracy^2 / 100   # dT can be reduced and significant negative value
+            if Time.dT != Time.minDT && abs(minimum(conc[negative_concentration, icompound])) > accuracy^2 / 100   # dT can be reduced and significant negative value
                 throw(ErrorException("Diffusion:negative_concentration, Negative concentration encountered in diffusion solution of compound $(constants.compoundNames[icompound])"))
             else                                                                                        # dT cannot be reduced, thus return corrected concentration or insignificant negative value
                 temp = deepcopy(conc[:,:,icompound])
