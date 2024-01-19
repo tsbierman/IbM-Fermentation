@@ -5,6 +5,7 @@ println(">>>>>>>>>>>>>>INCLUDED PRE_PROCESSING FILES")
 
 # General files
 include("IbM.jl")
+include("extract_data.jl")
 println(">>>>>>>>>>>>>>INCLUDED IbM")
 
 # Lib files
