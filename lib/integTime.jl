@@ -259,7 +259,7 @@ function integTime(simulation_file, directory)
                     normOverTime[iProf] = norm_diff[iRES]
                     nDiffIters[iProf] = iDiffusion
                     maxInitRES[iProf] = maximum(RESvalues[:,1])
-                    # Reset counter for next iteration
+                    # Reset counters for next iteration
                     iDiffusion = 1
                     iRES = 0
                     RESvalues = zeros(length(constants.compoundNames), 500)
@@ -342,7 +342,7 @@ function integTime(simulation_file, directory)
 
                     # Apply dynamic dT_bac
                     if settings.dynamicDT && multiple_low_initRES(iProf, maxInitRES, Time, constants)
-                        Time = increase_dT_bac!(Time, "Multiple steady state cycles with initRES value of $(round(constants.dynamicDT.initRESThresholdIncrease * 100, digits=1))")
+                        Time = increase_dT_bac!(Time, "Multiple steady state cycles with initRES value below $(round(constants.dynamicDT.initRESThresholdIncrease * 100, digits=1))")
                     end
 
                     # Prepare for next steadystate cycle

@@ -1,6 +1,6 @@
 function extract_data(sim_number)
     """
-    This function extracts the data from the saved jld2 files and places them in an excel.
+    This function extracts the data from the saved .jld2 files and places them in an excel.
 
     Arguments
     sim_number:                 The simulation number. It does not have to be the number, but it has to be how the map with data is saved.

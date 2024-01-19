@@ -12,7 +12,7 @@ function multiple_low_initRES(iProf, maxInitRES, Time, constants)
     multiple_low:       Boolean indicating whether the previous initial RES values were below threshold
     """
 
-    recently_changed = (Time.current - Time.changed_dT) < constants.dynamicDT.nIterThreshold*Time.dT_bac # Checks if enough time has passed since last change of dT to increase dT
+    recently_changed = (Time.current - Time.changed_dT_bac) < constants.dynamicDT.nIterThreshold*Time.dT_bac # Checks if enough time has passed since last change of dT to increase dT
 
     if iProf >= constants.dynamicDT.nIterThreshold  # Can only check if iProf > n, otherwise negative indexing
         multiple_ss_with_low_init_RES = all(maxInitRES[iProf - constants.dynamicDT.nIterThreshold + 1 : iProf] .< constants.dynamicDT.initRESThresholdIncrease) # Checks RES against threshold
