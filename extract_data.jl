@@ -15,7 +15,7 @@ function extract_data(sim_number)
     Time:                           The time at each dT_bac step, dT_bac can be deducted from this
     """
 
-    conc_saved, reactor_saved = load("results\\$(sim_number)\\results1D.jld2", "conc_saved", "reactor_saved")
+    bac_saved, conc_saved, reactor_saved = load("results\\$(sim_number)\\results1D.jld2", "bac_saved", "conc_saved", "reactor_saved")
     profiling, nDiffIters, bulk_history, Time = load("results\\$(sim_number)\\profilingResults.jld2", "profiling", "nDiffIters", "bulk_history", "Time")
 
     XLSX.openxlsx("results\\$(sim_number)\\julia_data_$(sim_number).xlsx", mode="w") do xf
@@ -43,6 +43,19 @@ function extract_data(sim_number)
 
         sheet7 = XLSX.addsheet!(xf, "Time")
         sheet7["A1"] = Time.history
+
+        sheet8 = XLSX.addsheet!(xf, "nBacs")
+        sheet8["A1"] = bac_saved.nBacs
+
+        if bac_saved.nBacs[end] == 0
+            short_species = bac_saved.species[:, 1:bac_saved.nBacs[end-1]]
+        else
+            short_species = bac_saved.species[:, 1:bac_saved.nBacs[end]]
+        end
+
+        sheet9 = XLSX.addsheet!(xf, "species")
+        sheet9["A1"] = bac_saved.species[:, 1:bac_saved.nBacs[end]]
+
     end
     println("DONE!")
 end
