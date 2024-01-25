@@ -48,13 +48,19 @@ function extract_data(sim_number)
         sheet8["A1"] = bac_saved.nBacs
 
         if bac_saved.nBacs[end] == 0
-            short_species = bac_saved.species[:, 1:bac_saved.nBacs[end-1]]
+            num_bacs = bac_saved.nBacs[end-1]
         else
-            short_species = bac_saved.species[:, 1:bac_saved.nBacs[end]]
+            num_bacs = bac_saved.nBacs[end]
         end
 
         sheet9 = XLSX.addsheet!(xf, "species")
-        sheet9["A1"] = bac_saved.species[:, 1:bac_saved.nBacs[end]]
+        sheet9["A1"] = bac_saved.species[:, 1:num_bacs]
+
+        sheet10 = XLSX.addsheet!(xf, "x_coordinate")
+        sheet10["A1"] = bac_saved.x[:, 1:num_bacs]
+
+        sheet11 = XLSX.addsheet!(xf, "y_coordinate")
+        sheet11["A1"] = bac_saved.y[:, 1:num_bacs]
 
     end
     println("DONE!")
