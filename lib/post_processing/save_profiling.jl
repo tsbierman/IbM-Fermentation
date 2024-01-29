@@ -14,7 +14,7 @@ function save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_his
     """
 
     # Name file
-    results_file = string(directory, "\\profilingResults.jdl2")
+    results_file = string(directory, "\\profilingResults.jld2")
 
     # Save everything
     save(results_file, "profiling", profiling, "maxErrors", maxErrors, "normOverTime", normOverTime, "nDiffIters", nDiffIters, "bulk_history", bulk_history, "Time", Time)

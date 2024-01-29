@@ -37,23 +37,19 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
     &#09;<sup>Instruction on how to use main.xlsx can be found in *Information* sheet.</sup><br>
     2. Write `include("lib\\pre_processing\\initialiseJVM.jl")` to *Command Window*.<br>
         - This initiates the Java Virtual Machine (JVM). This only needs to be done once per Julia session.<br>
-    3. Write `include("lib\\pre_processing\\create_mat.jl");` to *Command Window*.<br>
-    4. Write `create_mat("planning\\start_up.xlsx", 0)` to *Command Window*.<br>
-        - This will run a complete workflow with `start_up.xlsx`. This excel will be loaded and a short simulation will be run with the saved data. This could take a while (TODO:time_indication), because Julia will have to compile everything. However, this compiling will speed up the actual simulation. For optimal simulation time, this should be done once every Julia session.<br>
-        - This will create a map with the name `0000` in **results**.<br>
-    5. Write `create_mat("planning\\main.xlsx", xxxx)` to *Command Window* <br>(❗where xxxx is the simulation number from 1 to 9999❗).<br>
+    3. Write `include("inclusion_file.jl")` to *Command Window*.<br>
+        - This will import all required modules and include all required files for running a simulation. This only needs to be done once per Julia session.<br>
+    4. Write `create_mat("planning\\main.xlsx", xxxx)` to *Command Window* <br>(❗where xxxx is the simulation number from 1 to 9999❗).<br>
         - This reads out the excel file and stores the variabels in `sim_xxxx.jld2` in the Code folder.
 
 6. Execute IbM code<br>
-    1. Check whether the desired seed-file (`sim_xxxx.jld2`) is located in the Code folder (folder with `IbM.jl` file). 
-    2. Write `include("IbM.jl")` to *Command Window*.<br>
-    3. Write  `IbM(xxxx)` to *Command Window* (❗where xxxx is the simulation number❗).<br>
+    1. Check whether the desired seed-file (`sim_xxxx.jld2`) is located in the Code folder (folder with `IbM.jl` file).<br>
+    2. Write  `IbM(xxxx)` to *Command Window* (❗where xxxx is the simulation number❗).<br>
         - Once the simulation is done, `sim_xxxx.jld2` (i.e. the seed-file) is moved to the corresponding **results** folder.<br>
 7. Get Data or Visualisation of Results (TODO: add instructions later).
 __________________________
 ## :mag: Additional model information
 ### Create_mat()
-The create_mat function `(lib\\pre_processing\\create_mat.jl)` can function in 3 different ways. The simulation number dictates which one will be executed.<br>
+The create_mat function `(lib\\pre_processing\\create_mat.jl)` can function in 2 different ways. The simulation number dictates which one will be executed.<br>
 - The normal use case is when the simulation number is between 1 and 9999. `create_mat()` will read out the excel file and save the variables in a `sim_xxxx.jld2`. The user will have to call the `IbM(xxxx)` themselves. This way, a user can choose to produce several `.jld2` files for several simulations consequetively without each simulation running inbetween.<br>
-- When the simulation number is 0, `create_mat()` will still read the excel and save the variables, but it will then directly call `IbM(xxxx)` and run the simulation. This use case is to let Julia compile everything, such that the actual simulation will be faster (see also step (5, iv) of ["Instructions for model use"](https://github.com/tsbierman/IbM-Fermentation#instructions-for-model-use)). 0 should only be used as a simulation number when the function is called with the file "start_up.xlsx".<br>
 - For testing purposes, it is not efficient to save every time `create_mat()` is called. Therefore, when calling the function with a negative simulation number, no `.jld2` file will be created. Instead, `create_mat()` will just return the structs that would have been saved. These can then be used for testing properties.<br>

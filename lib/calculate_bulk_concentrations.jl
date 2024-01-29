@@ -1,106 +1,3 @@
-function massbal(bulk_conc, p, t)
-    """
-    This function describes the differential Equation for the mass balance over the entire reactor
-    It will modify the HRT to match the setpoint of NH3 if the outflow concentration is larger
-    than the setpoint.
-
-    Arguments of function is not like other languages, which have (t,y,parameters...)
-    This uses the (u,p,t), with u the variables that needs to change over time and p the parameters
-
-    p thus contains a lot of parameters:
-        cumulative_reacted:         A (nCompounds,) vector with the cumulative reaction rates [mol/L/h]
-        reactor_influx:             A (nCompounds,) vector containing the inflowing concentrations [mol/L] per compound
-        variableHRT:                A Boolean indicating whether HRT is variable
-        bulk_setpoint:              The setpoint concentration for outflow of compound[setpoint_index]
-        Dir_k:                      A (nCompounds,) BitArray of which compounds follow Dirichlet boundary condition
-        settings:                   A "General" struct containing all the settings of the simulation
-        invHRT:                     1/HRT
-
-    Returns
-    dy:                             derivative of bulk concentration
-    """
-    cumulative_reacted = p[1]
-    reactor_influx = p[2]
-    variableHRT = p[3]
-    bulk_setpoint = p[4]
-    setpoint_index = p[5]
-    Dir_k = p[6]
-    settings = p[7]
-    invHRT = p[8]
-
-    dy = zeros(length(bulk_conc))
-
-    if settings.structure_model
-        # These cases are quite hardcoded, therefore, they are just copied to
-        # obtain something complete. I am not sure whether they make sense.
-        if settings.type == "Neut"
-            # For index 1, if HRT is changeable and bulk concentration is not the set_point
-            if variableHRT == true && (bulk_conc[1] > bulk_setpoint || bulk_conc[1] < bulk_setpoint)
-                # Only able to adjust when reaction < 0. If reaction > 0, this would mean that Cin - c < 0
-                # invHRT can than not be adjusted to fix change at 0, so dy is updated
-                if cumulative_reacted[1] < 0
-                    invHRT = -cumulative_reacted[1] / (reactor_influx[1] - bulk_setpoint)
-                end
-            else
-                dy[1] = invHRT * (reactor_influx[1] - bulk_conc[1]) + cumulative_reacted[1]
-            end
-
-            # For index 2
-            if variableHRT == true && (bulk_conc[2] > bulk_setpoint || bulk_conc[2] < bulk_setpoint)
-                if cumulative_reacted[2] < 0
-                    invHRT = -cumulative_reacted[2] / (reactor_influx[2] - bulk_setpoint)
-                end
-            else
-                dy[2] = invHRT * (reactor_influx[2] - bulk_conc[2]) + cumulative_reacted[2]
-            end
-
-            # For index 3
-            if variableHRT == true && (bulk_conc[3] > bulk_setpoint || bulk_conc[3] < bulk_setpoint)
-                if cumulative_reacted[3] < 0
-                    invHRT = -cumulative_reacted[3] / (reactor_influx[3] - bulk_setpoint)
-                end
-            else
-                dy[3] = invHRT * (reactor_influx[3] - bulk_conc[3]) + cumulative_reacted[3]
-            end
-
-            dy[4:end] = invHRT * (reactor_influx[4:end] .- bulk_conc[4:end]) .+ cumulative_reacted[4:end]
-            dy[5:end] = 0
-
-        elseif settings.type in ("Comp", "Comm", "Copr")
-            5
-            # For index 1
-            if variableHRT == true && (bulk_conc[1] > bulk_setpoint || bulk_conc[1] < bulk_setpoint)
-                if cumulative_reacted[1] < 0
-                    invHRT = -cumulative_reacted[1] / (reactor_influx[1] - bulk_setpoint)
-                end
-            else
-                dy[1] = invHRT * (reactor_influx[1] - bulk_conc[1]) + cumulative_reacted[1]
-            end
-
-            dy[2:end] = invHRT * (reactor_influx[2:end] .- bulk_conc[2:end]) .+ cumulative_reacted[2:end]
-            dy[5:end] = 0
-
-        else
-            throw(ErrorException("Type <$(settings.type)> is not a registered set of simulations"))
-        end
-
-    else
-        if variableHRT
-            # If bulk_conc < setpoint, decrease HRT to value that would suffice
-            if cumulative_reacted[setpoint_index] < 0
-                invHRT = -cumulative_reacted[setpoint_index] / (reactor_influx[setpoint_index] - bulk_setpoint)
-            end
-        end
-
-        # Always calculate the change of non-dirichlet bulk concentrations
-        dy[.!Dir_k] = invHRT * (reactor_influx[.!Dir_k] - bulk_conc[.!Dir_k]) .+ cumulative_reacted[.!Dir_k]
-
-    end
-
-    return dy
-end
-
-
 function correct_negative_concentrations(conc)
     """
     This function performs a correction to get rid of any negative concentrations
@@ -134,6 +31,7 @@ function correct_negative_concentrations(conc)
             end
         end
     end
+    return conc
 end
 
 
@@ -215,6 +113,110 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
     invHRT:                 The new 1 / HRT [h-1]
     """
 
+    # Inner helper function
+    function massbal(bulk_conc, p, t)
+        """
+        This function describes the differential Equation for the mass balance over the entire reactor
+        It will modify the HRT to match the setpoint of NH3 if the outflow concentration is larger
+        than the setpoint.
+    
+        Arguments of function is not like other languages, which have (t,y,parameters...)
+        This uses the (u,p,t), with u the variables that needs to change over time and p the parameters
+    
+        p thus contains a lot of parameters:
+            cumulative_reacted:         A (nCompounds,) vector with the cumulative reaction rates [mol/L/h]
+            reactor_influx:             A (nCompounds,) vector containing the inflowing concentrations [mol/L] per compound
+            variableHRT:                A Boolean indicating whether HRT is variable
+            bulk_setpoint:              The setpoint concentration for outflow of compound[setpoint_index]
+            Dir_k:                      A (nCompounds,) BitArray of which compounds follow Dirichlet boundary condition
+            structure_model:            A Boolean indicating whether a structure model is used
+            structure_type:             A string indicating which structure type is used
+            invHRT:                     1/HRT
+    
+        Returns
+        dy:                             derivative of bulk concentration
+        """
+        cumulative_reacted = p[1]
+        reactor_influx = p[2]
+        variableHRT = p[3]
+        bulk_setpoint = p[4]
+        setpoint_index = p[5]
+        Dir_k = p[6]
+        structure_model = p[7]
+        structure_type = p[8]
+        # invHRT = p[9]
+    
+        dy = zeros(length(bulk_conc))
+    
+        if structure_model
+            # These cases are quite hardcoded, therefore, they are just copied to
+            # obtain something complete. I am not sure whether they make sense.
+            if structure_type == "Neut"
+                # For index 1, if HRT is changeable and bulk concentration is not the set_point
+                if variableHRT == true && (bulk_conc[1] > bulk_setpoint || bulk_conc[1] < bulk_setpoint)
+                    # Only able to adjust when reaction < 0. If reaction > 0, this would mean that Cin - c < 0
+                    # invHRT can than not be adjusted to fix change at 0, so dy is updated
+                    if cumulative_reacted[1] < 0
+                        invHRT = -cumulative_reacted[1] / (reactor_influx[1] - bulk_setpoint)
+                    end
+                else
+                    dy[1] = invHRT * (reactor_influx[1] - bulk_conc[1]) + cumulative_reacted[1]
+                end
+    
+                # For index 2
+                if variableHRT == true && (bulk_conc[2] > bulk_setpoint || bulk_conc[2] < bulk_setpoint)
+                    if cumulative_reacted[2] < 0
+                        invHRT = -cumulative_reacted[2] / (reactor_influx[2] - bulk_setpoint)
+                    end
+                else
+                    dy[2] = invHRT * (reactor_influx[2] - bulk_conc[2]) + cumulative_reacted[2]
+                end
+    
+                # For index 3
+                if variableHRT == true && (bulk_conc[3] > bulk_setpoint || bulk_conc[3] < bulk_setpoint)
+                    if cumulative_reacted[3] < 0
+                        invHRT = -cumulative_reacted[3] / (reactor_influx[3] - bulk_setpoint)
+                    end
+                else
+                    dy[3] = invHRT * (reactor_influx[3] - bulk_conc[3]) + cumulative_reacted[3]
+                end
+    
+                dy[4:end] = invHRT * (reactor_influx[4:end] .- bulk_conc[4:end]) .+ cumulative_reacted[4:end]
+                dy[5:end] .= 0
+    
+            elseif structure_type in ("Comp", "Comm", "Copr")
+                # For index 1
+                if variableHRT == true && (bulk_conc[1] > bulk_setpoint || bulk_conc[1] < bulk_setpoint)
+                    if cumulative_reacted[1] < 0
+                        invHRT = -cumulative_reacted[1] / (reactor_influx[1] - bulk_setpoint)
+                    end
+                else
+                    dy[1] = invHRT * (reactor_influx[1] - bulk_conc[1]) + cumulative_reacted[1]
+                end
+    
+                dy[2:end] = invHRT * (reactor_influx[2:end] .- bulk_conc[2:end]) .+ cumulative_reacted[2:end]
+                dy[5:end] .= 0
+    
+            else
+                throw(ErrorException("Type <$(structure_type)> is not a registered set of simulations"))
+            end
+    
+        else
+            if variableHRT
+                # If bulk_conc < setpoint, decrease HRT to value that would suffice
+                if cumulative_reacted[setpoint_index] < 0
+                    invHRT = -cumulative_reacted[setpoint_index] / (reactor_influx[setpoint_index] - bulk_setpoint)
+                end
+            end
+    
+            # Always calculate the change of non-dirichlet bulk concentrations
+            dy[.!Dir_k] = invHRT * (reactor_influx[.!Dir_k] - bulk_conc[.!Dir_k]) .+ cumulative_reacted[.!Dir_k]
+    
+        end
+    
+        return dy
+    end
+
     # For easy use: unpack constants
     Keq = constants.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
     chrM = constants.chrM                               # A (ncompounds, 5) matrix with charge values
@@ -254,9 +256,12 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         # over the whole matrix per compound. This is then adjusted to a single grid cell
         cumulative_reacted = dropdims(sum(reactionMatrix, dims=(1,2)), dims=(1,2)) * Vg * f / Vr # [mol/L /h]
 
+        # Convert from Vector{Any} to Vector{Float64}
+        prev_conc = convert(Array{Float64}, prev_conc)
+
         try
             # Based on reaction_matrix, calculate new bulk concentrations with an ODE.
-            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings, invHRT]
+            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings.structure_model, settings.type]
             prob = ODEProblem(massbal, prev_conc, (0.0, dT), parameters)
             sol = solve(prob, Tsit5(), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
             bulk_conc_temp = sol.u[end]

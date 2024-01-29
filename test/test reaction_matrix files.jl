@@ -4,14 +4,16 @@ using InvertedIndices
 using Random
 using DSP
 
-include(string(pwd(),"\\lib\\Lib_Module.jl"))
-include(string(pwd(),"\\lib\\set_concentrations.jl"))
-include(string(pwd(),"\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
-include(string(pwd(),"\\lib\\reaction_matrix\\calculate_monod.jl"))
-include(string(pwd(),"\\lib\\reaction_matrix\\solve_pH.jl"))
-include(string(pwd(),"\\lib\\reaction_matrix\\rMatrix_section.jl"))
-include(string(pwd(),"\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
-
+# include(string(pwd(),"\\lib\\Lib_Module.jl"))
+# include(string(pwd(),"\\lib\\set_concentrations.jl"))
+# include(string(pwd(),"\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
+# include(string(pwd(),"\\lib\\reaction_matrix\\calculate_monod.jl"))
+# include(string(pwd(),"\\lib\\reaction_matrix\\solve_pH.jl"))
+# include(string(pwd(),"\\lib\\reaction_matrix\\rMatrix_section.jl"))
+# include(string(pwd(),"\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
+# include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
+# include(string(pwd(), "\\lib\\Struct_Module.jl"))
+include(string(pwd(), "\\inclusion_file.jl"))
 
 create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)

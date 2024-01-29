@@ -10,42 +10,40 @@ function integTime(simulation_file, directory)
     Nothing as it saves the results in files
     """
 
-    # Include required files
-    include(string(pwd(), "\\lib\\Struct_Module.jl"))
-    include(string(pwd(), "\\lib\\initTime.jl"))
-    include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
-    include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
-    include(string(pwd(), "\\lib\\create_chunks.jl"))
-    include(string(pwd(), "\\lib\\set_concentrations.jl"))
-    include(string(pwd(), "\\lib\\calculate_bulk_concentrations.jl"))
+    # # Include required files
+    # include(string(pwd(), "\\lib\\Struct_Module.jl"))
+    # include(string(pwd(), "\\lib\\initTime.jl"))
+    # include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
+    # include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
+    # include(string(pwd(), "\\lib\\create_chunks.jl"))
+    # include(string(pwd(), "\\lib\\set_concentrations.jl"))
+    # include(string(pwd(), "\\lib\\calculate_bulk_concentrations.jl"))
 
-    include(string(pwd(), "\\lib\\bacteria\\sort_bacteria_into_chunks.jl"))
-    include(string(pwd(), "\\lib\\bacteria\\update_bacterial_mass.jl"))
-    include(string(pwd(), "\\lib\\bacteria\\update_bacterial_radius.jl"))
-    include(string(pwd(), "\\lib\\bacteria\\bacteria_inactivate.jl"))
-    include(string(pwd(), "\\lib\\bacteria\\bacteria_die.jl"))
-    include(string(pwd(), "\\lib\\bacteria\\bacteria_divide.jl"))
+    # include(string(pwd(), "\\lib\\bacteria\\sort_bacteria_into_chunks.jl"))
+    # include(string(pwd(), "\\lib\\bacteria\\update_bacterial_mass.jl"))
+    # include(string(pwd(), "\\lib\\bacteria\\update_bacterial_radius.jl"))
+    # include(string(pwd(), "\\lib\\bacteria\\bacteria_inactivate.jl"))
+    # include(string(pwd(), "\\lib\\bacteria\\bacteria_die.jl"))
+    # include(string(pwd(), "\\lib\\bacteria\\bacteria_divide.jl"))
 
-    include(string(pwd(), "\\lib\\diffusion\\diffusionMG.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\steadystate_is_reached.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\diffusionMG.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\steadystate_is_reached.jl"))
 
-    include(string(pwd(), "\\lib\\dynamic_dT\\decrease_dT_diffusion.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\increase_dT_diffusion.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\decrease_dT_bac.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\slow_convergence.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\upward_trend.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\non_convergent.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\multiple_high_iters.jl"))
-    include(string(pwd(), "\\lib\\dynamic_dT\\bulk_conc_diff_within_limit.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\decrease_dT_diffusion.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\increase_dT_diffusion.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\decrease_dT_bac.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\slow_convergence.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\upward_trend.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\non_convergent.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\multiple_high_iters.jl"))
+    # include(string(pwd(), "\\lib\\dynamic_dT\\bulk_conc_diff_within_limit.jl"))
 
-    include(string(pwd(), "\\lib\\post_processing\\save_slice.jl"))
-    include(string(pwd(), "\\lib\\post_processing\\save_profile.jl"))
-    include(string(pwd(), "\\lib\\post_processing\\save_backup.jl"))
-    include(string(pwd(), "\\lib\\post_processing\\save_profiling.jl"))
+    # include(string(pwd(), "\\lib\\post_processing\\save_slice.jl"))
+    # include(string(pwd(), "\\lib\\post_processing\\save_profile.jl"))
+    # include(string(pwd(), "\\lib\\post_processing\\save_backup.jl"))
+    # include(string(pwd(), "\\lib\\post_processing\\save_profiling.jl"))
 
-    include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
-
-    ENV["TICKTOCK_MESSAGES"] = false # Disables messages by TickTock module 
+    # include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
 
     # Load preset file
     grid, bac, constants, init_params, settings = load(simulation_file, "grid", "bac", "constants", "init_params", "settings")
@@ -75,6 +73,7 @@ function integTime(simulation_file, directory)
     else
         # Initiate from preset values
         conc, bulk_concs, invHRT, reaction_matrix, pH, bac = initTime!(grid, bac, init_params, constants, settings)
+        
 
         # Initiate time and profiling information/storage from preset
         Time = General()
@@ -94,7 +93,7 @@ function integTime(simulation_file, directory)
             Time.maxDT_bac = constants.dynamicDT.maxDT_bac
             Time.minDT_bac = constants.dynamicDT.minDT_bac
 
-            maximum_space_needed = ceil(constants.simulation_end/Time.minDT_bac)
+            maximum_space_needed = ceil(Int, constants.simulation_end/Time.minDT_bac) + 1
 
             Time.history = zeros(Float32, maximum_space_needed)                         # Vector to save the time at each Steady-State
             profiling = zeros(Float32, maximum_space_needed, 11)                        # Matrix to save time spent on certain calculations
@@ -104,7 +103,7 @@ function integTime(simulation_file, directory)
             bulk_history = zeros(Float32, size(bulk_concs, 1), maximum_space_needed)    # Matrix to store bulk concentrations over time
             maxInitRES = zeros(Float32, maximum_space_needed)                           # Vector to store maximum initial RES values
         else
-            max_space_needed = ceil(constants.simulation_end / constants.dT_bac)
+            max_space_needed = ceil(constants.simulation_end / constants.dT_bac) + 1
 
             Time.history = zeros(Float32, max_space_needed)                             # Vector to save the time at each Steady-State
             profiling = zeros(Float32, max_space_needed, 11)                            # Matrix to save time spent on certain calculations
@@ -122,9 +121,9 @@ function integTime(simulation_file, directory)
     end
 
     # Initialise storing space
-    RESvalues = zeros(length(constants.compoundNames), 200) # Reserve space for n steady state checks beforehand (can be more)
-    norm_diff = zeros(200)
-    res_bacsim = zeros(200, 2)
+    RESvalues = zeros(length(constants.compoundNames), 500) # Reserve space for n steady state checks beforehand (can be more)
+    norm_diff = zeros(500)
+    res_bacsim = zeros(500, 2)
 
     iProf = findfirst(profiling .== 0)[1]       # Keep track of index of profiling (every simulated dT_bac +1 index) (starts half way if restarting from storage)
     iDiffusion = 1                              # Keep track of index of diffusion (per 1 dT_bac: iDiffusion == cycles of diffusion)
@@ -162,7 +161,7 @@ function integTime(simulation_file, directory)
     while Time.current < constants.simulation_end
 
         if mod(iDiffusion, constants.dynamicDT.nItersCycle) == 0
-            println("Currently at diffusion iteration $(iDiffusion) (max error: $(max(RESvalues[:, iRES])))\n")
+            println("Currently at diffusion iteration $(iDiffusion) (max error: $(maximum(RESvalues[:, iRES])))\n")
         end
 
         # diffuse (MG)
@@ -247,7 +246,7 @@ function integTime(simulation_file, directory)
 
                 # Perform dynamic dT for diffusion (for next iteration)
                 if settings.dynamicDT && multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants)
-                    Time = increase_dT_diffusion(Time, "Multiple steady states reached with more than $(constants.dynamicDT.iterThresholdIncrease) diffusion iterations", grid.dx, constants)
+                    Time = increase_dT_diffusion!(Time, "Multiple steady states reached with more than $(constants.dynamicDT.iterThresholdIncrease) diffusion iterations", grid.dx, constants)
                 end
 
                 # Calculate actual dT for integration of bacterial mass (for skipped time)
@@ -260,10 +259,10 @@ function integTime(simulation_file, directory)
                     normOverTime[iProf] = norm_diff[iRES]
                     nDiffIters[iProf] = iDiffusion
                     maxInitRES[iProf] = maximum(RESvalues[:,1])
-                    # Reset counter for next iteration
+                    # Reset counters for next iteration
                     iDiffusion = 1
                     iRES = 0
-                    RESvalues = zeros(length(constants.compoundNames), 200)
+                    RESvalues = zeros(length(constants.compoundNames), 500)
 
                     # Reaction_matrix & mu & pH are already calculated (steady state so still valid)
 
@@ -301,7 +300,7 @@ function integTime(simulation_file, directory)
                     
                     # Bacteria: detachment (for now only rough detachment is implemented)
                     tick()
-                    bac = bacteria_detachment!(bac, grid, constants, settings, Time.dT_bac)
+                    bac = bacteria_detachment!(bac, grid, constants, settings, Time.dT_bac, invHRT)
                     profiling[iProf, 7] = profiling[iProf, 7] + tok()
 
                     # Display number of bacteria in system
@@ -343,7 +342,7 @@ function integTime(simulation_file, directory)
 
                     # Apply dynamic dT_bac
                     if settings.dynamicDT && multiple_low_initRES(iProf, maxInitRES, Time, constants)
-                        Time = increase_dT_bac!(Time, "Multiple steady state cycles with initRES value of $(round(constants.dynamicDT.initRESThresholdIncrease * 100, digits=1))")
+                        Time = increase_dT_bac!(Time, "Multiple steady state cycles with initRES value below $(round(constants.dynamicDT.initRESThresholdIncrease * 100, digits=1))")
                     end
 
                     # Prepare for next steadystate cycle
@@ -358,6 +357,7 @@ function integTime(simulation_file, directory)
 
                     # Calculate and set bulk concentrations
                     tick()
+                    new_bulk_concs = prev_conc
                     while true
                         new_bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings)
                         if !settings.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants)
@@ -419,7 +419,7 @@ function integTime(simulation_file, directory)
 
     # Save all important variables one last time?
     save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)         # Slice of simulation
-    save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)       # Entire plane of simulation
+    # save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid, constants, directory)       # Entire plane of simulation
     save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
     save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)   # Save performance
 end

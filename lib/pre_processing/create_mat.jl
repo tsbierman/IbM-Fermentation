@@ -267,15 +267,6 @@ function create_mat(filename, simulation_number)
         println(">>>>>>>>>>>>>> DONE LOADING!")
         return grid, bac, constants, settings, init_params
 
-    elseif simulation_number == 0 
-        # Run activation simulation
-        results_file = @sprintf("sim_%04d.jld2", simulation_number)
-        # Save
-        save(results_file, "grid", grid, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
-        println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
-        # Directly call IbM
-        IbM(simulation_number)
-
     else 
         # Normal use case
         results_file = @sprintf("sim_%04d.jld2", simulation_number)
@@ -298,10 +289,10 @@ using DataStructures
 using FileIO
 using TickTock
 
-# Initialise struct "General" that can dynamically add properties
-include(string(pwd(), "\\lib\\Struct_Module.jl"))
+# # Initialise struct "General" that can dynamically add properties
+# include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
-# Include required files
-include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
-include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
-include(string(pwd(), "\\IbM.jl"));
+# # Include required files
+# include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
+# include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
+# include(string(pwd(), "\\IbM.jl"));

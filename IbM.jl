@@ -12,7 +12,9 @@ function IbM(simulation_number)
     """
 
     # Get needed file
-    include(string(pwd(), "\\lib\\integTime.jl"))
+    # include(string(pwd(), "\\lib\\integTime.jl"))
+
+    ENV["TICKTOCK_MESSAGES"] = false # Disables messages by TickTock module 
 
     # Argument check
     if !isa(simulation_number, Int) || !(0 <= simulation_number < 10000)
@@ -44,8 +46,8 @@ function IbM(simulation_number)
 
     println("> SIMULATION FINISHED >>>>>>>>>> \n")
 
-    load(simulation_file, "constants")
-    @sprintf("\n\nTotal time for simulation of %.2f hours:\n\t%.2f seconds\n", constants.simulation_end, totalTime)
+    constants = load(simulation_file, "constants")
+    @printf("\n\nTotal time for simulation of %.2f hours:\n\t%.2f seconds\n", constants.simulation_end, totalTime)
 
     # Cleanup of root directory
     mv(simulation_file, string(output_dir, "\\", simulation_file))

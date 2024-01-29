@@ -17,9 +17,9 @@ function calculate_rhs_dirichlet(phi, L_rhs, value, diffRegion)
                     Outside the region, an artifical vlaue of the bulk_concentration is set.
     """
 
-    adjusted_phi = diffRegion .* phi .+ .!diffRegion * value            # Fix outside diffusion region
-    rhs_diffRegion = conv(adjusted_phi, L_rhs)[2:end-1,2:end-1]         # Convolution
-    rhs = diffRegion .* rhs_diffRegion .+ .!diffRegion * value          # Fix outside diffusion region
+    adjusted_phi = diffRegion .* phi .+ .!diffRegion * value                            # Fix outside diffusion region
+    rhs_diffRegion = conv(adjusted_phi, L_rhs)[2:end-1,2:end-1]                         # Convolution
+    rhs = diffRegion .* rhs_diffRegion .+ .!diffRegion .* ones(size(phi)) * value       # Fix outside diffusion region
 
     return rhs
 end
@@ -44,8 +44,8 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     concs:                  A (ny, nx, ncompounds) matrix containing the concentrations after solving the diffusion equations [mol/L]
     """
 
-    include(string(pwd(), "\\lib\\diffusion\\V_Cycle.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\V_Cycle.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
 
     # variable declarations/unpacking
     diffusion_coef = constants.diffusion_rates # [m2/h]
@@ -94,17 +94,17 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
             conc[:,:,icompound] = V_Cycle!(conc[:,:,icompound], diffRegion, bulk_concentrations[icompound] * 1000, rhs, L_0, L_restriction, L_prolongation, 9, 0, iter_pre, iter_post, iter_final)
             residual_diffRegion = residual(conc[:,:,icompound], rhs, L_lhs)     # Check residuals
             residual_diffRegion = diffRegion .* residual_diffRegion             # Only for the diffusion region
-            isSolution = sum(residual_diffRegion .^2) <= accuracy^2             # Check whether condition is met, not the case? --> Another V-Cycle
+            isSolution = sum(residual_diffRegion .^2) < accuracy^2              # Check whether condition is met, not the case? --> Another V-Cycle
         end
 
         # CHeck for negative values, raise error
         negative_concentration = conc[:,:,icompound] .< 0
         if any(negative_concentration)
-            if Time.dT != Time.minDT && abs(minimum(conc[negative_concentration])) > accuracy^2 / 100   # dT can be reduced and significant negative value
+            if Time.dT != Time.minDT && abs(minimum(conc[negative_concentration, icompound])) > accuracy^2 / 100   # If dT can be reduced and is a significant negative value
                 throw(ErrorException("Diffusion:negative_concentration, Negative concentration encountered in diffusion solution of compound $(constants.compoundNames[icompound])"))
             else                                                                                        # dT cannot be reduced, thus return corrected concentration or insignificant negative value
                 temp = deepcopy(conc[:,:,icompound])
-                @warn("Diffusion:negative_concentration, Negative concentration encountered in diffusion solution of compound $(constants.compoundNames[icompound]), but cannot correct dT value thus corrected $(sum(negative_concentration)) value(s) (smallest number $(minimum(temp(negative_concentration))) to 0)")
+                @warn("Diffusion:negative_concentration, Negative concentration encountered in diffusion solution of compound $(constants.compoundNames[icompound]), but cannot correct dT value thus corrected $(sum(negative_concentration)) value(s) (smallest number $(minimum(temp(negative_concentration)))) to 0)")
                 conc[:,:,icompound] = (conc[:,:,icompound] .> 0) .* conc[:,:,icompound]
             end
         end

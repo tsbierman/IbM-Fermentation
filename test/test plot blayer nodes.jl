@@ -10,15 +10,13 @@ function circleShape(h, k, r)
 end
 
 # Find files
-include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
-include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
-include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
+include(string(pwd(), "\\inclusion_file.jl"))
 
 # Read_file
 filename = string(pwd(), "\\test\\test_file.xlsx")
 
 # Initilising 
-grid, bac, constants, settings, init_params = create_mat(filename)
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
 
 # Plot all grid points

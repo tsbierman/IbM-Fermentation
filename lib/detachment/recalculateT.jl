@@ -15,8 +15,8 @@ function recalculateT(T, x_index, y_index, kDet, grid, Visited, x_centre, y_cent
     T_new:              A (ny, nx) matrix with the updated detachment times
     """
 
-    include(string(pwd(), "\\lib\\detachment\\calculateLocalDetachmentRate.jl"))
-    include(string(pwd(), "\\lib\\detachment\\computeRoot.jl"))
+    # include(string(pwd(), "\\lib\\detachment\\calculateLocalDetachmentRate.jl"))
+    # include(string(pwd(), "\\lib\\detachment\\computeRoot.jl"))
 
     right_visited = Visited[y_index, x_index + 1]
     left_visited = Visited[y_index, x_index - 1]

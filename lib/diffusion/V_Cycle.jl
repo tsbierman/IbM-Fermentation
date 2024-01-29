@@ -21,10 +21,10 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
     phi:                The matrix x advanced towards the solution in Ax=b
     """
 
-    include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\prolongation.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\restriction.jl"))
-    include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\prolongation.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\restriction.jl"))
+    # include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
     
     # Create a correct left-hand-side stencil according to A_lhs = I - 1/2 ^2d * L_0
     L_lhs = [0 0 0; 0 1 0; 0 0 0] .- ((1/2)^(2*depth)) * L_0
@@ -65,7 +65,7 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
 
     # Post recursion smoothing
     for itr in 1:iter_post
-        phi = smoothing(phi, f, L_lhs0)                         # Smooth with the matrix A
+        phi = smoothing(phi, f, L_lhs)                          # Smooth with the matrix A
         phi = phi .* diffRegion .+ bulk_value * .!diffRegion    # But not for bulk region
     end
     return phi
