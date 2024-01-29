@@ -26,6 +26,12 @@ function extract_data(sim_number)
             sheet["A$(location)"] = conc_saved[:,:,i]
         end
 
+        if bac_saved.nBacs[end] == 0
+            num_bacs = bac_saved.nBacs[end-1]
+        else
+            num_bacs = bac_saved.nBacs[end]
+        end
+
         sheet2 = XLSX.addsheet!(xf, "Bulk_concentrations")
         sheet2["A1"] = reactor_saved.bulk_concs
 
@@ -46,12 +52,6 @@ function extract_data(sim_number)
 
         sheet8 = XLSX.addsheet!(xf, "nBacs")
         sheet8["A1"] = bac_saved.nBacs
-
-        if bac_saved.nBacs[end] == 0
-            num_bacs = bac_saved.nBacs[end-1]
-        else
-            num_bacs = bac_saved.nBacs[end]
-        end
 
         sheet9 = XLSX.addsheet!(xf, "species")
         sheet9["A1"] = bac_saved.species[:, 1:num_bacs]
