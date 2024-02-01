@@ -1,3 +1,30 @@
+function calculate_slice_sphere_conversion(bac, constants, settings)
+    """
+    This function calculates the conversion factor to convert from the volume of
+    the slice to the volume of the sphere
+    
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    constants:          A "General" struct containing all the simulation constants
+    settings:           A "General" struct containing all the settings of the simulation
+
+    Returns
+    f:                  The conversion factor from the volume of a slice to the volume of a sphere
+    """
+
+    if settings.model_type in ("granule", "mature granule")
+        x = bac.x[bac.active]
+        y = bac.y[bac.active]
+        centre_x = mean(x)
+        centre_y = mean(y)
+        radius_granule = maximum(sqrt.((x .- centre_x) .^2 + (y .- centre_y) .^2))
+        f = 4 * radius_granule / (3 * constants.bac_max_radius * 2)
+    else
+        f = 1
+    end
+    return f
+end
+
 function correct_negative_concentrations(conc)
     """
     This function performs a correction to get rid of any negative concentrations
@@ -240,17 +267,7 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         bulk_concentrations = prev_conc
     else
 
-        # Calculate correction factor between volume of sphere and volume of slice (simulation domain)
-        if settings.model_type in ("granule", "mature granule")
-            x = bac.x[bac.active]
-            y = bac.y[bac.active]
-            centre_x = mean(x)
-            centre_y = mean(y)
-            radius_granule = maximum(sqrt.((x .- centre_x) .^2 + (y .- centre_y) .^2))
-            f = 4 * radius_granule / (3 * constants.bac_max_radius * 2)
-        else
-            f = 1
-        end
+        f = calculate_slice_sphere_conversion(bac, constants, settings)
 
         # The combination of dropdims and sum with those dimensions results in a vector that contains total change
         # over the whole matrix per compound. This is then adjusted to a single grid cell
