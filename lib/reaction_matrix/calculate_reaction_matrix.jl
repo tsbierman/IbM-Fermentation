@@ -71,7 +71,7 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
     if settings.parallelized
 
         # ================================ PARALLEL CALCULATION START ========================================
-        # Place to implement parallelization. Not implemented now as Julia might have a package that can do this: ImplicitGlobalGrid.jl
+        # Place to implement parallelization. Not implemented now as Julia might have a package that can help with this: ImplicitGlobalGrid.jl
         # ================================ PARALLEL CALCULATION END ==========================================
 
     else

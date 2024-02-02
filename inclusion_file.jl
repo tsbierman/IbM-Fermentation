@@ -10,6 +10,7 @@ println(">>>>>>>>>>>>>>INCLUDED IbM")
 
 # Lib files
 include("lib\\calculate_bulk_concentrations.jl")
+include("lib\\check_balances.jl")
 include("lib\\create_chunks.jl")
 include("lib\\determine_diffusion_region.jl")
 include("lib\\determine_where_bacteria_in_grid.jl")

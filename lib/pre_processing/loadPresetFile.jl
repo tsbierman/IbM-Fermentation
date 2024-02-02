@@ -39,6 +39,7 @@ function loadPresetFile(filename)
     constants.dT = values_discr[names_discr .== "Initial dT diffusion"][1]                  # [h]
     constants.dT_bac = values_discr[names_discr .== "Initial dT bacteria"][1]               # [h]
     constants.dT_save = values_discr[names_discr .== "dT save"][1]                          # [h]
+    constants.dT_analyse = values_discr[names_discr .== "dT analyse"][1]                    # [h]
     constants.dT_backup = values_discr[names_discr .== "dT backup"][1]                      # [h]
 
     settings.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                      # [Bool]

@@ -81,6 +81,7 @@ function integTime(simulation_file, directory)
         Time.steadystate = Time.current + (constants.nDiffusion_per_SScheck - 1) * constants.dT # When to check for steadystate
         Time.save = constants.dT_save       # When to save
         Time.backup = constants.dT_backup   # When to make backup
+        Time.analyse = constants.dT_analyse # When to analyse balances
         Time.changed_dT = 0                 # When was the latest diffusion dT change
         Time.changed_dT_bac = 0             # When was the latest bacteria dT change
         Time.dT = constants.dT              # Current diffusion dT
@@ -365,16 +366,29 @@ function integTime(simulation_file, directory)
                         end
 
                         if Time.dT_bac <= Time.minDT_bac
-                            println("Samllest dT_bac reached, cannot decrease smaller than $(Time.minDT_bac) h\n")
+                            println("Smallest dT_bac reached, cannot decrease smaller than $(Time.minDT_bac) h\n")
                             break
                         end
 
                         Time = decrease_dT_bac(Time, "Too large bulk concentration jump detected")
                     end
 
+                    bulk_change = (new_bulk_concs .- bulk_concs) ./ Time.dT_bac # [mol_i/L/h]
+
                     bulk_concs = new_bulk_concs
                     conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
                     profiling[iProf, 10] = profiling[iProf, 10] + tok()
+
+                    # Place for balance check/analyse metabolites
+                    if Time.current >= Time.analyse
+
+                        biomass_close, balance_close, dirichlet_close = check_balances(bac, constants, settings, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
+                        println("Biomass closes: $(biomass_close)")
+                        println("Balances closing: $(balance_close)")
+                        println("Dirichlet closing: $(dirichlet_close)")
+
+                        Time.analyse = Time.analyse + constants.dT_analyse
+                    end
 
                     iProf = iProf + 1
                     bulk_history[:, iProf] = bulk_concs
