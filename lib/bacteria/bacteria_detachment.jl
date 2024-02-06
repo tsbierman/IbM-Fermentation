@@ -1,19 +1,31 @@
 function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
     """
-    This function implements rough detachment: remove all bacteria that are outside of maximum radius of granule
-    bac is a struct containing all information regarding the bacteria
-    constants is a struct containing all simulation constants
-    settings is a struct contains the simulation parameters
+    This function implements detachment. The kind of detachment dictates the calculations.
+    None, SBR:          No bacteria are removed
+    Naive:              Bacteria are removed if there are too far from the centre of the granule
+    Mechanistic:        Bacteria are removed if the time of detachment at their gridcell is smaller than the timestep
+    Suspension:         Bacteria are removed if they grow slower than the Dilution rate
+
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    grid:               A "General" struct containing all parameters related to the grid
+    constants:          A "General" struct containing all the simulation constants
+    settings:           A "General" struct containing all the settings of the simulation
+    timestep:           The timestep for bacteria (dT_bac)
+    invHRT:             The inverse of the HRT, so the Dilution rate
+
+    Returns
+    bac:                A bac struct where bacteria have been removed
     """
 
     if settings.detachment in ("none", "SBR")
         return bac
 
     elseif settings.detachment == "naive"
-        include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
-        # Detach based on distance from centre
+        # include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
+        # Detachment based on distance from centre
         bac_distance_from_centre = sqrt.((bac.x .- grid.dx * grid.nx / 2) .^2 + (bac.y .- grid.dy * grid.ny / 2) .^2)
-        bac_detach = bac_distance_from_centre .> constants.max_granule_radius # Booleans
+        bac_detach = bac_distance_from_centre .> constants.max_granule_radius
         nCellsDetach = sum(bac_detach)
 
         if nCellsDetach > 0
@@ -21,12 +33,12 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         end
 
     elseif settings.detachment == "mechanistic"
+        # include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
+        # include(string(pwd(), "\\lib\\detachment\\calcTimeOfDetach.jl"))
+        # include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
         # Detachment based on detachment time and timestep (and size)
-        include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
-        include(string(pwd(), "\\lib\\detachment\\calcTimeOfDetach.jl"))
-        include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
 
-        # grid2bac is a (nx * ny * ?) matrix containing the bacteria in each grid cell
+        # grid2bac is a (nx * ny * ?) matrix containing the bacteria in each grid cell (indices)
         # grid2nBacs is a (nx * ny) matrix containing the number of bacteria in each grid cell
         # An update of these matrices is required as a division has occurred 
         grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
@@ -63,6 +75,7 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
             iBacs = grid2bac[y_index, x_index, grid_position]
             n_temp = length(iBacs) # Number found this round
             bac_detach[nDetach + 1 : nDetach + n_temp] = iBacs # Store the indices in corresponding location
+            nDetach = nDetach + n_temp
         end
 
         bac_detach = bac_detach[1:nDetach] # remove non-used places
@@ -78,9 +91,6 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         mask_tooSmall = bac.MolarMass * constants.bac_MW .< constants.min_bac_mass_grams / 2
         xcentre = mean(bac.x[bac.active])
         ycentre = mean(bac.y[bac.active])
-        # Why not this like before??
-        # xcentre = grid.dx * grid.nx / 2
-        # ycentre = grid.dy * grid.ny / 2
         dist = sqrt.((bac.x .- xcentre) .^2 + (bac.y .- ycentre) .^2)
 
         # A cell is considered on the "outside" when the difference in distance to the centre

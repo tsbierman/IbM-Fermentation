@@ -5,12 +5,11 @@ using Random
 
 include(string(pwd(),"\\lib\\bacteria\\Bacteria_Module.jl"))
 
-create_mat_file = string(dirname(Base.source_dir()), "\\lib\\pre_processing\\create_mat.jl")
-include(create_mat_file)
+include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
 
-filename = string(Base.source_dir(), "\\","test_file.xlsx")
+filename = string(pwd(), "\\test\\test_file.xlsx")
 @testset "bacteria_divide" begin
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.molarMass[1] = constants.max_bac_mass_grams/constants.bac_MW * 1.1
     bac.radius[1] = ( (bac.molarMass[1] * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)
     bac.mu = ones(length(bac.x)) * 0.02
@@ -23,7 +22,7 @@ filename = string(Base.source_dir(), "\\","test_file.xlsx")
     @test 0.45 < bac.molarMass[end]/old_bac.molarMass[1] < 0.55
     @test (bac.radius[1] < old_bac.radius[1]) & (bac.radius[end] < old_bac.radius[1])
 
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.molarMass[1] = constants.max_bac_mass_grams/constants.bac_MW * 1.1
     bac.molarMass[2] = constants.max_bac_mass_grams/constants.bac_MW * 1.1
     bac.molarMass[3] = constants.max_bac_mass_grams/constants.bac_MW * 1.1
@@ -35,7 +34,7 @@ filename = string(Base.source_dir(), "\\","test_file.xlsx")
 end
 
 @testset "killBacs" begin
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     old_bac = deepcopy(bac)
     my_zeros = BitArray(zeros(length(bac.x)))
     my_zeros[1] = 1
@@ -44,7 +43,7 @@ end
     @test length(bac.x) == length(old_bac.x) - 1
     @test bac.x[1] == old_bac.x[2]
 
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     old_bac = deepcopy(bac)
     indices = [1;5;10]
     bac.mu = ones(length(bac.x)) * 0.02
@@ -54,7 +53,7 @@ end
 end
 
 @testset "bacteria die" begin
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.molarMass[1] = constants.min_bac_mass_grams / constants.bac_MW * 0.9
     old_bac = deepcopy(bac)
     bac.mu = ones(length(bac.x)) * 0.02
@@ -62,7 +61,7 @@ end
     @test length(old_bac.x) - 1 == length(bac.x)
     @test old_bac.x[2] == bac.x[1]
 
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.molarMass[1] = constants.min_bac_mass_grams / constants.bac_MW * 0.9
     bac.molarMass[10] = constants.min_bac_mass_grams / constants.bac_MW * 0.9
     bac.molarMass[20] = constants.min_bac_mass_grams / constants.bac_MW * 0.9
@@ -73,7 +72,7 @@ end
 end
 
 @testset "bacteria_inactivate" begin
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.mu = ones(length(bac.x)) * 0.02
     bac.molarMass[1] = constants.min_bac_mass_grams / constants.bac_MW * 0.9
     bac.active[2] = false
@@ -84,7 +83,7 @@ end
 end
 
 @testset "update_bacterial" begin
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.mu = ones(length(bac.x)) * 0.02
     bac.mu[2] = -0.02
     old_bac = deepcopy(bac)
@@ -97,7 +96,7 @@ end
 end
 
 @testset "bacteria_detachment" begin
-    grid, bac, constants, settings, init_params = create_mat(filename)
+    grid, bac, constants, settings, init_params = create_mat(filename, -1)
     bac.mu = ones(length(bac.x)) * 0.2
     old_bac = deepcopy(bac)
     if settings.detachment in ("SBR", "none")

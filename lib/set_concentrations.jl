@@ -1,11 +1,14 @@
 function set_concentrations!(conc_old, set_concs, mask)
     """
-    Sets the initial concentration in the bioaggregate
+    This function sets the concentrations, but only at the places indicated by mask
 
-    Conc is a matrix of nx*ny * compound for the concentration of each compound per grid cell
-    set_concs is a vecstor of initial concentrations per compound in the bioaggregate 
-    (nCompounds * 1)
-    mask is a logical matrix (nx * ny) with cells for which the concentration needs to be set
+    Arguments
+    conc:               A (ny, nx, nCompounds) matrix containing all concentrations per gridcell
+    set_concs:          A (nCompounds,) vector of concentrations that need to be set
+    mask:               A (ny,nx) BitMatrix indicating whether a gridcell should have the new concentrations or the old ones
+
+    Returns
+    conc                A (ny, nx, nCompounds) matrix containing all updated concentrations per gridcell
     """
 
     set_concs = reshape(set_concs, 1, 1, :)

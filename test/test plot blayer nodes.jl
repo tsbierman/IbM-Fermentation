@@ -10,20 +10,13 @@ function circleShape(h, k, r)
 end
 
 # Find files
-create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
-determine_diff_file = string(pwd(), "\\lib\\determine_diffusion_region.jl")
-determine_bac_file = string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl")
-
-# Include files
-include(create_mat_file)
-include(determine_diff_file)
-include(determine_bac_file)
+include(string(pwd(), "\\inclusion_file.jl"))
 
 # Read_file
 filename = string(pwd(), "\\test\\test_file.xlsx")
 
 # Initilising 
-grid, bac, constants, settings, init_params = create_mat(filename)
+grid, bac, constants, settings, init_params = create_mat(filename, -1)
 grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
 
 # Plot all grid points
@@ -40,6 +33,7 @@ plot_centre_Y = repeat(nodeMidCoordinatesY, inner=length(nodeMidCoordinatesX))
 x_Nodes, y_Nodes = getDiffusionNodes(bac, grid)
 x_init_diff = nodeMidCoordinatesX[x_Nodes]
 y_init_diff = nodeMidCoordinatesY[y_Nodes]
+
 # All combinations of those
 plot_init_diff_X = repeat(x_init_diff, length(y_init_diff))
 plot_init_diff_Y = repeat(y_init_diff, inner=length(x_init_diff))

@@ -1,8 +1,13 @@
 function killBacs!(bac, indices)
     """
-    This function only selects and keeps the bacteria that are big enough using Inverse Indexing
-    bac is a struct that contains all the information regarding the bacteria
-    indices is a Vector of indices that indicate which bacteria are too small
+    This function selects the indices it needs to keep by using Inverse Indexing
+
+    Arguments
+    bac:                A "General" struct containing all parameters related to the bacteria
+    indices:            The indices of the bacteria that have to be killed
+
+    Returns
+    bac                 A bac struct with the bacteria that had to be killed removed
     """
     bac.x = bac.x[Not(indices)]
     bac.y = bac.y[Not(indices)]
