@@ -84,6 +84,6 @@ end
 end
 
 @testset "steadystate_is_reached" begin
-    @test isReached == true         # At the start, concentrations are either equal or very close already, so steady state.
+    @test isReached == false         # At the start, concentrations of bulk and diffusion region are not close, so steady state is not expected.
     @test length(max_RES_value) == length(constants.compoundNames)
 end

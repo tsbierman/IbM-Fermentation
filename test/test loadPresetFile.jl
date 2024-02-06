@@ -51,5 +51,5 @@ include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
     # Test matrix
     @test constants.MatrixMet[1,1] == -100
-    @test size(constants.MatrixMet) == (10,3)
+    @test size(constants.MatrixMet) == (8,3)
 end
