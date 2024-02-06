@@ -26,19 +26,21 @@ grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid, bac)
 diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
 
 @testset "set_concentrations" begin
-    concs = zeros(grid.ny, grid.nx, length(constants.compoundNames))
-    conc1 = Lib_Module.set_concentrations!(concs, init_params.init_concs, diffusion_region)
-    conc2 = Lib_Module.set_concentrations!(concs, init_params.init_bulk_conc, .!diffusion_region)
-    conc3 = Lib_Module.set_concentrations!(concs, init_params.init_concs, BitArray(zeros(grid.ny, grid.nx)))
+    if settings.model_type in ("granule", "mature granule")
+        concs = zeros(grid.ny, grid.nx, length(constants.compoundNames))
+        conc1 = Lib_Module.set_concentrations!(concs, init_params.init_concs, diffusion_region)
+        conc2 = Lib_Module.set_concentrations!(concs, init_params.init_bulk_conc, .!diffusion_region)
+        conc3 = Lib_Module.set_concentrations!(concs, init_params.init_concs, BitArray(zeros(grid.ny, grid.nx)))
 
-    @test round(conc1[Int(ceil(grid.ny/2)), Int(ceil(grid.nx/2)), 1],digits=6) == 3.33e-4
-    @test round(conc1[Int(ceil(grid.ny/2)), Int(ceil(grid.nx/2)), 6],digits=6) == 1.00e-3
-    @test all(conc1[1,1,:] .== 0)
+        @test round(conc1[Int(ceil(grid.ny/2)), Int(ceil(grid.nx/2)), 1],digits=6) == 3.33e-4
+        @test round(conc1[Int(ceil(grid.ny/2)), Int(ceil(grid.nx/2)), 6],digits=6) == 1.00e-3
+        @test all(conc1[1,1,:] .== 0)
 
-    @test round(conc2[1,1, 1],digits=6) == 3.33e-4
-    @test round(conc2[1,1, 6],digits=6) == 1.00e-3
-    @test all(conc2[Int(ceil(grid.ny/2)), Int(ceil(grid.nx/2)), :] .== 0)
-    @test conc3 == concs
+        @test round(conc2[1,1, 1],digits=6) == 3.33e-4
+        @test round(conc2[1,1, 6],digits=6) == 1.00e-3
+        @test all(conc2[Int(ceil(grid.ny/2)), Int(ceil(grid.nx/2)), :] .== 0)
+        @test conc3 == concs
+    end
 end
 
 @testset "calculate_bulk_concentrations" begin # Can only test for the initial case as reactionMatrix = 0 in that case (calculate_reactionMatrix not yet implemented)

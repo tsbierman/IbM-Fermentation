@@ -144,7 +144,7 @@ end
 @testset "multiple_low_initRES" begin
     Temp_Time.dT_bac = 0.5
     Temp_Time.current = 15
-    Temp_Time.changed_dT = 10
+    Temp_Time.changed_dT_bac = 10
     iProf1 = 3
     iProf2 = 2
     maxInitRES1 = [0.1, 0.1, 0.1,]
@@ -154,7 +154,7 @@ end
     @test multiple_low_initRES(iProf1, maxInitRES1, Temp_Time, constants) == true
     @test multiple_low_initRES(iProf1, maxInitRES2, Temp_Time, constants) == false
     @test multiple_low_initRES(iProf2, maxInitRES1, Temp_Time, constants) == false
-    Temp_Time.changed_dT = 14
+    Temp_Time.changed_dT_bac = 14
     @test multiple_low_initRES(iProf1, maxInitRES1, Temp_Time, constants) == false
 end
 

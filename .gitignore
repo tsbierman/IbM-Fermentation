@@ -3,3 +3,4 @@ test/*.xlsx
 *.jld2
 planning/*.xlsx
 results/*/*.xlsx
+!planning/Templates/*_template.xlsx

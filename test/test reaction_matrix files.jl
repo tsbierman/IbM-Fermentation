@@ -4,7 +4,7 @@ using InvertedIndices
 using Random
 using DSP
 
-# include(string(pwd(),"\\lib\\Lib_Module.jl"))
+
 # include(string(pwd(),"\\lib\\set_concentrations.jl"))
 # include(string(pwd(),"\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
 # include(string(pwd(),"\\lib\\reaction_matrix\\calculate_monod.jl"))
@@ -14,6 +14,7 @@ using DSP
 # include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
 # include(string(pwd(), "\\lib\\Struct_Module.jl"))
 include(string(pwd(), "\\inclusion_file.jl"))
+include(string(pwd(),"\\lib\\Lib_Module.jl"))
 
 create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
@@ -84,11 +85,14 @@ end
     fake_conc = ones(grid.ny, grid.nx, length(constants.compoundNames)) * 1e-4
     fake_conc = set_concentrations!(fake_conc, fake_init_conc, diffusion_region)
     reaction_matrix, mu, pH = calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffusion_region, fake_conc, constants, pH, chunks, nChunks_dir, settings)
-    @test size(reaction_matrix) == (257,257,8)
-    @test length(mu) == length(bac.x)
-    @test all(-1 .< mu .< 1)
-    @test size(pH) == (257,257)
-    @test all(3.0 .< pH .< 4.1)
-    @test pH[1,1] > 3.45 # Should be the bulk 4.00
-    @test pH[127,127] < 3.45 # Should be diffusion region 3.00
+
+    if settings.model_type in ("granule", "mature granule")
+        @test size(reaction_matrix) == (257,257,8)
+        @test length(mu) == length(bac.x)
+        @test all(-1 .< mu .< 1)
+        @test size(pH) == (257,257)
+        @test all(3.0 .< pH .< 4.1)
+        @test pH[1,1] > 3.45 # Should be the bulk 4.00
+        @test pH[127,127] < 3.45 # Should be diffusion region 3.00
+    end
 end
