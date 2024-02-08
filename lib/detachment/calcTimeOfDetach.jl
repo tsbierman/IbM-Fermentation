@@ -68,12 +68,6 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
     It returns a matrix with per gridcell the time of detachment
     """
 
-    # include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
-    # include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
-    # include(string(pwd(), "\\lib\\detachment\\calculateLocalDetachmentRate.jl"))
-    # include(string(pwd(), "\\lib\\detachment\\recalculateT.jl"))
-    # include(string(pwd(), "\\test\\plotLogicalGrid.jl")) # For visual testing
-
     # Extract variables
     kDet = constants.kDet
 

@@ -56,9 +56,5 @@ function check_balances(bac, constants, settings, reaction_matrix, bulk_concentr
     balances_closes = maximum(abs.(balances[.!constants.Dir_k])) <= tolerance
     dirichlet_closes = maximum(abs.(balances[constants.Dir_k] .- actual_compoundChange[constants.Dir_k])) <= tolerance
 
-    # println(actual_compoundChange)
-    # println(balances)
-    # println(bulk_change)
-
     return biomass_closes, balances_closes, dirichlet_closes
 end

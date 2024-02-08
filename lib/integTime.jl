@@ -10,41 +10,6 @@ function integTime(simulation_file, directory)
     Nothing as it saves the results in files
     """
 
-    # # Include required files
-    # include(string(pwd(), "\\lib\\Struct_Module.jl"))
-    # include(string(pwd(), "\\lib\\initTime.jl"))
-    # include(string(pwd(), "\\lib\\determine_diffusion_region.jl"))
-    # include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
-    # include(string(pwd(), "\\lib\\create_chunks.jl"))
-    # include(string(pwd(), "\\lib\\set_concentrations.jl"))
-    # include(string(pwd(), "\\lib\\calculate_bulk_concentrations.jl"))
-
-    # include(string(pwd(), "\\lib\\bacteria\\sort_bacteria_into_chunks.jl"))
-    # include(string(pwd(), "\\lib\\bacteria\\update_bacterial_mass.jl"))
-    # include(string(pwd(), "\\lib\\bacteria\\update_bacterial_radius.jl"))
-    # include(string(pwd(), "\\lib\\bacteria\\bacteria_inactivate.jl"))
-    # include(string(pwd(), "\\lib\\bacteria\\bacteria_die.jl"))
-    # include(string(pwd(), "\\lib\\bacteria\\bacteria_divide.jl"))
-
-    # include(string(pwd(), "\\lib\\diffusion\\diffusionMG.jl"))
-    # include(string(pwd(), "\\lib\\diffusion\\steadystate_is_reached.jl"))
-
-    # include(string(pwd(), "\\lib\\dynamic_dT\\decrease_dT_diffusion.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\increase_dT_diffusion.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\decrease_dT_bac.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\slow_convergence.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\upward_trend.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\non_convergent.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\multiple_high_iters.jl"))
-    # include(string(pwd(), "\\lib\\dynamic_dT\\bulk_conc_diff_within_limit.jl"))
-
-    # include(string(pwd(), "\\lib\\post_processing\\save_slice.jl"))
-    # include(string(pwd(), "\\lib\\post_processing\\save_profile.jl"))
-    # include(string(pwd(), "\\lib\\post_processing\\save_backup.jl"))
-    # include(string(pwd(), "\\lib\\post_processing\\save_profiling.jl"))
-
-    # include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
-
     # Load preset file
     grid, bac, constants, init_params, settings = load(simulation_file, "grid", "bac", "constants", "init_params", "settings")
     debug = General()
@@ -122,9 +87,9 @@ function integTime(simulation_file, directory)
     end
 
     # Initialise storing space
-    RESvalues = zeros(length(constants.compoundNames), 500) # Reserve space for n steady state checks beforehand (can be more)
-    norm_diff = zeros(500)
-    res_bacsim = zeros(500, 2)
+    RESvalues = zeros(length(constants.compoundNames), 5005) # Reserve space for n steady state checks beforehand (can be more)
+    norm_diff = zeros(5005)
+    res_bacsim = zeros(5005, 2)
 
     iProf = findfirst(profiling .== 0)[1]       # Keep track of index of profiling (every simulated dT_bac +1 index) (starts half way if restarting from storage)
     iDiffusion = 1                              # Keep track of index of diffusion (per 1 dT_bac: iDiffusion == cycles of diffusion)
@@ -263,7 +228,7 @@ function integTime(simulation_file, directory)
                     # Reset counters for next iteration
                     iDiffusion = 1
                     iRES = 0
-                    RESvalues = zeros(length(constants.compoundNames), 500)
+                    RESvalues = zeros(length(constants.compoundNames), 5005)
 
                     # Reaction_matrix & mu & pH are already calculated (steady state so still valid)
 
@@ -370,7 +335,7 @@ function integTime(simulation_file, directory)
                             break
                         end
 
-                        Time = decrease_dT_bac(Time, "Too large bulk concentration jump detected")
+                        Time = decrease_dT_bac!(Time, "Too large bulk concentration jump detected")
                     end
 
                     bulk_change = (new_bulk_concs .- bulk_concs) ./ Time.dT_bac # [mol_i/L/h]
