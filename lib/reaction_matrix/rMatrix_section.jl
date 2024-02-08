@@ -29,11 +29,6 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
     pH_new:             A (ny, nx) matrix containing the updated pH value per grid cell
     """
 
-    # # Include files
-    # include(string(pwd(), "\\lib\\reaction_matrix\\solve_pH.jl"))
-    # include(string(pwd(), "\\lib\\reaction_matrix\\calculate_monod.jl"))
-    # include(string(pwd(), "\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
-
     # Extract variables from parameters
     pH_bulk = constants[1]
     pHincluded = constants[2]

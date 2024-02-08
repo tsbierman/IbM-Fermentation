@@ -171,7 +171,6 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         Dir_k = p[6]
         structure_model = p[7]
         structure_type = p[8]
-        # invHRT = p[9]
     
         dy = zeros(length(bulk_conc))
     

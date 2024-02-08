@@ -54,8 +54,6 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
     max_RES_value:          A (ncompounds) vector that contains the maximum residual value per compound
     """
 
-    # include(string(pwd(), "\\lib\\diffusion\\create_dirichlet_boundary.jl"))
-
     steadystate_tolerance = constants.steadystate_tolerance     # [mol/L/h]
     method = constants.RESmethod                                # mean, max or norm
 

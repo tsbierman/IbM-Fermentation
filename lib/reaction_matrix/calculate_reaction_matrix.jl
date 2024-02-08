@@ -24,10 +24,6 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
     pH:                 A (ny, nx) matrix containing the pH value per grid cell
     """
 
-    # Including files
-    # include(string(pwd(), "\\lib\\reaction_matrix\\solve_pH.jl"))
-    # include(string(pwd(), "\\lib\\reaction_matrix\\rMatrix_section.jl"))
-
     pHincluded = settings.pHincluded
     nChunks = nChunks_dir ^2
 
