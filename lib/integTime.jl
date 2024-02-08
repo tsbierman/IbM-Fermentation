@@ -122,9 +122,9 @@ function integTime(simulation_file, directory)
     end
 
     # Initialise storing space
-    RESvalues = zeros(length(constants.compoundNames), 500) # Reserve space for n steady state checks beforehand (can be more)
-    norm_diff = zeros(500)
-    res_bacsim = zeros(500, 2)
+    RESvalues = zeros(length(constants.compoundNames), 5005) # Reserve space for n steady state checks beforehand (can be more)
+    norm_diff = zeros(5005)
+    res_bacsim = zeros(5005, 2)
 
     iProf = findfirst(profiling .== 0)[1]       # Keep track of index of profiling (every simulated dT_bac +1 index) (starts half way if restarting from storage)
     iDiffusion = 1                              # Keep track of index of diffusion (per 1 dT_bac: iDiffusion == cycles of diffusion)
@@ -263,7 +263,7 @@ function integTime(simulation_file, directory)
                     # Reset counters for next iteration
                     iDiffusion = 1
                     iRES = 0
-                    RESvalues = zeros(length(constants.compoundNames), 500)
+                    RESvalues = zeros(length(constants.compoundNames), 5005)
 
                     # Reaction_matrix & mu & pH are already calculated (steady state so still valid)
 
