@@ -9,8 +9,6 @@ function bacteria_die!(bac, constants)
     Returns
     bac:                A bac struct without the bacteria that had to die
     """
-    # Include required file
-    # include(string(pwd(), "\\lib\\bacteria\\killBacs.jl"))
 
     # Test whether the mass of bacteria is below minimum mass
     mask_tooSmall = bac.molarMass * constants.bac_MW .< constants.min_bac_mass_grams

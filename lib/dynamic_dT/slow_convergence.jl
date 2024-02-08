@@ -12,8 +12,6 @@ function slow_convergence(iRES, RESvalues, constants)
     slow:               A Boolean indicating whether the convergence is low
     """
 
-    # include(string(pwd(), "\\lib\\dynamic_dT\\non_convergent.jl"))
-
     at_cycle_time = mod(iRES, ceil(constants.dynamicDT.nItersCycle/constants.nDiffusion_per_SScheck)) == 0                                                  # only at nCycle iterations
     if at_cycle_time
 

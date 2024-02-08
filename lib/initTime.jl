@@ -18,10 +18,6 @@ function initTime!(grid, bac, init_params, constants, settings)
     bac:                A "General" struct containing all parameters related to the bacteria, updated with mu-values
     """
 
-    # # Load required files
-    # include(string(pwd(), "\\lib\\Lib_Module.jl"))
-    # include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
-
     # Calculate boundary conditions
     bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT, 0, constants.dT_bac, settings)
 
