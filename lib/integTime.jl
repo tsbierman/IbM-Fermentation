@@ -370,7 +370,7 @@ function integTime(simulation_file, directory)
                             break
                         end
 
-                        Time = decrease_dT_bac(Time, "Too large bulk concentration jump detected")
+                        Time = decrease_dT_bac!(Time, "Too large bulk concentration jump detected")
                     end
 
                     bulk_change = (new_bulk_concs .- bulk_concs) ./ Time.dT_bac # [mol_i/L/h]
