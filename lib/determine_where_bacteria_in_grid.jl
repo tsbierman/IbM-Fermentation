@@ -12,7 +12,7 @@ function determine_where_bacteria_in_grid(grid, bac)
                         there. The number corresponds to the index in the bac struct
     grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
     """
-    maxBacPerGrid = 4 # Based on radius, this number is maximum 19 (all minimum radius)
+    maxBacPerGrid = 9 # Based on radius, this number is maximum 9 (all minimum radius)
 
     # Determine grid cell per bacteria
     index_x = ceil.(bac.x / grid.dx)
