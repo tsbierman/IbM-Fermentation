@@ -51,7 +51,7 @@ function string_to_coordinates(string_coords)
 end
 
 
-function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
+function calcTimeOfDetach(bac, grid_float, grid_int, grid2bac, grid2nBacs, constants)
     """
     This function calculates the time of detachment for each gridcell in the simulation domain
 
@@ -76,12 +76,13 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
     y_centre = mean(bac.y)
 
     # Where are bacteria located in the grid? The grid2nBacs is slightly extended and morphed into a logical matrix
-    detachment_grid = deepcopy(grid)                                                    # To keep the original grid values from changing
-    detachment_grid.blayer_thickness = constants.kDist * constants.bac_max_radius * 2   # Distance factor * diameter
+    detachment_grid_float = deepcopy(grid_float)                                                    # To keep the original grid values from changing
+    detachment_grid_int = deepcopy(grid_int)
+    detachment_grid_float.blayer_thickness = constants.kDist * constants.bac_max_radius * 2   # Distance factor * diameter
 
     # Returns logical matrix with per cell whether it is in a certain region. As we set the the boundary layer very small,
     # this will only be the aggregate of the granule
-    aggregate, _ = determine_diffusion_region(grid2bac, grid2nBacs, bac, detachment_grid)
+    aggregate, _ = determine_diffusion_region(grid2bac, grid2nBacs, bac, detachment_grid_float, detachment_grid_int)
     biofilm = aggregate .> 0
 
     # ---------------------------------- START DEBUG ------------------------------------
@@ -124,7 +125,7 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
     for coor in coordinates
         y_index = coor[1]
         x_index = coor[2]
-        Fdetach = calculateLocalDetachmentRate(x_index, y_index, kDet, grid, x_centre, y_centre)
+        Fdetach = calculateLocalDetachmentRate(x_index, y_index, kDet, grid_float, x_centre, y_centre)
 
         # COPIED IMPORTANT:
         # --------- IMPORTANT ----------
@@ -134,7 +135,7 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
         # --------END IMPORTANT --------
 
         nFreeNb = getFreeNeighbourCount(x_index, y_index, Visited)
-        T[y_index, x_index] = grid.dx / (Fdetach * nFreeNb) # [h]
+        T[y_index, x_index] = grid_float.dx / (Fdetach * nFreeNb) # [h]
     end
 
     queue_size = sum(Narrow_band) # Number of items in queue
@@ -171,7 +172,7 @@ function calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
             end
 
             # recalculate T value
-            T_val = recalculateT(T, x_index_nb, y_index_nb, kDet, grid, Visited, x_centre, y_centre)
+            T_val = recalculateT(T, x_index_nb, y_index_nb, kDet, grid_float, Visited, x_centre, y_centre)
 
             # If it was in Far, it is not in queue, so add to the queue
             if Far[y_index_nb, x_index_nb]

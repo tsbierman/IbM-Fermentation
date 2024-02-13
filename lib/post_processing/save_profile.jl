@@ -1,4 +1,4 @@
-function init_save_profile(constants, grid)
+function init_save_profile(constants, grid_int)
     """
     This function initialises the resulting structs that will contain saved information.
     It utilizes datatypes within the required precision with the lowest storage requirements.
@@ -26,10 +26,10 @@ function init_save_profile(constants, grid)
 
     # Concentration variable
     nCompounds = length(constants.compoundNames)
-    conc_saved = zeros(Float32, nSaves, grid.nx, grid.ny, nCompounds)            # Matrix, Float 32 bit (single precision)
+    conc_saved = zeros(Float32, nSaves, grid_int.nx, grid_int.ny, nCompounds)            # Matrix, Float 32 bit (single precision)
 
     # pH variable
-    pH_saved = zeros(Float32, nSaves, grid.nx, grid.ny)
+    pH_saved = zeros(Float32, nSaves, grid_int.nx, grid_int.ny)
 
     # reactor properties
     reactor_saved = General()
@@ -41,7 +41,7 @@ function init_save_profile(constants, grid)
 end
 
 
-function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, constants, directory)
+function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants, directory)
     """
     This function saves important variables of the whole simulation domain
     It does so in other structs that are generated or loaded
@@ -59,7 +59,7 @@ function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, co
     # Initialise or load previous values
     results_file = string(directory, "\\results2D.jld2")
     if Time == 0
-        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_profile(constants, grid)
+        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_profile(constants, grid_int)
     else
         bac_saved, conc_saved, pH_saved, reactor_saved = load(results_file, "bac_saved", "conc_saved", "pH_saved", "reactor_saved")
     end
@@ -86,7 +86,7 @@ function save_profile(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, co
     # reactor_properties
     reactor_saved.bulk_concs[iSave, :] = bulk_concentrations
     reactor_saved.HRT[iSave] = 1 / invHRT
-    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * grid.dz) # [g/m3]
+    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * grid_float.dz) # [g/m3]
 
     # Save structs to file
     save(results_file, "bac_saved", bac_saved, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved", reactor_saved)

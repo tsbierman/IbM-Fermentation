@@ -1,4 +1,4 @@
-function bacteria_shove!(bac, grid, constants)
+function bacteria_shove!(bac, grid_float, grid_int, constants)
     """
     This function calls a Java function that shoves bacteria such that minimal overlap occurs.
     The Java function is used as it can use the QuadTree dstructure, which prevents that all
@@ -18,7 +18,7 @@ function bacteria_shove!(bac, grid, constants)
     Results_class = JavaCall.@jimport(shoving.Results)
 
     # Create instance of the QuadTree
-    qt = BMQT_class((jdouble, jdouble, jdouble, jdouble), 0.0, grid.dx*grid.nx, 0.0, grid.dy*grid.ny)
+    qt = BMQT_class((jdouble, jdouble, jdouble, jdouble), 0.0, grid_float.dx * grid_int.nx, 0.0, grid_float.dy * grid_int.ny)
 
     # Call shoving algorithm
     r = jcall(qt, "pushing2D", Results_class, (jint, Array{jdouble,1}, Array{jdouble,1}, Array{jdouble,1}, jdouble, jdouble, jdouble), length(bac.x), bac.x, bac.y, bac.radius, 0.1, constants.bac_max_radius * 2, constants.kDist)
@@ -33,7 +33,7 @@ end
 # using JavaCall
 # BMQT_class = JavaCall.@jimport(shoving.BiomassQuadtree)
 # Results_class = JavaCall.@jimport(shoving.Results)
-# qt = BMQT_class((jdouble, jdouble, jdouble, jdouble), 0.0, grid.dx*grid.nx, 0.0, grid.dy*grid.ny)
+# qt = BMQT_class((jdouble, jdouble, jdouble, jdouble), 0.0, grid_float.dx*grid_int.nx, 0.0, grid_float.dy*grid_int.ny)
 # println(typeof(bac.x))
 # r = jcall(qt, "pushing2D", Results_class, (jint, Array{jdouble,1}, Array{jdouble,1}, Array{jdouble,1}, jdouble, jdouble, jdouble), length(bac.x), bac.x, bac.y, bac.radius, 0.1, constants.bac_max_radius * 2, constants.kDist)
 # bac_y = JavaCall.jfield(r, "bac_y", Array{jdouble,1})

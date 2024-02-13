@@ -13,7 +13,8 @@ function loadPresetFile(filename)
     init_params:        A "General" struct containing the parameters values at the start of the simulation
     """
     # Initialisation of the structs
-    grid = General()
+    grid_float = Float_struct()
+    grid_int = Int_struct()
     constants = General()
     settings = General()
     init_params = General()
@@ -24,15 +25,15 @@ function loadPresetFile(filename)
 
     # initialise grid
     names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
-    grid.dx = values_discr[names_discr .== "dx"][1]                                         # [m]
-    grid.dy = values_discr[names_discr .== "dy"][1]                                         # [m]
-    grid.dz = values_discr[names_discr .== "dz"][1]                                         # [m]
-    grid.nx = values_discr[names_discr .== "nx"][1]                                         # [-]
-    grid.ny = values_discr[names_discr .== "ny"][1]                                         # [-]
-    grid.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"][1]     # [m]
+    grid_float.dx = values_discr[names_discr .== "dx"][1]                                         # [m]
+    grid_float.dy = values_discr[names_discr .== "dy"][1]                                         # [m]
+    grid_float.dz = values_discr[names_discr .== "dz"][1]                                         # [m]
+    grid_int.nx = values_discr[names_discr .== "nx"][1]                                         # [-]
+    grid_int.ny = values_discr[names_discr .== "ny"][1]                                         # [-]
+    grid_float.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"][1]     # [m]
 
-    constants.Vg = (grid.dx ^ 3) * 1000                                                     # [L] Conversion m3 --> L
-    constants.max_granule_radius = ((grid.nx - 4) * grid.dx) / 2                            # [m]
+    constants.Vg = (grid_float.dx ^ 3) * 1000                                                     # [L] Conversion m3 --> L
+    constants.max_granule_radius = ((grid_int.nx - 4) * grid_float.dx) / 2                            # [m]
 
     # initialise constants (Time)
     constants.simulation_end = values_discr[names_discr .== "Simulation end"][1]            # [h]
@@ -330,5 +331,5 @@ function loadPresetFile(filename)
         throw(ErrorException("Initialisation method <$(settings.model_type)> is not a valid method."))
     end
 
-    return [grid, bac_init, constants, settings, init_params]
+    return grid_float, grid_int, bac_init, constants, settings, init_params
 end

@@ -1,4 +1,4 @@
-function init_save_slice(constants, grid)
+function init_save_slice(constants, grid_int)
     """
     This function initialises the resulting structs that will contain saved information.
     It utilizes datatypes within the required precision with the lowest storage requirements.
@@ -26,10 +26,10 @@ function init_save_slice(constants, grid)
 
     # Concentration variable
     nCompounds = length(constants.compoundNames)
-    conc_saved = zeros(Float32, nSaves, grid.nx, nCompounds)            # Matrix, Float 32 bit (single precision)
+    conc_saved = zeros(Float32, nSaves, grid_int.nx, nCompounds)            # Matrix, Float 32 bit (single precision)
 
     # pH variable
-    pH_saved = zeros(Float32, nSaves, grid.nx)
+    pH_saved = zeros(Float32, nSaves, grid_int.nx)
 
     # reactor properties
     reactor_saved = General()
@@ -41,7 +41,7 @@ function init_save_slice(constants, grid)
 end
 
 
-function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, constants, directory)
+function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants, directory)
     """
     This function saves important variables along the central axis of the bio-aggregate
     It does so in other structs that are generated or loaded
@@ -58,7 +58,7 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, cons
     # Initialise of load previous values
     results_file = string(directory, "\\results1D.jld2")
     if Time == 0
-        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_slice(constants, grid)
+        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_slice(constants, grid_int)
     else
         bac_saved, conc_saved, pH_saved, reactor_saved = load(results_file, "bac_saved", "conc_saved", "pH_saved", "reactor_saved")
     end
@@ -77,15 +77,15 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid, cons
     bac_saved.mu[iSave, 1:nBacs] = bac.mu
 
     # concentration variable
-    conc_saved[iSave, :, :] = conc[ceil(Int, grid.ny/2), :, :]   # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
+    conc_saved[iSave, :, :] = conc[ceil(Int, grid_int.ny/2), :, :]   # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
 
     # pH variable
-    pH_saved[iSave, :] = pH[ceil(Int, grid.ny/2), :]             # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
+    pH_saved[iSave, :] = pH[ceil(Int, grid_int.ny/2), :]             # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
 
     # reactor_properties
     reactor_saved.bulk_concs[iSave, :] = bulk_concentrations
     reactor_saved.HRT[iSave] = 1 / invHRT
-    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * grid.dz) # [g/m3]
+    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * grid_float.dz) # [g/m3]
 
     # Save structs to file
     save(results_file, "bac_saved", bac_saved, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved", reactor_saved)

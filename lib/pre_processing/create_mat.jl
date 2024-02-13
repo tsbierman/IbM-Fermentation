@@ -125,7 +125,7 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
 end
 
 
-function AMXinside(bac, grid, constants)
+function AMXinside(bac, grid_float, grid_int, constants)
     """
     This function assigns all the bacteria a specie. The closest to the centre are assigned with AMX,
     the others are random. The amount assigned with AMX remains random.
@@ -140,7 +140,7 @@ function AMXinside(bac, grid, constants)
     species:            A vector (nBac,) containing a number, representing the species of the organism
     """
     # Calculate distance from the centre and sort based on distance
-    distance = sqrt.((bac.x .- (grid.nx / 2 * grid.dx)) .^2 + (bac.y .- (grid.ny / 2 * grid.dy)) .^2)
+    distance = sqrt.((bac.x .- (grid_int.nx / 2 * grid_float.dx)) .^2 + (bac.y .- (grid_int.ny / 2 * grid_float.dy)) .^2)
     I = sortperm(distance)   # Returns indices
 
     # Determine index of AMX specie. Randomly assign species to bacteria and see how many are AMX
@@ -159,7 +159,7 @@ function AMXinside(bac, grid, constants)
     return species
 end
 
-function shoving_loop(bac, grid, constants, n)
+function shoving_loop(bac, grid_float, grid_int, constants, n)
     """
     This function calls the bacteria_shove multiple thermodynamic_parameters
     
@@ -173,7 +173,7 @@ function shoving_loop(bac, grid, constants, n)
     bac:                Bac struct with updates x and y coordinates
     """
     for gg in 1:n
-        bac = bacteria_shove!(bac, grid, constants)
+        bac = bacteria_shove!(bac, grid_float, grid_int, constants)
     end
     return bac
 end
@@ -205,7 +205,7 @@ function create_mat(filename, simulation_number)
 
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
 
-    grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
+    grid_float, grid_int, bac_init, constants, settings, init_params = loadPresetFile(filename)
 
     # Initial Molar Mass is 60% of maximum molar Mass
     molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW                           # [mol]
@@ -218,12 +218,12 @@ function create_mat(filename, simulation_number)
     if settings.model_type in ("granule", "mature granule")
 
         # Create a single colony of bacteria around the centre
-        bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid.nx / 2 * grid.dx, grid.ny / 2 * grid.dy, bac_init.granule_radius)
+        bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid_int.nx / 2 * grid_float.dx, grid_int.ny / 2 * grid_float.dy, bac_init.granule_radius)
 
     elseif settings.model_type in ("suspension",)
 
-        margin = 0.2 * grid.dx * grid.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
-        xrange = [margin, grid.dx*grid.nx - margin]
+        margin = 0.2 * grid_float.dx * grid_int.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
+        xrange = [margin, grid_float.dx * grid_int.nx - margin]
         yrange = xrange                                 # assume square domain
 
         # Create several colonies with some bacteria each
@@ -237,11 +237,11 @@ function create_mat(filename, simulation_number)
     bac.active = BitArray(ones(size(bac.x)))                # Binary/Boolean
 
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
-    bac = shoving_loop(bac, grid, constants, 5)
+    bac = shoving_loop(bac, grid_float, grid_int, constants, 5)
 
     if settings.model_type in ("granule", "mature granule")
         # Remove bacteria that are outside the maximum granule radius due to shoving
-        keep = sqrt.((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
+        keep = sqrt.((bac.x .- (grid_float.dx * grid_int.nx / 2)) .^2 + (bac.y .- (grid_float.dy * grid_int.ny / 2)) .^2 ) .<= bac_init.granule_radius
         println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
         bac.x = bac.x[keep]
         bac.y = bac.y[keep]
@@ -251,7 +251,7 @@ function create_mat(filename, simulation_number)
     end
 
     if settings.model_type == "mature granule"
-        bac.species = AMXinside(bac, grid, constants) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
+        bac.species = AMXinside(bac, grid_float, grid_int, constants) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
     else
         bac.species = rand((1:length(constants.speciesNames)), size(bac.x)) # Random species
     end
@@ -265,12 +265,12 @@ function create_mat(filename, simulation_number)
     if simulation_number < 0 
         # For testing purposes
         println(">>>>>>>>>>>>>> DONE LOADING!")
-        return grid, bac, constants, settings, init_params
+        return grid_float, grid_int, bac, constants, settings, init_params
 
     else 
         # Normal use case
         results_file = @sprintf("sim_%04d.jld2", simulation_number)
-        save(results_file, "grid", grid, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
+        save(results_file, "grid_float", grid_float, "grid_int", grid_int, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
         println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
 
     end

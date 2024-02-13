@@ -1,4 +1,4 @@
-function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
+function bacteria_detachment!(bac, grid_float, grid_int, constants, settings, timestep, invHRT)
     """
     This function implements detachment. The kind of detachment dictates the calculations.
     None, SBR:          No bacteria are removed
@@ -23,7 +23,7 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
 
     elseif settings.detachment == "naive"
         # Detachment based on distance from centre
-        bac_distance_from_centre = sqrt.((bac.x .- grid.dx * grid.nx / 2) .^2 + (bac.y .- grid.dy * grid.ny / 2) .^2)
+        bac_distance_from_centre = sqrt.((bac.x .- grid_float.dx * grid_int.nx / 2) .^2 + (bac.y .- grid_float.dy * grid_int.ny / 2) .^2)
         bac_detach = bac_distance_from_centre .> constants.max_granule_radius
         nCellsDetach = sum(bac_detach)
 
@@ -37,8 +37,8 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         # grid2bac is a (nx * ny * ?) matrix containing the bacteria in each grid cell (indices)
         # grid2nBacs is a (nx * ny) matrix containing the number of bacteria in each grid cell
         # An update of these matrices is required as a division has occurred 
-        grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
-        T = calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
+        grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
+        T = calcTimeOfDetach(bac, grid_float, grid_int, grid2bac, grid2nBacs, constants)
 
         # Determine ratio of timestep of detachment time
         ratio = timestep ./ T
@@ -92,7 +92,7 @@ function bacteria_detachment!(bac, grid, constants, settings, timestep, invHRT)
         # A cell is considered on the "outside" when the difference in distance to the centre
         # compared to the distance of the furthest active and large enough cell is larger than 
         # 1 boundary layer thickness
-        mask_outside = dist .> max(dist[bac.active .& .!mask_tooSmall]) - grid.blayer_thickness
+        mask_outside = dist .> max(dist[bac.active .& .!mask_tooSmall]) - grid_float.blayer_thickness
         mask_outsideCellRemoval = mask_tooSmall .& mask_outside
         nCellsRemoved = sum(mask_outsideCellRemoval)
 

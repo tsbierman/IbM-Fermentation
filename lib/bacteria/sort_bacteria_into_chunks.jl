@@ -1,4 +1,4 @@
-function sort_bacteria_into_chunks!(bac, grid, chunks, focus_region, nChunks_dir)
+function sort_bacteria_into_chunks!(bac, grid_float, chunks, focus_region, nChunks_dir)
     """
     This function reorganises the indices in the bac for easier access in parallel computing
     Bacteria in the same chunk are next to each other
@@ -15,8 +15,8 @@ function sort_bacteria_into_chunks!(bac, grid, chunks, focus_region, nChunks_dir
     """
 
     # Calculate which gridcell each bacteria is in
-    ix = ceil.(bac.x / grid.dx)
-    iy = ceil.(bac.y / grid.dy)
+    ix = ceil.(bac.x / grid_float.dx)
+    iy = ceil.(bac.y / grid_float.dy)
 
     # Calculate which chunk each bacteria is in
     ixChunk = ceil.((ix - focus_region.x0) / chunks.dx_chunk)

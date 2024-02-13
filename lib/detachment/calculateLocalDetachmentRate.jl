@@ -1,4 +1,4 @@
-function calculateLocalDetachmentRate(i, j, kDet, grid, xcentre, ycentre)
+function calculateLocalDetachmentRate(i, j, kDet, grid_float, xcentre, ycentre)
     """
     This function calculates the local detachment speed with the formula Fdet = kdet * d^2
 
@@ -13,8 +13,8 @@ function calculateLocalDetachmentRate(i, j, kDet, grid, xcentre, ycentre)
     """
 
     # Get centre of grid cell
-    x = (i - 0.5) * grid.dx
-    y = (j - 0.5) * grid.dx
+    x = (i - 0.5) * grid_float.dx
+    y = (j - 0.5) * grid_float.dx
 
     # Calculate distance from centre
     d = sqrt((x - xcentre)^2 + (y - ycentre)^2)

@@ -25,7 +25,7 @@ function calculate_rhs_dirichlet(phi, L_rhs, value, diffRegion)
 end
 
 
-function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, grid, constants, Time)
+function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, grid_float, constants, Time)
     """
     Solve diffusion for all molecules in the liquid phase using the multigrid method.
     IMPORTANT: only runs for all dirichlet conditions as of now. Future versions should
@@ -48,7 +48,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     diffusion_coef = constants.diffusion_rates # [m2/h]
     accuracy = constants.diffusion_accuracy
     nCompounds = length(diffusion_coef)
-    dx = grid.dx
+    dx = grid_float.dx
     dT = Time.dT
 
     # Set parameters for V_cycle

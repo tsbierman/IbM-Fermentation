@@ -1,4 +1,4 @@
-function determine_where_bacteria_in_grid(grid, bac)
+function determine_where_bacteria_in_grid(grid_float, grid_int, bac)
     """
     This functions determines which gridcel contain bacteria and which bacteria
     are located in each gridcell
@@ -15,13 +15,13 @@ function determine_where_bacteria_in_grid(grid, bac)
     maxBacPerGrid = 9 # Based on radius, this number is maximum 9 (all minimum radius)
 
     # Determine grid cell per bacteria
-    index_x = ceil.(bac.x / grid.dx)
-    index_y = ceil.(bac.y / grid.dy)
+    index_x = ceil.(bac.x / grid_float.dx)
+    index_y = ceil.(bac.y / grid_float.dy)
     bac_grid = hcat(index_x, index_y)
 
     # Generate matrices
-    grid2nBacs = zeros(UInt16, grid.ny, grid.nx) # UInt8 for reduced storage requirements (previously exceeded 255 bac per cell, therefor UInt8 not enough)
-    grid2bac = zeros(UInt32, grid.ny, grid.nx, maxBacPerGrid) # UInt32 for reduced storage requirements --> lower storage requirements than sparse matrix (nBacs * nGridcells)
+    grid2nBacs = zeros(UInt16, grid_int.ny, grid_int.nx) # UInt8 for reduced storage requirements (previously exceeded 255 bac per cell, therefor UInt8 not enough)
+    grid2bac = zeros(UInt32, grid_int.ny, grid_int.nx, maxBacPerGrid) # UInt32 for reduced storage requirements --> lower storage requirements than sparse matrix (nBacs * nGridcells)
 
     # Fill matrices
     for i in axes(bac_grid)[1]
