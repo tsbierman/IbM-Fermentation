@@ -66,7 +66,7 @@ function determine_focus_region(diffRegion)
     """
 
     # Struct to save
-    extraction_region = General()
+    extraction_region = Int_struct()
 
     # Determine first and last x
     x_diffRegion = sum(diffRegion, dims= 1)
