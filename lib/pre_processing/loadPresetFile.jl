@@ -17,7 +17,7 @@ function loadPresetFile(filename)
     grid_int = Int_struct()
     constants = General()
     settings = General()
-    init_params = General()
+    init_params = VectorFloat_struct()
     bac_init = General()
 
     #Read file
@@ -78,7 +78,7 @@ function loadPresetFile(filename)
     constants.reactor_density = values_para[names_para .== "Density reactor"][1]            # [g/L]
 
     settings.variableHRT = values_para[names_para .== "Variable HRT"][1]                    # [Bool]
-    init_params.invHRT = 1 / values_para[names_para .== "HRT"][1]                           # [1/h]
+    init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                              # [1/h]
 
     # Only if varaible HRT is enabled
     if settings.variableHRT

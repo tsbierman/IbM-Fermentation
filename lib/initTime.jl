@@ -19,7 +19,7 @@ function initTime!(grid_float, grid_int, bac, init_params, constants, settings)
     """
 
     # Calculate boundary conditions
-    bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT, 0, constants.dT_bac, settings)
+    bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT[1], 0, constants.dT_bac, settings)
 
     # Make bacterial-grid matrices
     grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
