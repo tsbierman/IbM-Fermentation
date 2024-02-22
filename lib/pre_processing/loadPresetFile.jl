@@ -19,7 +19,8 @@ function loadPresetFile(filename)
     settings_bool = Bool_struct()
     settings_string = String_struct()
     init_params = VectorFloat_struct()
-    bac_init = General()
+    bac_init_float = Float_struct()
+    bac_init_int = Int_struct()
 
     #Read file
     file = XLSX.readxlsx(filename)
@@ -322,15 +323,15 @@ function loadPresetFile(filename)
     settings_string.model_type = values_bac[names_bac .== "Initialisation method"][1]
 
     if settings_string.model_type in ("granule", "mature granule")
-        bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"][1]
-        bac_init.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"][1]
+        bac_init_float.granule_radius = values_bac[names_bac .== "Starting granule radius"][1]
+        bac_init_int.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"][1]
 
     elseif settings_string.model_type in ("suspension",)
-        bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"][1]
-        bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"][1]
+        bac_init_int.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"][1]
+        bac_init_int.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"][1]
     else
         throw(ErrorException("Initialisation method <$(settings_string.model_type)> is not a valid method."))
     end
 
-    return grid_float, grid_int, bac_init, constants, settings_bool, settings_string, init_params
+    return grid_float, grid_int, bac_init_float, bac_init_int, constants, settings_bool, settings_string, init_params
 end

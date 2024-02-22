@@ -205,7 +205,7 @@ function create_mat(filename, simulation_number)
 
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
 
-    grid_float, grid_int, bac_init, constants, settings_bool, settings_string, init_params = loadPresetFile(filename)
+    grid_float, grid_int, bac_init_float, bac_init_int, constants, settings_bool, settings_string, init_params = loadPresetFile(filename)
 
     # Initial Molar Mass is 60% of maximum molar Mass
     molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW                           # [mol]
@@ -218,7 +218,7 @@ function create_mat(filename, simulation_number)
     if settings_string.model_type in ("granule", "mature granule")
 
         # Create a single colony of bacteria around the centre
-        bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid_int.nx / 2 * grid_float.dx, grid_int.ny / 2 * grid_float.dy, bac_init.granule_radius)
+        bac.x, bac.y = blue_noise_circle(bac_init_int.start_nBac, grid_int.nx / 2 * grid_float.dx, grid_int.ny / 2 * grid_float.dy, bac_init_float.granule_radius)
 
     elseif settings_string.model_type in ("suspension",)
 
@@ -227,8 +227,8 @@ function create_mat(filename, simulation_number)
         yrange = xrange                                 # assume square domain
 
         # Create several colonies with some bacteria each
-        r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
-        bac.x, bac.y = distribute_microcolonies(bac_init.start_nColonies, bac_init.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
+        r_colony = (bac_init_int.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
+        bac.x, bac.y = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
     end
 
     # Set parameters for every of the bacteria
@@ -241,7 +241,7 @@ function create_mat(filename, simulation_number)
 
     if settings_string.model_type in ("granule", "mature granule")
         # Remove bacteria that are outside the maximum granule radius due to shoving
-        keep = sqrt.((bac.x .- (grid_float.dx * grid_int.nx / 2)) .^2 + (bac.y .- (grid_float.dy * grid_int.ny / 2)) .^2 ) .<= bac_init.granule_radius
+        keep = sqrt.((bac.x .- (grid_float.dx * grid_int.nx / 2)) .^2 + (bac.y .- (grid_float.dy * grid_int.ny / 2)) .^2 ) .<= bac_init_float.granule_radius
         println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
         bac.x = bac.x[keep]
         bac.y = bac.y[keep]
