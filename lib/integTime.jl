@@ -107,10 +107,10 @@ function integTime(simulation_file, directory)
     if settings_bool.parallelized
 
         # Create chunks
-        chunks = create_chunks(nChunks_dir, focus_region)
+        chunks_matrix, chunks_int = create_chunks(nChunks_dir, focus_region)
 
         # sort bacteria
-        bac = sort_bacteria_into_chunks!(bac, grid_float, chunks, focus_region, nChunks_dir)
+        bac = sort_bacteria_into_chunks!(bac, grid_float, chunks_int, focus_region, nChunks_dir)
 
         # Recalculate the grid2bac matrix
         grid2bac, _ = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
@@ -296,10 +296,10 @@ function integTime(simulation_file, directory)
                     if settings_bool.parallelized
                         tick()
                         # create chunks
-                        chunks = create_chunks(nChunks_dir, focus_region)
+                        chunks_matrix, chunks_int = create_chunks(nChunks_dir, focus_region)
 
                         # sort bacteria
-                        bac = sort_bacteria_into_chunks!(bac, grid_float, chunks, focus_region, nChunks_dir)
+                        bac = sort_bacteria_into_chunks!(bac, grid_float, chunks_int, focus_region, nChunks_dir)
                         profiling[iProf, 11] = profiling[iProf, 11] + tok()
 
                         # recalculate the grid2bac matrix

@@ -31,6 +31,15 @@ Base.getproperty(x::VectorFloat_struct, property::Symbol) = getfield(x, :propert
 Base.setproperty!(x::VectorFloat_struct, property::Symbol, value) = getfield(x, :properties)[property] = value
 Base.propertynames(x::VectorFloat_struct) = keys(getfield(x, :properties))
 
+struct MatrixFloat_struct
+    properties::Dict{Symbol, Matrix{Float64}}
+end
+MatrixFloat_struct() = MatrixFloat_struct(Dict{Symbol, Matrix{Float64}}())
+
+Base.getproperty(x::MatrixFloat_struct, property::Symbol) = getfield(x, :properties)[property]
+Base.setproperty!(x::MatrixFloat_struct, property::Symbol, value) = getfield(x, :properties)[property] = value
+Base.propertynames(x::MatrixFloat_struct) = keys(getfield(x, :properties))
+
 struct Int_struct
     properties::Dict{Symbol, Int32}
 end
