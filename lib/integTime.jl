@@ -11,7 +11,7 @@ function integTime(simulation_file, directory)
     """
 
     # Load preset file
-    grid_float, grid_int, bac, constants, init_params, settings = load(simulation_file, "grid_float","grid_int", "bac", "constants", "init_params", "settings")
+    grid_float, grid_int, bac, constants, init_params, settings_bool, settings_string = load(simulation_file, "grid_float","grid_int", "bac", "constants", "init_params", "settings_bool", "settings_string")
     debug = General()
     debug.plotConvergence = false
     debug.plotDiffRegion = false
@@ -37,7 +37,7 @@ function integTime(simulation_file, directory)
         profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time = load(profiling_file, "profiling", "maxErrors", "normOverTime", "nDiffIters", "bulk_history", "Time")
     else
         # Initiate from preset values
-        conc, bulk_concs, invHRT, reaction_matrix, pH, bac = initTime!(grid_float, grid_int, bac, init_params, constants, settings)
+        conc, bulk_concs, invHRT, reaction_matrix, pH, bac = initTime!(grid_float, grid_int, bac, init_params, constants, settings_bool, settings_string)
         
 
         # Initiate time and profiling information/storage from preset
@@ -53,7 +53,7 @@ function integTime(simulation_file, directory)
         Time.dT_bac = constants.dT_bac      # Current bacteria dT
         Time.bac = Time.dT_bac              # Include dT_bac and dT_divide in one variable
 
-        if settings.dynamicDT
+        if settings_bool.dynamicDT
             Time.maxDT = constants.dynamicDT.maxDT
             Time.minDT = constants.dynamicDT.minDT
             Time.maxDT_bac = constants.dynamicDT.maxDT_bac
@@ -104,7 +104,7 @@ function integTime(simulation_file, directory)
     yRange = focus_region.y0:focus_region.y1
 
     # ----------------- START PARALLELISATION --------------------------------
-    if settings.parallelized
+    if settings_bool.parallelized
 
         # Create chunks
         chunks = create_chunks(nChunks_dir, focus_region)
@@ -154,7 +154,7 @@ function integTime(simulation_file, directory)
         # Calculate reaction_matrix
         tick()
         reaction_matrix[yRange, xRange, :], bac.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
-        grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings)
+        grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings_bool)
         profiling[iProf, 3] = profiling[iProf, 3] + tok()
 
         # If T > T_ss: calcualte residual
@@ -174,7 +174,7 @@ function integTime(simulation_file, directory)
             prev_conc = copy(conc)  # Store the newly calculated conc before changing again in next cycle 
             
             # Perform dynamic dT for diffusion
-            if settings.dynamicDT
+            if settings_bool.dynamicDT
                 if slow_convergence(iRES, RESvalues, constants) && Time.dT < Time.maxDT/2
                     # Time = increase_dT_diffusion!(Time, "Slow convergence", grid.dx, constants)
                     Time = decrease_dT_diffusion!(Time, "Diffusion takes a long time", grid_float.dx, constants)
@@ -211,7 +211,7 @@ function integTime(simulation_file, directory)
                 end
 
                 # Perform dynamic dT for diffusion (for next iteration)
-                if settings.dynamicDT && multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants)
+                if settings_bool.dynamicDT && multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants)
                     Time = increase_dT_diffusion!(Time, "Multiple steady states reached with more than $(constants.dynamicDT.iterThresholdIncrease) diffusion iterations", grid_float.dx, constants)
                 end
 
@@ -266,7 +266,7 @@ function integTime(simulation_file, directory)
                     
                     # Bacteria: detachment (for now only rough detachment is implemented)
                     tick()
-                    bac = bacteria_detachment!(bac, grid_float, grid_int, constants, settings, Time.dT_bac, invHRT)
+                    bac = bacteria_detachment!(bac, grid_float, grid_int, constants, settings_string, Time.dT_bac, invHRT)
                     profiling[iProf, 7] = profiling[iProf, 7] + tok()
 
                     # Display number of bacteria in system
@@ -274,7 +274,7 @@ function integTime(simulation_file, directory)
 
                     # Auto detect when to switch to parallel compution of the rMatrix
                     # TODO: determine exact cutoff value (will be around 15000 approx)
-                    if settings.parallelized == false && length(bac.x) > 15000
+                    if settings_bool.parallelized == false && length(bac.x) > 15000
                         cores = Sys.CPU_THREADS
                         nChunks_dir = ceil(sqrt(cores))
                         # DO PARALLELISATION initiation
@@ -293,7 +293,7 @@ function integTime(simulation_file, directory)
                     yRange = focus_region.y0:focus_region.y1
                     profiling[iProf, 9] = profiling[iProf, 9] + tok()
 
-                    if settings.parallelized
+                    if settings_bool.parallelized
                         tick()
                         # create chunks
                         chunks = create_chunks(nChunks_dir, focus_region)
@@ -307,7 +307,7 @@ function integTime(simulation_file, directory)
                     end
 
                     # Apply dynamic dT_bac
-                    if settings.dynamicDT && multiple_low_initRES(iProf, maxInitRES, Time, constants)
+                    if settings_bool.dynamicDT && multiple_low_initRES(iProf, maxInitRES, Time, constants)
                         Time = increase_dT_bac!(Time, "Multiple steady state cycles with initRES value below $(round(constants.dynamicDT.initRESThresholdIncrease * 100, digits=1))")
                     end
 
@@ -318,15 +318,15 @@ function integTime(simulation_file, directory)
                     # Recompute reaction matrix for the next cycle
                     tick()
                     reaction_matrix[yRange, xRange, :], bac.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
-                    grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings)
+                    grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings_bool)
                     profiling[iProf, 3] = profiling[iProf, 3] + tok()
 
                     # Calculate and set bulk concentrations
                     tick()
                     new_bulk_concs = prev_conc
                     while true
-                        new_bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings)
-                        if !settings.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants)
+                        new_bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings_bool, settings_string)
+                        if !settings_bool.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants)
                             break
                         end
 
@@ -347,7 +347,7 @@ function integTime(simulation_file, directory)
                     # Place for balance check/analyse metabolites
                     if Time.current >= Time.analyse
 
-                        biomass_close, balance_close, dirichlet_close = check_balances(bac, constants, settings, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
+                        biomass_close, balance_close, dirichlet_close = check_balances(bac, constants, settings_string, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
                         println("Biomass closes: $(biomass_close)")
                         println("Balances closing: $(balance_close)")
                         println("Dirichlet closing: $(dirichlet_close)")
@@ -381,7 +381,7 @@ function integTime(simulation_file, directory)
                         save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)
                     end
 
-                    if settings.detachment == "SBR"
+                    if settings_string.detachment == "SBR"
                         bac.molarMass[bac.active] = maximum([bac.molarMass[bac.active] .- 0.1*constants.min_bac_mass_grams/constants.bac_MW, eps])
                     end
                 end

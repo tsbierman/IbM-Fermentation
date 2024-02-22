@@ -1,4 +1,4 @@
-function bacteria_detachment!(bac, grid_float, grid_int, constants, settings, timestep, invHRT)
+function bacteria_detachment!(bac, grid_float, grid_int, constants, settings_string, timestep, invHRT)
     """
     This function implements detachment. The kind of detachment dictates the calculations.
     None, SBR:          No bacteria are removed
@@ -18,10 +18,10 @@ function bacteria_detachment!(bac, grid_float, grid_int, constants, settings, ti
     bac:                A bac struct where bacteria have been removed
     """
 
-    if settings.detachment in ("none", "SBR")
+    if settings_string.detachment in ("none", "SBR")
         return bac
 
-    elseif settings.detachment == "naive"
+    elseif settings_string.detachment == "naive"
         # Detachment based on distance from centre
         bac_distance_from_centre = sqrt.((bac.x .- grid_float.dx * grid_int.nx / 2) .^2 + (bac.y .- grid_float.dy * grid_int.ny / 2) .^2)
         bac_detach = bac_distance_from_centre .> constants.max_granule_radius
@@ -31,7 +31,7 @@ function bacteria_detachment!(bac, grid_float, grid_int, constants, settings, ti
             bac = killBacs!(bac, bac_detach)
         end
 
-    elseif settings.detachment == "mechanistic"
+    elseif settings_string.detachment == "mechanistic"
         # Detachment based on detachment time and timestep (and size)
 
         # grid2bac is a (nx * ny * ?) matrix containing the bacteria in each grid cell (indices)
@@ -102,7 +102,7 @@ function bacteria_detachment!(bac, grid_float, grid_int, constants, settings, ti
         end
 
 
-    elseif settings.detachment == "suspension"
+    elseif settings_string.detachment == "suspension"
     # elseif settings.model_type == "suspension"
         # Remove cells when they grow slower than dilution rate
         mask_remove = bac.mu .< invHRT
@@ -112,7 +112,7 @@ function bacteria_detachment!(bac, grid_float, grid_int, constants, settings, ti
             bac = killBacs!(bac, mask_remove)
         end
     else
-        throw(ErrorException("Detachment of $(settings.detachment) is unknown"))
+        throw(ErrorException("Detachment of $(settings_string.detachment) is unknown"))
     end
 
     println("$(nCellsDetach) cells removed from the granule")

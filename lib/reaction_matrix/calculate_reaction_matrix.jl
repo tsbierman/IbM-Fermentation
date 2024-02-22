@@ -1,4 +1,4 @@
-function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings)
+function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings_bool)
     """
     This function calculates how much of each compound is consumed per gridcell due to bacterial activity. 
     It also updates the growth rate of the respective bacteria.
@@ -24,7 +24,7 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
     pH:                 A (ny, nx) matrix containing the pH value per grid cell
     """
 
-    pHincluded = settings.pHincluded
+    pHincluded = settings_bool.pHincluded
     nChunks = nChunks_dir ^2
 
     # convert initial pH (single value) to pH matrix
@@ -60,11 +60,11 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
     end
 
     # Group constants for easy passing to several cores
-    constantValues = [pH_bulk, pHincluded, constants.pHtolerance, constants.T, settings.speciation]
+    constantValues = [pH_bulk, pHincluded, constants.pHtolerance, constants.T, settings_bool.speciation]
     grouped_bac = [bac.species bac.molarMass bac.active]
     grouped_kinetics = [constants.mu_max constants.maintenance]
 
-    if settings.parallelized
+    if settings_bool.parallelized
 
         # ================================ PARALLEL CALCULATION START ========================================
         # Place to implement parallelization. Not implemented now as Julia might have a package that can help with this: ImplicitGlobalGrid.jl

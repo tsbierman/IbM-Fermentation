@@ -1,4 +1,4 @@
-function check_balances(bac, constants, settings, reaction_matrix, bulk_concentrations, invHRT, bulk_change, tolerance)
+function check_balances(bac, constants, settings_string, reaction_matrix, bulk_concentrations, invHRT, bulk_change, tolerance)
     """
     This function checks whether the amount of biomass produces/decayed alligns with the compounds consumed/produced.
     It also checks whether the balance of the whole reactor closes.
@@ -49,7 +49,7 @@ function check_balances(bac, constants, settings, reaction_matrix, bulk_concentr
     outflow = bulk_concentrations
 
     # Conversion factor volume slice to volume sphere
-    f = calculate_slice_sphere_conversion(bac, constants, settings)
+    f = calculate_slice_sphere_conversion(bac, constants, settings_string)
     actual_compoundChange = actual_compoundChange * f / constants.Vr    # Convert from [mol_i/h] to [mol_i/L/h] (reactor level)
 
     balances = (influent .- outflow) * invHRT .+ actual_compoundChange - bulk_change

@@ -16,7 +16,8 @@ function loadPresetFile(filename)
     grid_float = Float_struct()
     grid_int = Int_struct()
     constants = General()
-    settings = General()
+    settings_bool = Bool_struct()
+    settings_string = String_struct()
     init_params = VectorFloat_struct()
     bac_init = General()
 
@@ -43,10 +44,10 @@ function loadPresetFile(filename)
     constants.dT_analyse = values_discr[names_discr .== "dT analyse"][1]                    # [h]
     constants.dT_backup = values_discr[names_discr .== "dT backup"][1]                      # [h]
 
-    settings.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                      # [Bool]
+    settings_bool.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                      # [Bool]
 
     # Only if dynamic time stepping is enabled
-    if settings.dynamicDT
+    if settings_bool.dynamicDT
         dynamicDT = General()               # Extra structure to store in the other structure
         dynamicDT.nIterThreshold = values_discr[names_discr .== "nIterThreshold"][1]                            # [-]
         dynamicDT.iterThresholdDecrease = values_discr[names_discr .== "iterThresholdDecrease"][1]              # [-]
@@ -77,11 +78,11 @@ function loadPresetFile(filename)
     constants.Vr = values_para[names_para .== "Representative volume"][1] * 1000            # [L]
     constants.reactor_density = values_para[names_para .== "Density reactor"][1]            # [g/L]
 
-    settings.variableHRT = values_para[names_para .== "Variable HRT"][1]                    # [Bool]
+    settings_bool.variableHRT = values_para[names_para .== "Variable HRT"][1]                    # [Bool]
     init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                              # [1/h]
 
     # Only if varaible HRT is enabled
-    if settings.variableHRT
+    if settings_bool.variableHRT
         constants.bulk_setpoint = values_para[names_para .== "Setpoint"][1]              # [mol/L]
         compound_name = values_para[names_para .== "Compound setpoint"][1] 
         constants.setpoint_index = findall(constants.compoundNames .== compound_name) # [CartasianIndex]
@@ -99,7 +100,7 @@ function loadPresetFile(filename)
     constants.kDist = values_bac[names_bac .== "kDist"][1]                                  # [-]
     constants.max_granule_radius = min(constants.max_granule_radius, values_bac[names_bac .== "Maximum granule radius"][1]) # [m] Either based on grid size or set value
     constants.kDet = values_bac[names_bac .== "Detachment constant"][1]                     # [1/m2.h]
-    settings.detachment = values_bac[names_bac .== "Detachment method"][1]                  # [mechanistic, naive, none]
+    settings_string.detachment = values_bac[names_bac .== "Detachment method"][1]                  # [mechanistic, naive, none]
 
 
     # Constants (Solver)
@@ -112,23 +113,23 @@ function loadPresetFile(filename)
 
     constants.nDiffusion_per_SScheck = values_solv[names_solv .== "nIters diffusion per SS check"][1]   # [-]
 
-    settings.pHbulkCorrection = values_solv[names_solv .== "pH bulk concentration corrected"][1]        # Boolean
-    settings.pHincluded = values_solv[names_solv .== "pH solving included"][1]                          # Boolean
+    settings_bool.pHbulkCorrection = values_solv[names_solv .== "pH bulk concentration corrected"][1]        # Boolean
+    settings_bool.pHincluded = values_solv[names_solv .== "pH solving included"][1]                          # Boolean
     # Speciation is always included if pH is included, else, read Boolean from excel
-    settings.speciation = values_solv[names_solv .== "Speciation included"][1] || settings.pHincluded   # Boolean
+    settings_bool.speciation = values_solv[names_solv .== "Speciation included"][1] || settings_bool.pHincluded   # Boolean
 
-    if settings.pHincluded
+    if settings_bool.pHincluded
         constants.pHtolerance = values_solv[names_solv .== "pH solver tolerance"][1]                    # [-]
     else
         constants.pHtolerance = NaN
     end
 
-    settings.structure_model = values_solv[names_solv .== "Structure model"][1]                         # Boolean
-    if settings.structure_model
-        settings.type = values_solv[names_solv .== "Structure model type"][1]                           # [Neut, Comm, Comp, Copr]
+    settings_bool.structure_model = values_solv[names_solv .== "Structure model"][1]                         # Boolean
+    if settings_bool.structure_model
+        settings_string.type = values_solv[names_solv .== "Structure model type"][1]                           # [Neut, Comm, Comp, Copr]
     end
 
-    settings.parallelized = values_solv[names_solv .== "Parallelisation"][1]                            # Boolean
+    settings_bool.parallelized = values_solv[names_solv .== "Parallelisation"][1]                            # Boolean
 
     # Constants (influent)
     names_temp, values_temp, condition_type_temp = file["Influent"][:,1], file["Influent"][:,2], file["Influent"][:,4] 
@@ -233,7 +234,7 @@ function loadPresetFile(filename)
 
     # Reactive indices
     constants.reactive_indices = zeros(Int, length(uniq_compounds))
-    if settings.speciation
+    if settings_bool.speciation
         sz = (nCompounds+2, nColumns)
 
         for (index, uniq) in enumerate(uniq_compounds)
@@ -318,18 +319,18 @@ function loadPresetFile(filename)
     end
 
     # Initialisation of bacteria
-    settings.model_type = values_bac[names_bac .== "Initialisation method"][1]
+    settings_string.model_type = values_bac[names_bac .== "Initialisation method"][1]
 
-    if settings.model_type in ("granule", "mature granule")
+    if settings_string.model_type in ("granule", "mature granule")
         bac_init.granule_radius = values_bac[names_bac .== "Starting granule radius"][1]
         bac_init.start_nBac = values_bac[names_bac .== "Starting number of bacteria (granule)"][1]
 
-    elseif settings.model_type in ("suspension",)
+    elseif settings_string.model_type in ("suspension",)
         bac_init.start_nColonies = values_bac[names_bac .== "Starting number of microcolonies (suspension)"][1]
         bac_init.start_nBacPerColony = values_bac[names_bac .== "Starting number of bacteria per microcolony (suspension)"][1]
     else
-        throw(ErrorException("Initialisation method <$(settings.model_type)> is not a valid method."))
+        throw(ErrorException("Initialisation method <$(settings_string.model_type)> is not a valid method."))
     end
 
-    return grid_float, grid_int, bac_init, constants, settings, init_params
+    return grid_float, grid_int, bac_init, constants, settings_bool, settings_string, init_params
 end

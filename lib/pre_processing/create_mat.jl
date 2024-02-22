@@ -205,7 +205,7 @@ function create_mat(filename, simulation_number)
 
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
 
-    grid_float, grid_int, bac_init, constants, settings, init_params = loadPresetFile(filename)
+    grid_float, grid_int, bac_init, constants, settings_bool, settings_string, init_params = loadPresetFile(filename)
 
     # Initial Molar Mass is 60% of maximum molar Mass
     molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW                           # [mol]
@@ -215,12 +215,12 @@ function create_mat(filename, simulation_number)
 
     bac = General()
 
-    if settings.model_type in ("granule", "mature granule")
+    if settings_string.model_type in ("granule", "mature granule")
 
         # Create a single colony of bacteria around the centre
         bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid_int.nx / 2 * grid_float.dx, grid_int.ny / 2 * grid_float.dy, bac_init.granule_radius)
 
-    elseif settings.model_type in ("suspension",)
+    elseif settings_string.model_type in ("suspension",)
 
         margin = 0.2 * grid_float.dx * grid_int.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
         xrange = [margin, grid_float.dx * grid_int.nx - margin]
@@ -239,7 +239,7 @@ function create_mat(filename, simulation_number)
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
     bac = shoving_loop(bac, grid_float, grid_int, constants, 5)
 
-    if settings.model_type in ("granule", "mature granule")
+    if settings_string.model_type in ("granule", "mature granule")
         # Remove bacteria that are outside the maximum granule radius due to shoving
         keep = sqrt.((bac.x .- (grid_float.dx * grid_int.nx / 2)) .^2 + (bac.y .- (grid_float.dy * grid_int.ny / 2)) .^2 ) .<= bac_init.granule_radius
         println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
@@ -250,7 +250,7 @@ function create_mat(filename, simulation_number)
         bac.active = bac.active[keep]
     end
 
-    if settings.model_type == "mature granule"
+    if settings_string.model_type == "mature granule"
         bac.species = AMXinside(bac, grid_float, grid_int, constants) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
     else
         bac.species = rand((1:length(constants.speciesNames)), size(bac.x)) # Random species
@@ -270,7 +270,7 @@ function create_mat(filename, simulation_number)
     else 
         # Normal use case
         results_file = @sprintf("sim_%04d.jld2", simulation_number)
-        save(results_file, "grid_float", grid_float, "grid_int", grid_int, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
+        save(results_file, "grid_float", grid_float, "grid_int", grid_int, "bac", bac, "constants", constants, "settings_bool", settings_bool, "settings_string", settings_string, "init_params", init_params)
         println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
 
     end

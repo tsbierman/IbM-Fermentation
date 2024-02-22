@@ -1,4 +1,4 @@
-function initTime!(grid_float, grid_int, bac, init_params, constants, settings)
+function initTime!(grid_float, grid_int, bac, init_params, constants, settings_bool, settings_string)
     """
     This function initialises values from preset parameters for later initialisation of Time struct
 
@@ -19,7 +19,7 @@ function initTime!(grid_float, grid_int, bac, init_params, constants, settings)
     """
 
     # Calculate boundary conditions
-    bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT[1], 0, constants.dT_bac, settings)
+    bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT[1], 0, constants.dT_bac, settings_bool, settings_string)
 
     # Make bacterial-grid matrices
     grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
@@ -42,10 +42,10 @@ function initTime!(grid_float, grid_int, bac, init_params, constants, settings)
     # Set bulk layer concentrations
     conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
 
-    settings.parallelized = false # at init: compute sequentially
+    settings_bool.parallelized = false # at init: compute sequentially
     # Calculate reaction matrix
     reaction_matrix[yRange,xRange, :], bac.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
-    grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange,xRange], 0, 0, settings)
+    grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange,xRange], 0, 0, settings_bool)
 
     return conc, bulk_concs, invHRT, reaction_matrix, pH, bac
 end
