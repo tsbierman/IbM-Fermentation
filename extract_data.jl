@@ -16,7 +16,7 @@ function extract_data(sim_number)
     """
 
     bac_saved, conc_saved, reactor_saved = load("results\\$(sim_number)\\results1D.jld2", "bac_saved", "conc_saved", "reactor_saved")
-    profiling, nDiffIters, bulk_history, Time = load("results\\$(sim_number)\\profilingResults.jld2", "profiling", "nDiffIters", "bulk_history", "Time")
+    profiling, nDiffIters, bulk_history, Time, Time_vecfloat = load("results\\$(sim_number)\\profilingResults.jld2", "profiling", "nDiffIters", "bulk_history", "Time", "Time_vecfloat")
 
     XLSX.openxlsx("results\\$(sim_number)\\julia_data_$(sim_number).xlsx", mode="w") do xf
         sheet = xf[1]
@@ -48,7 +48,7 @@ function extract_data(sim_number)
         sheet6["A1"] = bulk_history
 
         sheet7 = XLSX.addsheet!(xf, "Time")
-        sheet7["A1"] = Time.history
+        sheet7["A1"] = Time_vecfloat.history
 
         sheet8 = XLSX.addsheet!(xf, "nBacs")
         sheet8["A1"] = bac_saved.nBacs

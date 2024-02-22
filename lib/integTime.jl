@@ -41,7 +41,8 @@ function integTime(simulation_file, directory)
         
 
         # Initiate time and profiling information/storage from preset
-        Time = General()
+        Time = Float_struct()
+        Time_vecfloat = VectorFloat_struct()
         Time.current = 0                    # Current time
         Time.steadystate = Time.current + (constants.nDiffusion_per_SScheck - 1) * constants.dT # When to check for steadystate
         Time.save = constants.dT_save       # When to save
@@ -61,7 +62,7 @@ function integTime(simulation_file, directory)
 
             maximum_space_needed = ceil(Int, constants.simulation_end/Time.minDT_bac) + 1
 
-            Time.history = zeros(Float32, maximum_space_needed)                         # Vector to save the time at each Steady-State
+            Time_vecfloat.history = zeros(Float32, maximum_space_needed)                         # Vector to save the time at each Steady-State
             profiling = zeros(Float32, maximum_space_needed, 11)                        # Matrix to save time spent on certain calculations
             maxErrors = zeros(Float32, maximum_space_needed)                            # Vector to store max Error per dT_bac
             normOverTime = zeros(Float32, maximum_space_needed)                         # Vector to store norm of concentration differance per dT_bac
@@ -71,7 +72,7 @@ function integTime(simulation_file, directory)
         else
             max_space_needed = ceil(constants.simulation_end / constants.dT_bac) + 1
 
-            Time.history = zeros(Float32, max_space_needed)                             # Vector to save the time at each Steady-State
+            Time_vecfloat.history = zeros(Float32, max_space_needed)                             # Vector to save the time at each Steady-State
             profiling = zeros(Float32, max_space_needed, 11)                            # Matrix to save time spent on certain calculations
             maxErrors = zeros(Float32, max_space_needed)                                # Vector to store max Error per dT_bac
             normOverTime = zeros(Float32, max_space_needed)                             # Vector to store norm of concentration differance per dT_bac
@@ -357,7 +358,7 @@ function integTime(simulation_file, directory)
 
                     iProf = iProf + 1
                     bulk_history[:, iProf] = bulk_concs
-                    Time.history[iProf] = Time.current
+                    Time_vecfloat.history[iProf] = Time.current
 
                     # Set next bacterial time
                     Time.bac = Time.bac + Time.dT_bac
@@ -378,7 +379,7 @@ function integTime(simulation_file, directory)
 
                         # Save all important variables for continuing simulation from this profilingResults
                         save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
-                        save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)
+                        save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)
                     end
 
                     if settings_string.detachment == "SBR"
@@ -400,5 +401,5 @@ function integTime(simulation_file, directory)
     save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)         # Slice of simulation
     # save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)       # Entire plane of simulation
     save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
-    save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, directory)   # Save performance
+    save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)   # Save performance
 end
