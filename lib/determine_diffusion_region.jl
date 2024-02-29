@@ -1,4 +1,4 @@
-function getDiffusionNodes(bac, grid_float, grid_int)
+function getDiffusionNodes(bac_vecfloat, grid_float, grid_int)
     """
     This function determines in both X and Y direction which nodes are potentially in the diffusion region
 
@@ -12,10 +12,10 @@ function getDiffusionNodes(bac, grid_float, grid_int)
     """
 
     # Extract variables
-    x_min = minimum(bac.x)
-    x_max = maximum(bac.x)
-    y_min = minimum(bac.y)
-    y_max = maximum(bac.y)
+    x_min = minimum(bac_vecfloat.x)
+    x_max = maximum(bac_vecfloat.x)
+    y_min = minimum(bac_vecfloat.y)
+    y_max = maximum(bac_vecfloat.y)
 
     # Define an offset, so we guarantee that it will contain the correct indices
     offsetX = grid_float.blayer_thickness + grid_float.dx
@@ -109,7 +109,7 @@ function determine_focus_region(diffRegion)
 end
 
 
-function determine_diffusion_region(grid2bac, grid2nBacs, bac, grid_float, grid_int)
+function determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
     """
     This function determines which gridcells are in the diffusion layer. The diffusion layer is defined
     as the gridcells that are within boundary layer distance from a bacterium.
@@ -130,7 +130,7 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac, grid_float, grid_
     diffusion_region = BitArray(zeros(grid_int.ny, grid_int.nx))
 
     # Get diffusion region
-    diffNodesX, diffNodesY = getDiffusionNodes(bac, grid_float, grid_int)
+    diffNodesX, diffNodesY = getDiffusionNodes(bac_vecfloat, grid_float, grid_int)
 
     # In the diffusion region, apply convolution to find the boundary of gridcells with bacteria
     kernel = ones(3,3) ./ -8
@@ -160,7 +160,7 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac, grid_float, grid_
                     gridcell_centre = [grid_float.dx * (dx + di + index[2]) - grid_float.dx/2, grid_float.dy * (dy + dj + index[1]) - grid_float.dy/2]  # Calculate centre of desired grid
 
                     for iBac in bacs                                # For every of the bacteria
-                        if isWithinBoundaryLayer(bac.x[iBac], bac.y[iBac], gridcell_centre, grid_float.blayer_thickness)              # Check whether the grid cell is within reach
+                        if isWithinBoundaryLayer(bac_vecfloat.x[iBac], bac_vecfloat.y[iBac], gridcell_centre, grid_float.blayer_thickness)              # Check whether the grid cell is within reach
                             isDiffRegion[Int(index[1] + dj), Int(index[2] + di)] = 1
                             break
                         end

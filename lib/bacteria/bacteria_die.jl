@@ -1,4 +1,4 @@
-function bacteria_die!(bac, constants)
+function bacteria_die!(bac_vecfloat, bac_vecint, bac_vecbool, constants)
     """
     This function tests which bacteria are too small and sents them to the function killBacs!()
 
@@ -11,13 +11,13 @@ function bacteria_die!(bac, constants)
     """
 
     # Test whether the mass of bacteria is below minimum mass
-    mask_tooSmall = bac.molarMass * constants.bac_MW .< constants.min_bac_mass_grams
+    mask_tooSmall = bac_vecfloat.molarMass * constants.bac_MW .< constants.min_bac_mass_grams
     nCellsTooSmall = sum(mask_tooSmall)
 
     # If any are too small --> go die
     if nCellsTooSmall != 0
-        bac = killBacs!(bac, mask_tooSmall)
+        bac_vecfloat, bac_vecint, bac_vecbool = killBacs!(bac_vecfloat, bac_vecint, bac_vecbool, mask_tooSmall)
     end
 
-    return bac
+    return bac_vecfloat, bac_vecint, bac_vecbool
 end

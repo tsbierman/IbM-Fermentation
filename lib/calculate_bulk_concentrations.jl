@@ -1,4 +1,4 @@
-function calculate_slice_sphere_conversion(bac, constants, settings_string)
+function calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants, settings_string)
     """
     This function calculates the conversion factor to convert from the volume of
     the slice to the volume of the sphere
@@ -13,8 +13,8 @@ function calculate_slice_sphere_conversion(bac, constants, settings_string)
     """
 
     if settings_string.model_type in ("granule", "mature granule")
-        x = bac.x[bac.active]
-        y = bac.y[bac.active]
+        x = bac_vecfloat.x[bac_vecbool.active]
+        y = bac_vecfloat.y[bac_vecbool.active]
         centre_x = mean(x)
         centre_y = mean(y)
         radius_granule = maximum(sqrt.((x .- centre_x) .^2 + (y .- centre_y) .^2))
@@ -118,7 +118,7 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
 end
 
 
-function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reactionMatrix, dT, settings_bool, settings_string)
+function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants, prev_conc, invHRT, reactionMatrix, dT, settings_bool, settings_string)
     """
     This function calculates the bulk layer concentrations. It assumes that the simulated
     bio-aggregate is representative of the entire reactor.
@@ -266,7 +266,7 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         bulk_concentrations = prev_conc
     else
 
-        f = calculate_slice_sphere_conversion(bac, constants, settings_string)
+        f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants, settings_string)
 
         # The combination of dropdims and sum with those dimensions results in a vector that contains total change
         # over the whole matrix per compound. This is then adjusted to a single grid cell

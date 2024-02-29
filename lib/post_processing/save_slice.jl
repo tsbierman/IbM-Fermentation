@@ -41,7 +41,7 @@ function init_save_slice(constants, grid_int)
 end
 
 
-function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants, directory)
+function save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants, directory)
     """
     This function saves important variables along the central axis of the bio-aggregate
     It does so in other structs that are generated or loaded
@@ -67,14 +67,14 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid_float
     iSave = ceil(Int, (Time+0.01) / constants.dT_save)
 
     # Bacterial variables
-    nBacs = length(bac.x)
+    nBacs = length(bac_vecfloat.x)
     bac_saved.nBacs[iSave] = nBacs
-    bac_saved.x[iSave, 1:nBacs] = bac.x
-    bac_saved.y[iSave, 1:nBacs] = bac.y
-    bac_saved.radius[iSave, 1:nBacs] = bac.radius
-    bac_saved.species[iSave, 1:nBacs] = bac.species
-    bac_saved.active[iSave, 1:nBacs] = bac.active
-    bac_saved.mu[iSave, 1:nBacs] = bac.mu
+    bac_saved.x[iSave, 1:nBacs] = bac_vecfloat.x
+    bac_saved.y[iSave, 1:nBacs] = bac_vecfloat.y
+    bac_saved.radius[iSave, 1:nBacs] = bac_vecfloat.radius
+    bac_saved.species[iSave, 1:nBacs] = bac_vecint.species
+    bac_saved.active[iSave, 1:nBacs] = bac_vecbool.active
+    bac_saved.mu[iSave, 1:nBacs] = bac_vecfloat.mu
 
     # concentration variable
     conc_saved[iSave, :, :] = conc[ceil(Int, grid_int.ny/2), :, :]   # Save a horizontal slice through the centre of the granule (Only makes sense in granule mode)
@@ -85,7 +85,7 @@ function save_slice(bac, conc, bulk_concentrations, pH, invHRT, Time, grid_float
     # reactor_properties
     reactor_saved.bulk_concs[iSave, :] = bulk_concentrations
     reactor_saved.HRT[iSave] = 1 / invHRT
-    reactor_saved.granule_density[iSave] = sum(bac.molarMass .* constants.bac_MW) / ((maximum(bac.y) - minimum(bac.y)) * (maximum(bac.x) - minimum(bac.x)) * grid_float.dz) # [g/m3]
+    reactor_saved.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants.bac_MW) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * grid_float.dz) # [g/m3]
 
     # Save structs to file
     save(results_file, "bac_saved", bac_saved, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved", reactor_saved)

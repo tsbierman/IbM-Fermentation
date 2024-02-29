@@ -51,7 +51,7 @@ function string_to_coordinates(string_coords)
 end
 
 
-function calcTimeOfDetach(bac, grid_float, grid_int, grid2bac, grid2nBacs, constants)
+function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants)
     """
     This function calculates the time of detachment for each gridcell in the simulation domain
 
@@ -72,8 +72,8 @@ function calcTimeOfDetach(bac, grid_float, grid_int, grid2bac, grid2nBacs, const
     kDet = constants.kDet
 
     # Calculate centre of granule
-    x_centre = mean(bac.x)
-    y_centre = mean(bac.y)
+    x_centre = mean(bac_vecfloat.x)
+    y_centre = mean(bac_vecfloat.y)
 
     # Where are bacteria located in the grid? The grid2nBacs is slightly extended and morphed into a logical matrix
     detachment_grid_float = deepcopy(grid_float)                                                    # To keep the original grid values from changing
@@ -82,7 +82,7 @@ function calcTimeOfDetach(bac, grid_float, grid_int, grid2bac, grid2nBacs, const
 
     # Returns logical matrix with per cell whether it is in a certain region. As we set the the boundary layer very small,
     # this will only be the aggregate of the granule
-    aggregate, _ = determine_diffusion_region(grid2bac, grid2nBacs, bac, detachment_grid_float, detachment_grid_int)
+    aggregate, _ = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, detachment_grid_float, detachment_grid_int)
     biofilm = aggregate .> 0
 
     # ---------------------------------- START DEBUG ------------------------------------

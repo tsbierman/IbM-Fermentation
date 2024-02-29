@@ -11,7 +11,7 @@ function integTime(simulation_file, directory)
     """
 
     # Load preset file
-    grid_float, grid_int, bac, constants, init_params, settings_bool, settings_string = load(simulation_file, "grid_float","grid_int", "bac", "constants", "init_params", "settings_bool", "settings_string")
+    grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants, init_params, settings_bool, settings_string = load(simulation_file, "grid_float","grid_int", "bac_vecfloat", "bac_vecint", "bac_vecbool", "constants", "init_params", "settings_bool", "settings_string")
     debug = General()
     debug.plotConvergence = false
     debug.plotDiffRegion = false
@@ -33,11 +33,11 @@ function integTime(simulation_file, directory)
 
     if isfile(backup_file) && isfile(profiling_file)
         # load from files
-        bac, bulk_concs, invHRT, conc, reaction_matrix, pH = load(backup_file, "bac", "bulk_concs", "invHRT", "conc", "reaction_matrix", "pH")
+        bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH = load(backup_file, "bac_vecfloat", "bac_vecint", "bac_vecbool", "bulk_concs", "invHRT", "conc", "reaction_matrix", "pH")
         profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time = load(profiling_file, "profiling", "maxErrors", "normOverTime", "nDiffIters", "bulk_history", "Time")
     else
         # Initiate from preset values
-        conc, bulk_concs, invHRT, reaction_matrix, pH, bac = initTime!(grid_float, grid_int, bac, init_params, constants, settings_bool, settings_string)
+        conc, bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool = initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, init_params, constants, settings_bool, settings_string)
         
 
         # Initiate time and profiling information/storage from preset
@@ -84,7 +84,7 @@ function integTime(simulation_file, directory)
         bulk_history[:,1] = bulk_concs # Is added after changing iProf, so first value should be placed already
 
         # Initialise saving file
-        save_slice(bac, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants, directory)
+        save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants, directory)
     end
 
     # Initialise storing space
@@ -97,10 +97,10 @@ function integTime(simulation_file, directory)
     iRES = 0                                    # Times steady state has been calculated this dT_bac
 
     # Make bacterial grid-matrix
-    grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
+    grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
 
     # Determine diffusion layer and calculate ranges for focus mask
-    diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac, grid_float, grid_int)
+    diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
     xRange = focus_region.x0:focus_region.x1
     yRange = focus_region.y0:focus_region.y1
 
@@ -111,10 +111,10 @@ function integTime(simulation_file, directory)
         chunks_matrix, chunks_int = create_chunks(nChunks_dir, focus_region)
 
         # sort bacteria
-        bac = sort_bacteria_into_chunks!(bac, grid_float, chunks_int, focus_region, nChunks_dir)
+        bac_vecfloat, bac_vecint, bac_vecbool = sort_bacteria_into_chunks!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float, chunks_int, focus_region, nChunks_dir)
 
         # Recalculate the grid2bac matrix
-        grid2bac, _ = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
+        grid2bac, _ = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
     else
         # set dummy values for chunk variables
         chunks = 0
@@ -149,13 +149,13 @@ function integTime(simulation_file, directory)
 
         # Update bacterial mass
         tick()
-        bac = update_bacterial_mass!(bac, Time.dT)
+        bac_vecfloat = update_bacterial_mass!(bac_vecfloat, bac_vecbool, Time.dT)
         profiling[iProf, 2] = profiling[iProf, 2] + tok()
 
         # Calculate reaction_matrix
         tick()
-        reaction_matrix[yRange, xRange, :], bac.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
-        grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings_bool)
+        reaction_matrix[yRange, xRange, :], bac_vecfloat.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
+        grid2nBacs[yRange, xRange], bac_vecfloat, bac_vecint, bac_vecbool, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings_bool)
         profiling[iProf, 3] = profiling[iProf, 3] + tok()
 
         # If T > T_ss: calcualte residual
@@ -235,25 +235,25 @@ function integTime(simulation_file, directory)
 
                     # Update bacteria: mass
                     tick()
-                    bac = update_bacterial_mass!(bac, dT_actual)
+                    bac_vecfloat = update_bacterial_mass!(bac_vecfloat, bac_vecbool, dT_actual)
                     profiling[iProf, 2] = profiling[iProf, 2] + tok()
 
                     # Time advancements (dT_divide)
                     # Determine radius bacteria from mass
                     tick()
-                    bac = update_bacterial_radius!(bac, constants)
+                    bac_vecfloat = update_bacterial_radius!(bac_vecfloat, constants)
                     profiling[iProf, 2] = profiling[iProf, 2] + tok()
 
                     # Bacteria: inactivate or die
                     tick()
                     if constants.inactivationEnabled
-                        bac = bacteria_inactivate!(bac, constants)
+                        bac_vecbool = bacteria_inactivate!(bac_vecfloat, bac_vecbool, constants)
                     else
-                        bac = bacteria_die!(bac, constants)
+                        bac_vecfloat, bac_vecint, bac_vecbool = bacteria_die!(bac_vecfloat, bac_vecint, bac_vecbool, constants)
                     end
 
                     # Bacteria: Divide
-                    bac, nDivCycles = bacteria_divide!(bac, constants)
+                    bac_vecfloat, bac_vecint, bac_vecbool, nDivCycles = bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants)
                     if nDivCycles > 1
                         Time = decrease_dT_bac!(Time, "Bacteria are dividing too fast")
                     end
@@ -261,21 +261,21 @@ function integTime(simulation_file, directory)
 
                     # Shove bacteria
                     tick()
-                    bac = bacteria_shove!(bac, grid_float, grid_int, constants)
-                    bac = bacteria_shove!(bac, grid_float, grid_int, constants) # Second shove in case of overcrowding
+                    bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants)
+                    bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants) # Second shove in case of overcrowding
                     profiling[iProf, 6] = profiling[iProf, 6] + tok()
                     
                     # Bacteria: detachment (for now only rough detachment is implemented)
                     tick()
-                    bac = bacteria_detachment!(bac, grid_float, grid_int, constants, settings_string, Time.dT_bac, invHRT)
+                    bac_vecfloat, bac_vecint, bac_vecbool = bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float, grid_int, constants, settings_string, Time.dT_bac, invHRT)
                     profiling[iProf, 7] = profiling[iProf, 7] + tok()
 
                     # Display number of bacteria in system
-                    println("Current number of bacteria $(length(bac.x)) ($(sum(bac.active)) active)")
+                    println("Current number of bacteria $(length(bac_vecfloat.x)) ($(sum(bac_vecbool.active)) active)")
 
                     # Auto detect when to switch to parallel compution of the rMatrix
                     # TODO: determine exact cutoff value (will be around 15000 approx)
-                    if settings_bool.parallelized == false && length(bac.x) > 15000
+                    if settings_bool.parallelized == false && length(bac_vecfloat.x) > 15000
                         cores = Sys.CPU_THREADS
                         nChunks_dir = ceil(sqrt(cores))
                         # DO PARALLELISATION initiation
@@ -284,12 +284,12 @@ function integTime(simulation_file, directory)
 
                     # Update/re-determine where bacs are (as we have had division and shoving)
                     tick()
-                    grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
+                    grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
                     profiling[iProf, 8] = profiling[iProf, 8] + tok()
 
                     # Update diffusion region (also changed)
                     tick()
-                    diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac, grid_float, grid_int)
+                    diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
                     xRange = focus_region.x0:focus_region.x1
                     yRange = focus_region.y0:focus_region.y1
                     profiling[iProf, 9] = profiling[iProf, 9] + tok()
@@ -300,11 +300,11 @@ function integTime(simulation_file, directory)
                         chunks_matrix, chunks_int = create_chunks(nChunks_dir, focus_region)
 
                         # sort bacteria
-                        bac = sort_bacteria_into_chunks!(bac, grid_float, chunks_int, focus_region, nChunks_dir)
+                        bac_vecfloat, bac_vecint, bac_vecbool = sort_bacteria_into_chunks!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float, chunks_int, focus_region, nChunks_dir)
                         profiling[iProf, 11] = profiling[iProf, 11] + tok()
 
                         # recalculate the grid2bac matrix
-                        grid2bac, _ = determine_where_bacteria_in_grid(grid_float, grid_int, bac)
+                        grid2bac, _ = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
                     end
 
                     # Apply dynamic dT_bac
@@ -318,15 +318,15 @@ function integTime(simulation_file, directory)
 
                     # Recompute reaction matrix for the next cycle
                     tick()
-                    reaction_matrix[yRange, xRange, :], bac.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
-                    grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings_bool)
+                    reaction_matrix[yRange, xRange, :], bac_vecfloat.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
+                    grid2nBacs[yRange, xRange], bac_vecfloat, bac_vecint, bac_vecbool, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange, xRange], chunks, nChunks_dir, settings_bool)
                     profiling[iProf, 3] = profiling[iProf, 3] + tok()
 
                     # Calculate and set bulk concentrations
                     tick()
                     new_bulk_concs = prev_conc
                     while true
-                        new_bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings_bool, settings_string)
+                        new_bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings_bool, settings_string)
                         if !settings_bool.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants)
                             break
                         end
@@ -348,7 +348,7 @@ function integTime(simulation_file, directory)
                     # Place for balance check/analyse metabolites
                     if Time.current >= Time.analyse
 
-                        biomass_close, balance_close, dirichlet_close = check_balances(bac, constants, settings_string, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
+                        biomass_close, balance_close, dirichlet_close = check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants, settings_string, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
                         println("Biomass closes: $(biomass_close)")
                         println("Balances closing: $(balance_close)")
                         println("Dirichlet closing: $(dirichlet_close)")
@@ -370,7 +370,7 @@ function integTime(simulation_file, directory)
                     Time.save = Time.save + constants.dT_save
 
                     # Save all important variables
-                    save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)
+                    save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)
                     # save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory) # Entire plane of simulation
 
                     if Time.current >= Time.backup
@@ -378,12 +378,12 @@ function integTime(simulation_file, directory)
                         Time.backup = Time.backup + constants.dT_backup
 
                         # Save all important variables for continuing simulation from this profilingResults
-                        save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
+                        save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
                         save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)
                     end
 
                     if settings_string.detachment == "SBR"
-                        bac.molarMass[bac.active] = maximum([bac.molarMass[bac.active] .- 0.1*constants.min_bac_mass_grams/constants.bac_MW, eps])
+                        bac_vecfloat.molarMass[bac_vecbool.active] = maximum([bac_vecfloat.molarMass[bac_vecbool.active] .- 0.1*constants.min_bac_mass_grams/constants.bac_MW, eps])
                     end
                 end
             end
@@ -398,8 +398,8 @@ function integTime(simulation_file, directory)
     end
 
     # Save all important variables one last time?
-    save_slice(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)         # Slice of simulation
-    # save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)       # Entire plane of simulation
-    save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
+    save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)         # Slice of simulation
+    # save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants, directory)       # Entire plane of simulation
+    save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
     save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)   # Save performance
 end

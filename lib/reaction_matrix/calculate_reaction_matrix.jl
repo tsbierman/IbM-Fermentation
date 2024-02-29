@@ -1,4 +1,4 @@
-function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings_bool)
+function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_vecint, bac_vecbool, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings_bool)
     """
     This function calculates how much of each compound is consumed per gridcell due to bacterial activity. 
     It also updates the growth rate of the respective bacteria.
@@ -45,7 +45,7 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
 
     # Set up storage
     reaction_matrix = zeros(size(conc))
-    mu = zeros(size(bac.x))
+    mu = zeros(size(bac_vecfloat.x))
 
     # Pre-compute for bulk-liquid
     # At coordinates 1,1, there should never be diffusion layer
@@ -60,9 +60,9 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
     end
 
     # Group constants for easy passing to several cores
-    constantValues = [pH_bulk, pHincluded, constants.pHtolerance, constants.T, settings_bool.speciation]
-    grouped_bac = [bac.species bac.molarMass bac.active]
-    grouped_kinetics = [constants.mu_max constants.maintenance]
+    constantValues = (pH_bulk, pHincluded, constants.pHtolerance, constants.T, settings_bool.speciation)
+    grouped_bac = (bac_vecint.species, bac_vecfloat.molarMass, bac_vecbool.active)
+    grouped_kinetics = (constants.mu_max, constants.maintenance)
 
     if settings_bool.parallelized
 
@@ -76,7 +76,7 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffRegion, conc,
         bacOffset = 0 # Reset at 0, not used in sequential calculation
         # Calculate as a whole
         reaction_matrix, mu, pH = rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion, 
-        grouped_bac, length(bac.x), bacOffset,
+        grouped_bac, length(bac_vecfloat.x), bacOffset,
         reactive_indices, Ks, Ki, Keq, chrM, mMetabolism, mDecay, constantValues, grouped_kinetics)
         # ================================ SEQUENTIAL CALCULATION END ==========================================
         
