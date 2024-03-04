@@ -1,4 +1,4 @@
-function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float, grid_int, constants, settings_string, timestep, invHRT)
+function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float, grid_int, constants_float, settings_string, timestep, invHRT)
     """
     This function implements detachment. The kind of detachment dictates the calculations.
     None, SBR:          No bacteria are removed
@@ -24,7 +24,7 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
     elseif settings_string.detachment == "naive"
         # Detachment based on distance from centre
         bac_distance_from_centre = sqrt.((bac_vecfloat.x .- grid_float.dx * grid_int.nx / 2) .^2 + (bac_vecfloat.y .- grid_float.dy * grid_int.ny / 2) .^2)
-        bac_detach = bac_distance_from_centre .> constants.max_granule_radius
+        bac_detach = bac_distance_from_centre .> constants_float.max_granule_radius
         nCellsDetach = sum(bac_detach)
 
         if nCellsDetach > 0
@@ -38,7 +38,7 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
         # grid2nBacs is a (nx * ny) matrix containing the number of bacteria in each grid cell
         # An update of these matrices is required as a division has occurred 
         grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
-        T = calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants)
+        T = calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants_float)
 
         # Determine ratio of timestep of detachment time
         ratio = timestep ./ T
@@ -84,7 +84,7 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
         # Due to erosion, some bacteria on the outside are way too small 
         # Only factor 2 smaller than inactive bacteria should be reached
         # cells within the granule will not be removed
-        mask_tooSmall = bac_vecfloat.molarMass * constants.bac_MW .< constants.min_bac_mass_grams / 2
+        mask_tooSmall = bac_vecfloat.molarMass * constants_float.bac_MW .< constants_float.min_bac_mass_grams / 2
         xcentre = mean(bac_vecfloat.x[bac.active])
         ycentre = mean(bac_vecfloat.y[bac.active])
         dist = sqrt.((bac_vecfloat.x .- xcentre) .^2 + (bac_vecfloat.y .- ycentre) .^2)

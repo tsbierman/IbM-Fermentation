@@ -1,4 +1,4 @@
-function init_save_slice(constants, grid_int)
+function init_save_slice(constants_float, constants_vecint, constants_vecstring, grid_int)
     """
     This function initialises the resulting structs that will contain saved information.
     It utilizes datatypes within the required precision with the lowest storage requirements.
@@ -12,20 +12,21 @@ function init_save_slice(constants, grid_int)
                             They are initialised for the number of saves that are going to be made
     """
 
-    nSaves = ceil(Int, constants.simulation_end / constants.dT_save) + 1
+    nSaves = ceil(Int, constants_float.simulation_end / constants_float.dT_save) + 1
+    max_nBac = constants_vecint.max_nBac[1]
 
     # Bacterial variables
     bac_saved = General()
     bac_saved.nBacs = zeros(UInt32, nSaves)                             # Vector, Unsigned Integer, 32 bit
-    bac_saved.x = zeros(Float32, nSaves, constants.max_nBac)            # Matrix, Float 32 bit (single precision)
-    bac_saved.y = zeros(Float32, nSaves, constants.max_nBac)            # Matrix, Float 32 bit (single precision)
-    bac_saved.radius = zeros(Float32, nSaves, constants.max_nBac)       # Matrix, Float 32 bit (single precision)
-    bac_saved.species = zeros(UInt8, nSaves, constants.max_nBac)        # Matrix, Unsigned Integer, 8 bit
-    bac_saved.active = zeros(Bool, nSaves, constants.max_nBac)          # Matrix, Boolean
-    bac_saved.mu = zeros(Float32, nSaves, constants.max_nBac)           # Matrix, Float 32 bit (single precision)
+    bac_saved.x = zeros(Float32, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
+    bac_saved.y = zeros(Float32, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
+    bac_saved.radius = zeros(Float32, nSaves, max_nBac)       # Matrix, Float 32 bit (single precision)
+    bac_saved.species = zeros(UInt8, nSaves, max_nBac)        # Matrix, Unsigned Integer, 8 bit
+    bac_saved.active = zeros(Bool, nSaves, max_nBac)          # Matrix, Boolean
+    bac_saved.mu = zeros(Float32, nSaves, max_nBac)           # Matrix, Float 32 bit (single precision)
 
     # Concentration variable
-    nCompounds = length(constants.compoundNames)
+    nCompounds = length(constants_vecstring.compoundNames)
     conc_saved = zeros(Float32, nSaves, grid_int.nx, nCompounds)            # Matrix, Float 32 bit (single precision)
 
     # pH variable
@@ -41,7 +42,7 @@ function init_save_slice(constants, grid_int)
 end
 
 
-function save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants, directory)
+function save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
     """
     This function saves important variables along the central axis of the bio-aggregate
     It does so in other structs that are generated or loaded
@@ -58,13 +59,13 @@ function save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentrat
     # Initialise of load previous values
     results_file = string(directory, "\\results1D.jld2")
     if Time == 0
-        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_slice(constants, grid_int)
+        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_slice(constants_float, constants_vecint, constants_vecstring, grid_int)
     else
         bac_saved, conc_saved, pH_saved, reactor_saved = load(results_file, "bac_saved", "conc_saved", "pH_saved", "reactor_saved")
     end
     
     # Set values
-    iSave = ceil(Int, (Time+0.01) / constants.dT_save)
+    iSave = ceil(Int, (Time+0.01) / constants_float.dT_save)
 
     # Bacterial variables
     nBacs = length(bac_vecfloat.x)
@@ -85,7 +86,7 @@ function save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentrat
     # reactor_properties
     reactor_saved.bulk_concs[iSave, :] = bulk_concentrations
     reactor_saved.HRT[iSave] = 1 / invHRT
-    reactor_saved.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants.bac_MW) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * grid_float.dz) # [g/m3]
+    reactor_saved.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants_float.bac_MW) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * grid_float.dz) # [g/m3]
 
     # Save structs to file
     save(results_file, "bac_saved", bac_saved, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved", reactor_saved)

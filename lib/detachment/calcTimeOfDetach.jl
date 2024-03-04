@@ -51,7 +51,7 @@ function string_to_coordinates(string_coords)
 end
 
 
-function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants)
+function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants_float)
     """
     This function calculates the time of detachment for each gridcell in the simulation domain
 
@@ -69,7 +69,7 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     """
 
     # Extract variables
-    kDet = constants.kDet
+    kDet = constants_float.kDet
 
     # Calculate centre of granule
     x_centre = mean(bac_vecfloat.x)
@@ -78,7 +78,7 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     # Where are bacteria located in the grid? The grid2nBacs is slightly extended and morphed into a logical matrix
     detachment_grid_float = deepcopy(grid_float)                                                    # To keep the original grid values from changing
     detachment_grid_int = deepcopy(grid_int)
-    detachment_grid_float.blayer_thickness = constants.kDist * constants.bac_max_radius * 2   # Distance factor * diameter
+    detachment_grid_float.blayer_thickness = constants_float.kDist * constants_float.bac_max_radius * 2   # Distance factor * diameter
 
     # Returns logical matrix with per cell whether it is in a certain region. As we set the the boundary layer very small,
     # this will only be the aggregate of the granule

@@ -1,4 +1,4 @@
-function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants)
+function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float)
     """
     This function divides bacteria that are above the mass threshold. It splits the
     mass randomly between 45% and 55% and updates the radius.
@@ -16,11 +16,11 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants)
 
     cycle = 0
 
-    while sum(bac_vecfloat.molarMass * constants.bac_MW .> constants.max_bac_mass_grams) > 0
+    while sum(bac_vecfloat.molarMass * constants_float.bac_MW .> constants_float.max_bac_mass_grams) > 0
         cycle = cycle + 1
 
         # Select indices of too large bacteria
-        mask_tooBig = bac_vecfloat.molarMass * constants.bac_MW .> constants.max_bac_mass_grams
+        mask_tooBig = bac_vecfloat.molarMass * constants_float.bac_MW .> constants_float.max_bac_mass_grams
         nCellsTooBig = sum(mask_tooBig)
 
         # Generate radial coordinates (random angle and fixed distance) and convert to cartesian coordiantes
@@ -38,8 +38,8 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants)
         bac_vecfloat.molarMass[mask_tooBig] = bac_vecfloat.molarMass[mask_tooBig] - new_molarMass                 # Parent cell keeps remaining part
 
         # Update radius of both
-        new_radius = ((new_molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) .^ (1/3)
-        bac_vecfloat.radius[mask_tooBig] = ((bac_vecfloat.molarMass[mask_tooBig] * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) .^ (1/3)
+        new_radius = ((new_molarMass * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi))) .^ (1/3)
+        bac_vecfloat.radius[mask_tooBig] = ((bac_vecfloat.molarMass[mask_tooBig] * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi))) .^ (1/3)
 
         # Update values
         bac_vecfloat.x = [bac_vecfloat.x; new_x]                                      # [-]

@@ -1,4 +1,4 @@
-function slow_convergence(iRES, RESvalues, constants)
+function slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
     """
     This function detects whether convergence of the diffusion is slow after a certain
     number of diffusion iterations in the steady-state cycle.
@@ -12,10 +12,10 @@ function slow_convergence(iRES, RESvalues, constants)
     slow:               A Boolean indicating whether the convergence is low
     """
 
-    at_cycle_time = mod(iRES, ceil(constants.dynamicDT.nItersCycle/constants.nDiffusion_per_SScheck)) == 0                                                  # only at nCycle iterations
+    at_cycle_time = mod(iRES, ceil(constants_vecint.nItersCycle[1]/constants_vecint.nDiffusion_per_SScheck[1])) == 0                                                  # only at nCycle iterations
     if at_cycle_time
 
-        no_conv = non_convergent(iRES, RESvalues, constants.dynamicDT.tolerance_no_convergence)                                                             # Checks whether no_convergent applies, if so --> no convergence at all
+        no_conv = non_convergent(iRES, RESvalues, constants_float.tolerance_no_convergence)                                                             # Checks whether no_convergent applies, if so --> no convergence at all
         direction_of_conv = maximum(RESvalues[:,iRES-1]) - maximum(RESvalues[:,iRES]) > 0 && maximum(RESvalues[:,iRES-2]) - maximum(RESvalues[:,iRES]) > 0  # Checks for convergence, if both true, RES decreases, so convergence
         little_conv = maximum(RESvalues[:,iRES-1]) - maximum(RESvalues[:,iRES]) < 1e-3 && maximum(RESvalues[:,iRES-2]) - maximum(RESvalues[:,iRES]) < 2e-3  # Checks magnitude of convergence, too much --> not slow convergece
         slow = !no_conv && direction_of_conv && little_conv

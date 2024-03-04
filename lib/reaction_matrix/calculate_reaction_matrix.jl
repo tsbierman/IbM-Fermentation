@@ -1,4 +1,4 @@
-function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_vecint, bac_vecbool, diffRegion, conc, constants, pH, chunks, nChunks_dir, settings_bool)
+function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_vecint, bac_vecbool, diffRegion, conc, constants_float, constants_vecfloat, constants_vecint, constants_matfloat, pH, chunks, nChunks_dir, settings_bool)
     """
     This function calculates how much of each compound is consumed per gridcell due to bacterial activity. 
     It also updates the growth rate of the respective bacteria.
@@ -33,15 +33,15 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_veci
     end
 
     # Extract variables from parameters
-    Keq = constants.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
-    chrM = constants.chrM                               # A (ncompounds, 5) matrix with charge values
-    Vg = constants.Vg                                   # The grid cell volume [L]
-    compoundNames = constants.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H)
-    reactive_indices = constants.reactive_indices       # The indices that indicate where the reactive specie is located in the matrix
-    Ks = constants.Ks                                   # A (nSpecies, ncompounds) matrix with Ks values
-    Ki = constants.Ki                                   # A (nSpecies, ncompounds) matrix with Ki values
-    mMetabolism = constants.MatrixMet                   # A (nCompounds, nSpecies) matrix with metabolism coefficients
-    mDecay = constants.MatrixDecay                      # A (nCompounds, nSpecies) matrix with decay coefficients
+    Keq = constants_matfloat.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
+    chrM = constants_matfloat.chrM                               # A (ncompounds, 5) matrix with charge values
+    Vg = constants_float.Vg                                   # The grid cell volume [L]
+    # compoundNames = constants_vecstring.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H) COuld be needed for parallelization
+    reactive_indices = constants_vecint.reactive_indices       # The indices that indicate where the reactive specie is located in the matrix
+    Ks = constants_matfloat.Ks                                   # A (nSpecies, ncompounds) matrix with Ks values
+    Ki = constants_matfloat.Ki                                   # A (nSpecies, ncompounds) matrix with Ki values
+    mMetabolism = constants_matfloat.MatrixMet                   # A (nCompounds, nSpecies) matrix with metabolism coefficients
+    mDecay = constants_matfloat.MatrixDecay                      # A (nCompounds, nSpecies) matrix with decay coefficients
 
     # Set up storage
     reaction_matrix = zeros(size(conc))
@@ -53,16 +53,16 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_veci
 
     if pHincluded
         # Find equilibrium between species and proton concentration for bulk and calculate pH
-        _, Sh_bulk = solve_pH(Sh_bulk, [reshape(conc[1,1,:], :); 1; 0], Keq, chrM, pHincluded, constants.pHtolerance)
+        _, Sh_bulk = solve_pH(Sh_bulk, [reshape(conc[1,1,:], :); 1; 0], Keq, chrM, pHincluded, constants_float.pHtolerance)
         pH_bulk = -log10(Sh_bulk)
     else
         pH_bulk = pH[1,1]
     end
 
     # Group constants for easy passing to several cores
-    constantValues = (pH_bulk, pHincluded, constants.pHtolerance, constants.T, settings_bool.speciation)
+    constantValues = (pH_bulk, pHincluded, constants_float.pHtolerance, constants_float.T, settings_bool.speciation)
     grouped_bac = (bac_vecint.species, bac_vecfloat.molarMass, bac_vecbool.active)
-    grouped_kinetics = (constants.mu_max, constants.maintenance)
+    grouped_kinetics = (constants_vecfloat.mu_max, constants_vecfloat.maintenance)
 
     if settings_bool.parallelized
 

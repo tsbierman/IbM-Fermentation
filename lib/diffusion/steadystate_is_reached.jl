@@ -37,7 +37,7 @@ function isReached_compound(RES, method, steadystate_tolerance)
 end
 
 
-function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, diffRegion, constants)
+function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, diffRegion, constants_float, constants_vecfloat, constants_vecstring)
     """
     Checks whether a steady state is reached during the diffusion
 
@@ -54,12 +54,12 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
     max_RES_value:          A (ncompounds) vector that contains the maximum residual value per compound
     """
 
-    steadystate_tolerance = constants.steadystate_tolerance     # [mol/L/h]
-    method = constants.RESmethod                                # mean, max or norm
+    steadystate_tolerance = constants_float.steadystate_tolerance     # [mol/L/h]
+    method = constants_vecstring.RESmethod[1]                                # mean, max or norm
 
     L = [0 1 0; 1 -4 1; 0 1 0]                                  # 2D Laplacian stencil base
-    nCompounds = length(constants.compoundNames)
-    characteristic_time = dx^2 ./ constants.diffusion_rates     # [h]
+    nCompounds = length(constants_vecstring.compoundNames)
+    characteristic_time = dx^2 ./ constants_vecfloat.diffusion_rates     # [h]
     compound_steadystate = BitArray(zeros(nCompounds))          # Binary storage system
 
     max_RES_value = zeros(nCompounds)

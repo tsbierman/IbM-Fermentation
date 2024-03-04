@@ -1,4 +1,4 @@
-function bacteria_inactivate!(bac_vecfloat, bac_vecbool, constants)
+function bacteria_inactivate!(bac_vecfloat, bac_vecbool, constants_float)
     """
     This function inactivates any bacteria that are below the minimum mass threshold
     When bacteria are not active but have positive growth, they have a 10 % change to become active again
@@ -10,7 +10,7 @@ function bacteria_inactivate!(bac_vecfloat, bac_vecbool, constants)
     Returns
     bac:                A bac struct with updates activation status
     """
-    mask_tooSmall = bac_vecfloat.molarMass * constants.bac_MW .< constants.min_bac_mass_grams    # marks too small bacteria
+    mask_tooSmall = bac_vecfloat.molarMass * constants_float.bac_MW .< constants_float.min_bac_mass_grams    # marks too small bacteria
     mask_positiveGrowthRate = bac_vecfloat.mu .> 0
     mask_possible_reactivation = .!bac_vecbool.active .& mask_positiveGrowthRate                # These bacteria were inactive but have a positive growth rate
 

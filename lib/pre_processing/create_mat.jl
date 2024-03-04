@@ -125,7 +125,7 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
 end
 
 
-function AMXinside(bac_vecfloat, grid_float, grid_int, constants)
+function AMXinside(bac_vecfloat, grid_float, grid_int, constants_vecstring)
     """
     This function assigns all the bacteria a specie. The closest to the centre are assigned with AMX,
     the others are random. The amount assigned with AMX remains random.
@@ -144,8 +144,8 @@ function AMXinside(bac_vecfloat, grid_float, grid_int, constants)
     I = sortperm(distance)   # Returns indices
 
     # Determine index of AMX specie. Randomly assign species to bacteria and see how many are AMX
-    iAMX = findall(constants.speciesNames .== "B2")[1]
-    nAMX = sum(rand(1:length(constants.speciesNames), size(bac_vecfloat.x)) .== iAMX)
+    iAMX = findall(constants_vecstring.speciesNames .== "B2")[1]
+    nAMX = sum(rand(1:length(constants_vecstring.speciesNames), size(bac_vecfloat.x)) .== iAMX)
 
     # Generate storage for species and select nAMX closest to centre to be AMX
     species = zeros(size(bac_vecfloat.x))
@@ -153,13 +153,13 @@ function AMXinside(bac_vecfloat, grid_float, grid_int, constants)
 
     # Generate random specie index for all the bacteria that do not have a specie (so 0 in species)
     # 1 less so we miss a specie. Then everything equal or higher than iAMX will shift upwards
-    species_other = rand(1:length(constants.speciesNames) .- 1, size(species[species .== 0]))
+    species_other = rand(1:length(constants_vecstring.speciesNames) .- 1, size(species[species .== 0]))
     species_other[species_other .>= iAMX] = species_other[species_other .>= iAMX] .+ 1
     species[I[nAMX+1:end]] = species_other
     return species
 end
 
-function shoving_loop(bac_vecfloat, grid_float, grid_int, constants, n)
+function shoving_loop(bac_vecfloat, grid_float, grid_int, constants_float, n)
     """
     This function calls the bacteria_shove multiple thermodynamic_parameters
     
@@ -173,7 +173,7 @@ function shoving_loop(bac_vecfloat, grid_float, grid_int, constants, n)
     bac:                Bac struct with updates x and y coordinates
     """
     for gg in 1:n
-        bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants)
+        bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants_float)
     end
     return bac_vecfloat
 end
@@ -205,11 +205,11 @@ function create_mat(filename, simulation_number)
 
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
 
-    grid_float, grid_int, bac_init_float, bac_init_int, constants, settings_bool, settings_string, init_params = loadPresetFile(filename)
+    grid_float, grid_int, bac_init_float, bac_init_int, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = loadPresetFile(filename)
 
     # Initial Molar Mass is 60% of maximum molar Mass
-    molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW                           # [mol]
-    radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)     # [m]
+    molarMass = 0.6 * constants_float.max_bac_mass_grams / constants_float.bac_MW                           # [mol]
+    radius = ( (molarMass * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi))) ^ (1/3)     # [m]
 
     println(">>>>>>>>>>>>>>>> INITIALISING BACTERIA")
 
@@ -229,7 +229,7 @@ function create_mat(filename, simulation_number)
         yrange = xrange                                 # assume square domain
 
         # Create several colonies with some bacteria each
-        r_colony = (bac_init_int.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
+        r_colony = (bac_init_int.start_nBacPerColony * radius * constants_float.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
         bac_vecfloat.x, bac_vecfloat.y = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
     end
 
@@ -239,7 +239,7 @@ function create_mat(filename, simulation_number)
     bac_vecbool.active = BitArray(ones(size(bac_vecfloat.x)))                # Binary/Boolean
 
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
-    bac_vecfloat = shoving_loop(bac_vecfloat, grid_float, grid_int, constants, 5)
+    bac_vecfloat = shoving_loop(bac_vecfloat, grid_float, grid_int, constants_float, 5)
 
     if settings_string.model_type in ("granule", "mature granule")
         # Remove bacteria that are outside the maximum granule radius due to shoving
@@ -253,26 +253,30 @@ function create_mat(filename, simulation_number)
     end
 
     if settings_string.model_type == "mature granule"
-        bac_vecint.species = AMXinside(bac_vecfloat, grid_float, grid_int, constants) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
+        bac_vecint.species = AMXinside(bac_vecfloat, grid_float, grid_int, constants_vecstring) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
     else
-        bac_vecint.species = rand((1:length(constants.speciesNames)), size(bac_vecfloat.x)) # Random species
+        bac_vecint.species = rand((1:length(constants_vecstring.speciesNames)), size(bac_vecfloat.x)) # Random species
     end
 
     println("$(length(bac_vecfloat.x)) starting bacteria in the system")
 
-    for specie in eachindex(constants.speciesNames)
-        println("\t $(sum(bac_vecint.species .== specie)) $(constants.speciesNames[specie])")
+    for specie in eachindex(constants_vecstring.speciesNames)
+        println("\t $(sum(bac_vecint.species .== specie)) $(constants_vecstring.speciesNames[specie])")
     end
 
     if simulation_number < 0 
         # For testing purposes
         println(">>>>>>>>>>>>>> DONE LOADING!")
-        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants, settings, init_params
+        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings, init_params
 
     else 
         # Normal use case
         results_file = @sprintf("sim_%04d.jld2", simulation_number)
-        save(results_file, "grid_float", grid_float, "grid_int", grid_int, "bac_vecfloat", bac_vecfloat, "bac_vecint", bac_vecint, "bac_vecbool", bac_vecbool, "constants", constants, "settings_bool", settings_bool, "settings_string", settings_string, "init_params", init_params)
+        
+        save(results_file, "grid_float", grid_float, "grid_int", grid_int, "bac_vecfloat", bac_vecfloat, "bac_vecint", bac_vecint, "bac_vecbool", bac_vecbool, 
+        "constants_float", constants_float, "constants_vecfloat", constants_vecfloat, "constants_vecint", constants_vecint, "constants_vecstring", constants_vecstring, "constants_vecbool", constants_vecbool, "constants_matfloat", constants_matfloat, 
+        "settings_bool", settings_bool, "settings_string", settings_string, "init_params", init_params)
+
         println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
 
     end
