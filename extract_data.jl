@@ -15,7 +15,7 @@ function extract_data(sim_number)
     Time:                           The time at each dT_bac step, dT_bac can be deducted from this
     """
 
-    bac_saved, conc_saved, reactor_saved = load("results\\$(sim_number)\\results1D.jld2", "bac_saved", "conc_saved", "reactor_saved")
+    bac_saved_vecint, bac_saved_matfloat, bac_saved_matint, conc_saved, reactor_saved_matfloat, reactor_saved_vecfloat = load("results\\$(sim_number)\\results1D.jld2", "bac_saved_vecint", "bac_saved_matfloat", "bac_saved_matint", "conc_saved", "reactor_saved_matfloat", "reactor_saved_vecfloat")
     profiling, nDiffIters, bulk_history, Time, Time_vecfloat = load("results\\$(sim_number)\\profilingResults.jld2", "profiling", "nDiffIters", "bulk_history", "Time", "Time_vecfloat")
 
     XLSX.openxlsx("results\\$(sim_number)\\julia_data_$(sim_number).xlsx", mode="w") do xf
@@ -26,17 +26,17 @@ function extract_data(sim_number)
             sheet["A$(location)"] = conc_saved[:,:,i]
         end
 
-        if bac_saved.nBacs[end] == 0
-            num_bacs = bac_saved.nBacs[end-1]
+        if bac_saved_vecint.nBacs[end] == 0
+            num_bacs = bac_saved_vecint.nBacs[end-1]
         else
-            num_bacs = bac_saved.nBacs[end]
+            num_bacs = bac_saved_vecint.nBacs[end]
         end
 
         sheet2 = XLSX.addsheet!(xf, "Bulk_concentrations")
-        sheet2["A1"] = reactor_saved.bulk_concs
+        sheet2["A1"] = reactor_saved_matfloat.bulk_concs
 
         sheet3 = XLSX.addsheet!(xf, "HRT")
-        sheet3["A1"] = reactor_saved.HRT
+        sheet3["A1"] = reactor_saved_vecfloat.HRT
 
         sheet4 = XLSX.addsheet!(xf, "Profiling")
         sheet4["B5"] = profiling
@@ -51,16 +51,16 @@ function extract_data(sim_number)
         sheet7["A1"] = Time_vecfloat.history
 
         sheet8 = XLSX.addsheet!(xf, "nBacs")
-        sheet8["A1"] = bac_saved.nBacs
+        sheet8["A1"] = bac_saved_vecint.nBacs
 
         sheet9 = XLSX.addsheet!(xf, "species")
-        sheet9["A1"] = bac_saved.species[:, 1:num_bacs]
+        sheet9["A1"] = bac_saved_matint.species[:, 1:num_bacs]
 
         sheet10 = XLSX.addsheet!(xf, "x_coordinate")
-        sheet10["A1"] = bac_saved.x[:, 1:num_bacs]
+        sheet10["A1"] = bac_saved_matfloat.x[:, 1:num_bacs]
 
         sheet11 = XLSX.addsheet!(xf, "y_coordinate")
-        sheet11["A1"] = bac_saved.y[:, 1:num_bacs]
+        sheet11["A1"] = bac_saved_matfloat.y[:, 1:num_bacs]
 
     end
     println("DONE!")

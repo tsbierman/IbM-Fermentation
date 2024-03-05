@@ -16,14 +16,18 @@ function init_save_profile(constants_float, constants_vecint, constants_vecstrin
     max_nBac = constants_vecint.max_nBac[1]
 
     # Bacterial variables
-    bac_saved = General()
-    bac_saved.nBacs = zeros(UInt32, nSaves)                             # Vector, Unsigned Integer, 32 bit
-    bac_saved.x = zeros(Float32, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
-    bac_saved.y = zeros(Float32, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
-    bac_saved.radius = zeros(Float32, nSaves, max_nBac)       # Matrix, Float 32 bit (single precision)
-    bac_saved.species = zeros(UInt8, nSaves, max_nBac)        # Matrix, Unsigned Integer, 8 bit
-    bac_saved.active = zeros(Bool, nSaves, max_nBac)          # Matrix, Boolean
-    bac_saved.mu = zeros(Float32, nSaves, max_nBac)           # Matrix, Float 32 bit (single precision)
+    bac_saved_vecint = VectorInt_struct()
+    bac_saved_matfloat = MatrixFloat_struct()
+    bac_saved_matint = MatrixInt_struct()
+    bac_saved_matbool = MatrixBool_struct()
+
+    bac_saved_vecint.nBacs = zeros(Int32, nSaves)                             # Vector, Unsigned Integer, 32 bit
+    bac_saved_matfloat.x = zeros(Float64, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
+    bac_saved_matfloat.y = zeros(Float64, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
+    bac_saved_matfloat.radius = zeros(Float64, nSaves, max_nBac)       # Matrix, Float 32 bit (single precision)
+    bac_saved_matint.species = zeros(Int32, nSaves, max_nBac)        # Matrix, Unsigned Integer, 8 bit
+    bac_saved_matbool.active = zeros(Bool, nSaves, max_nBac)          # Matrix, Boolean
+    bac_saved_matfloat.mu = zeros(Float64, nSaves, max_nBac)           # Matrix, Float 32 bit (single precision)
 
     # Concentration variable
     nCompounds = length(constants_vecstring.compoundNames)
@@ -33,12 +37,13 @@ function init_save_profile(constants_float, constants_vecint, constants_vecstrin
     pH_saved = zeros(Float32, nSaves, grid_int.nx, grid_int.ny)
 
     # reactor properties
-    reactor_saved = General()
-    reactor_saved.bulk_concs = zeros(Float32, nSaves, nCompounds)       # Matrix, Float 32 bit (single precision)
-    reactor_saved.HRT = zeros(Float32, nSaves)                          # Vector, Float 32 bit (single precision)
-    reactor_saved.granule_density = zeros(Float32, nSaves)              # Vector, Float 32 bit (single precision)
+    reactor_saved_matfloat = MatrixFloat_struct()
+    reactor_saved_vecfloat = VectorFloat_struct()
+    reactor_saved_matfloat.bulk_concs = zeros(Float64, nSaves, nCompounds)       # Matrix, Float 32 bit (single precision)
+    reactor_saved_vecfloat.HRT = zeros(Float64, nSaves)                          # Vector, Float 32 bit (single precision)
+    reactor_saved_vecfloat.granule_density = zeros(Float64, nSaves)              # Vector, Float 32 bit (single precision)
 
-    return bac_saved, conc_saved, pH_saved, reactor_saved
+    return bac_saved_vecint, bac_saved_matfloat, bac_saved_matint, bac_saved_matbool, conc_saved, pH_saved, reactor_saved_matfloat, reactor_saved_vecfloat
 end
 
 
@@ -60,9 +65,9 @@ function save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentr
     # Initialise or load previous values
     results_file = string(directory, "\\results2D.jld2")
     if Time == 0
-        bac_saved, conc_saved, pH_saved, reactor_saved = init_save_profile(constants_float, constants_vecint, constants_vecstring, grid_int)
+        bac_saved_vecint, bac_saved_matfloat, bac_saved_matint, bac_saved_matbool, conc_saved, pH_saved, reactor_saved_matfloat, reactor_saved_vecfloat = init_save_profile(constants_float, constants_vecint, constants_vecstring, grid_int)
     else
-        bac_saved, conc_saved, pH_saved, reactor_saved = load(results_file, "bac_saved", "conc_saved", "pH_saved", "reactor_saved")
+        bac_saved_vecint, bac_saved_matfloat, bac_saved_matint, bac_saved_matbool, conc_saved, pH_saved, reactor_saved_matfloat, reactor_saved_vecfloat = load(results_file, "bac_saved_vecint", "bac_saved_matfloat", "bac_saved_matint", "bac_saved_matbool", "conc_saved", "pH_saved", "reactor_saved_matfloat", "reactor_saved_vecfloat")
     end
     
     # Set values
@@ -70,13 +75,13 @@ function save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentr
 
     # Bacterial variables
     nBacs = length(bac_vecfloat.x)
-    bac_saved.nBacs[iSave] = nBacs
-    bac_saved.x[iSave, 1:nBacs] = bac_vecfloat.x
-    bac_saved.y[iSave, 1:nBacs] = bac_vecfloat.y
-    bac_saved.radius[iSave, 1:nBacs] = bac_vecfloat.radius
-    bac_saved.species[iSave, 1:nBacs] = bac_vecint.species
-    bac_saved.active[iSave, 1:nBacs] = bac_vecbool.active
-    bac_saved.mu[iSave, 1:nBacs] = bac_vecfloat.mu
+    bac_saved_vecint.nBacs[iSave] = nBacs
+    bac_saved_matfloat.x[iSave, 1:nBacs] = bac_vecfloat.x
+    bac_saved_matfloat.y[iSave, 1:nBacs] = bac_vecfloat.y
+    bac_saved_matfloat.radius[iSave, 1:nBacs] = bac_vecfloat.radius
+    bac_saved_matint.species[iSave, 1:nBacs] = bac_vecint.species
+    bac_saved_matbool.active[iSave, 1:nBacs] = bac_vecbool.active
+    bac_saved_matfloat.mu[iSave, 1:nBacs] = bac_vecfloat.mu
 
     # concentration variable
     conc_saved[iSave, :, :, :] = conc   # Save all concentrations
@@ -85,11 +90,11 @@ function save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentr
     pH_saved[iSave, :, :] = pH          # Save all pH values
 
     # reactor_properties
-    reactor_saved.bulk_concs[iSave, :] = bulk_concentrations
-    reactor_saved.HRT[iSave] = 1 / invHRT
-    reactor_saved.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants_float.bac_MW) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * grid_float.dz) # [g/m3]
+    reactor_saved_matfloat.bulk_concs[iSave, :] = bulk_concentrations
+    reactor_saved_vecfloat.HRT[iSave] = 1 / invHRT
+    reactor_saved_vecfloat.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants_float.bac_MW) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * grid_float.dz) # [g/m3]
 
     # Save structs to file
-    save(results_file, "bac_saved", bac_saved, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved", reactor_saved)
+    save(results_file, "bac_saved_vecint", bac_saved_vecint, "bac_saved_matfloat", bac_saved_matfloat, "bac_saved_matint", bac_saved_matint, "bac_saved_matbool", bac_saved_matbool, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved_matfloat", reactor_saved_matfloat, "reactor_saved_vecfloat", reactor_saved_vecfloat)
 
 end

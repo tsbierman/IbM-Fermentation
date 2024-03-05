@@ -58,6 +58,15 @@ Base.getproperty(x::VectorInt_struct, property::Symbol) = getfield(x, :propertie
 Base.setproperty!(x::VectorInt_struct, property::Symbol, value) = getfield(x, :properties)[property] = value
 Base.propertynames(x::VectorInt_struct) = keys(getfield(x, :properties))
 
+struct MatrixInt_struct
+    properties::Dict{Symbol, Matrix{Int32}}
+end
+MatrixInt_struct() = MatrixInt_struct(Dict{Symbol, Matrix{Int32}}())
+
+Base.getproperty(x::MatrixInt_struct, property::Symbol) = getfield(x, :properties)[property]
+Base.setproperty!(x::MatrixInt_struct, property::Symbol, value) = getfield(x, :properties)[property] = value
+Base.propertynames(x::MatrixInt_struct) = keys(getfield(x, :properties))
+
 struct Bool_struct
     properties::Dict{Symbol, Bool}
 end
@@ -75,6 +84,15 @@ VectorBool_struct() = VectorBool_struct(Dict{Symbol, Vector{Bool}}())
 Base.getproperty(x::VectorBool_struct, property::Symbol) = getfield(x, :properties)[property]
 Base.setproperty!(x::VectorBool_struct, property::Symbol, value) = getfield(x, :properties)[property] = value
 Base.propertynames(x::VectorBool_struct) = keys(getfield(x, :properties))
+
+struct MatrixBool_struct
+    properties::Dict{Symbol, Matrix{Bool}}
+end
+MatrixBool_struct() = MatrixBool_struct(Dict{Symbol, Matrix{Bool}}())
+
+Base.getproperty(x::MatrixBool_struct, property::Symbol) = getfield(x, :properties)[property]
+Base.setproperty!(x::MatrixBool_struct, property::Symbol, value) = getfield(x, :properties)[property] = value
+Base.propertynames(x::MatrixBool_struct) = keys(getfield(x, :properties))
 
 struct String_struct
     properties::Dict{Symbol, String}
