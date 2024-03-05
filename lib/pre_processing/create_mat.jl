@@ -60,7 +60,7 @@ function blue_noise_circle(n, x_centre, y_centre, r)
         # Distance all candidates and existing points
         distance = sqrt.((X[1:npoints] .- candidate_x) .^2 .+ (Y[1:npoints] .- candidate_y) .^2) 
         # First find closest existing point for each candidate, then index of furthest existing point over all candidates.
-        _, index = findmax(minimum(distance, dims = 1))
+        _, index = findmax(minimum(distance, dims=1))
 
         # Store
         npoints = npoints + 1
@@ -267,7 +267,7 @@ function create_mat(filename, simulation_number)
     if simulation_number < 0 
         # For testing purposes
         println(">>>>>>>>>>>>>> DONE LOADING!")
-        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings, init_params
+        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params
 
     else 
         # Normal use case
@@ -278,7 +278,7 @@ function create_mat(filename, simulation_number)
         "settings_bool", settings_bool, "settings_string", settings_string, "init_params", init_params)
 
         println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
-
+        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params
     end
 end
 
