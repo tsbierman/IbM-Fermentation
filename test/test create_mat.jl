@@ -6,7 +6,7 @@ include(string(pwd(), "\\lib\\bacteria\\bacteria_shove.jl"))
 include(string(pwd(), "\\lib\\Struct_Module.jl"))
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename, -1)
+grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)
 
 @testset "rand_circle" begin
     n, x_centre, y_centre, radius = 30, 129, 129, 80
@@ -40,21 +40,21 @@ end
 end
 
 @testset "bacteria_shove" begin
-    new_bac = bacteria_shove!(bac, grid, constants)
-    @test size(new_bac.x) == size(new_bac.y)
-    @test size(new_bac.x) == size(bac.x)
-    @test typeof(new_bac.x) == typeof(new_bac.y)
-    @test typeof(new_bac.x) == typeof(bac.x)
+    new_bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants_float)
+    @test size(new_bac_vecfloat.x) == size(new_bac_vecfloat.y)
+    @test size(new_bac_vecfloat.x) == size(bac_vecfloat.x)
+    @test typeof(new_bac_vecfloat.x) == typeof(new_bac_vecfloat.y)
+    @test typeof(new_bac_vecfloat.x) == typeof(bac_vecfloat.x)
 end
 
 @testset "general" begin
-    if settings.model_type == "suspension"
-        @test length(bac.species) <= 144
-        @test length(bac.active) <= 144
+    if settings_string.model_type == "suspension"
+        @test length(bac_vecint.species) <= 144
+        @test length(bac_vecbool.active) <= 144
     else
-        @test length(bac.species) <= 118
-        @test length(bac.active) <= 118
+        @test length(bac_vecint.species) <= 118
+        @test length(bac_vecbool.active) <= 118
     end
-    @test all(bac.species .< 4) == true
-    @test all(bac.active .== 1) == true
+    @test all(bac_vecint.species .< 4) == true
+    @test all(bac_vecbool.active .== 1) == true
 end
