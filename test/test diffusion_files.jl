@@ -5,34 +5,20 @@ using Random
 using DSP
 
 include(string(pwd(),"\\lib\\Lib_Module.jl"))
-include(string(pwd(), "\\lib\\initTime.jl"))
-include(string(pwd(), "\\lib\\diffusion\\prolongation.jl"))
-include(string(pwd(), "\\lib\\diffusion\\restriction.jl"))
-include(string(pwd(), "\\lib\\diffusion\\residual.jl"))
-include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
-include(string(pwd(), "\\lib\\diffusion\\create_dirichlet_boundary.jl"))
-include(string(pwd(), "\\lib\\diffusion\\steadystate_is_reached.jl"))
-
-include(string(pwd(), "\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
-include(string(pwd(), "\\lib\\reaction_matrix\\solve_pH.jl"))
-include(string(pwd(), "\\lib\\reaction_matrix\\rMatrix_section.jl"))
-include(string(pwd(), "\\lib\\reaction_matrix\\calculate_monod.jl"))
-include(string(pwd(), "\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
-
-include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
+include(string(pwd(), "\\inclusion_file.jl"))
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename, -1)
+grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)
 
-debug_struct = General()
-constants.debug = debug_struct
-constants.debug.plotDiffRegion = false
+# debug_struct = General()
+# constants.debug = debug_struct
+# constants.debug.plotDiffRegion = false
 
-conc, bulk_concentration, invHRT, reaction_matrix, pH, bac = initTime!(grid, bac, init_params,constants, settings)
-grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid, bac)
-diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
+conc, bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool = initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, init_params, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string)
+grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
+diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
 
-isReached, max_RES_value = steadystate_is_reached(conc, reaction_matrix, grid.dx, bulk_concentration, diffusion_region, constants)
+isReached, max_RES_value = steadystate_is_reached(conc, reaction_matrix, grid_float.dx, bulk_concs, diffusion_region, constants_float, constants_vecfloat, constants_vecstring)
 
 @testset "prolongation" begin
     phi_coarse = [1 5 3 6; 3 6 2 3; 4 2 2 3; 1 1 6 4]
@@ -85,5 +71,5 @@ end
 
 @testset "steadystate_is_reached" begin
     @test isReached == false         # At the start, concentrations of bulk and diffusion region are not close, so steady state is not expected.
-    @test length(max_RES_value) == length(constants.compoundNames)
+    @test length(max_RES_value) == length(constants_vecstring.compoundNames)
 end

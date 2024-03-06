@@ -1,8 +1,7 @@
 using Test
 import XLSX
 
-include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
-include(string(pwd(), "\\lib\\Struct_Module.jl"))
+include(string(pwd(), "\\inclusion_file.jl"))
 
 @testset "loadPresetFile" begin
     filename = string(pwd(), "\\test\\test_file.xlsx")
