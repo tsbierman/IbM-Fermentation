@@ -36,12 +36,12 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
     T = constants[4]
     speciation = constants[5]
 
-    bac_species = grouped_bac[:,1]
-    bac_molarMass = grouped_bac[:,2]
-    bac_active = grouped_bac[:,3]
+    bac_species = grouped_bac[1]
+    bac_molarMass = grouped_bac[2]
+    bac_active = grouped_bac[3]
 
-    mu_max_list = kinetics[:,1]
-    maint_list = kinetics[:,2]
+    mu_max_list = kinetics[1]
+    maint_list = kinetics[2]
 
     # Create storage space
     mu = zeros(nBacs)
