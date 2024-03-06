@@ -1,4 +1,4 @@
-function initTime!(grid, bac, init_params, constants, settings)
+function initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, init_params, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string)
     """
     This function initialises values from preset parameters for later initialisation of Time struct
 
@@ -19,33 +19,35 @@ function initTime!(grid, bac, init_params, constants, settings)
     """
 
     # Calculate boundary conditions
-    bulk_concs, invHRT = calculate_bulk_concentrations(bac, constants, init_params.init_bulk_conc, init_params.invHRT, 0, constants.dT_bac, settings)
+    bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, 
+    init_params.init_bulk_conc, init_params.invHRT[1], 0, constants_float.dT_bac, settings_bool, settings_string)
 
     # Make bacterial-grid matrices
-    grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
+    grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
 
     # Determine diffusion layer and calculate ranges for focus mask
-    diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
+    diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
     xRange = focus_region.x0:focus_region.x1
     yRange = focus_region.y0:focus_region.y1
 
-    if constants.debug.plotDiffRegion
-        plotDiffRegion(grid, bac, diffusion_region, true)
-    end
+    # if constants.debug.plotDiffRegion
+    #     plotDiffRegion(grid_float, bac, diffusion_region, true)
+    # end
 
     # Initialise concentrations and pH
-    conc = zeros(grid.ny, grid.nx, length(constants.compoundNames))
+    conc = zeros(grid_int.ny, grid_int.nx, length(constants_vecstring.compoundNames))
     conc = set_concentrations!(conc, init_params.init_concs, diffusion_region)
-    reaction_matrix = zeros(grid.ny, grid.nx, size(conc,3))
-    pH = ones(grid.ny, grid.nx) .* constants.pHsetpoint
+    reaction_matrix = zeros(grid_int.ny, grid_int.nx, size(conc,3))
+    pH = ones(grid_int.ny, grid_int.nx) .* constants_float.pHsetpoint
 
     # Set bulk layer concentrations
     conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
 
-    settings.parallelized = false # at init: compute sequentially
+    settings_bool.parallelized = false # at init: compute sequentially
     # Calculate reaction matrix
-    reaction_matrix[yRange,xRange, :], bac.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
-    grid2nBacs[yRange, xRange], bac, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants, pH[yRange,xRange], 0, 0, settings)
+    reaction_matrix[yRange,xRange, :], bac_vecfloat.mu, pH[yRange, xRange] = calculate_reaction_matrix!(grid2bac[yRange, xRange, :],
+    grid2nBacs[yRange, xRange], bac_vecfloat, bac_vecint, bac_vecbool, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants_float, constants_vecfloat, constants_vecint, constants_matfloat, 
+    pH[yRange,xRange], 0, 0, settings_bool)
 
-    return conc, bulk_concs, invHRT, reaction_matrix, pH, bac
+    return conc, bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool
 end

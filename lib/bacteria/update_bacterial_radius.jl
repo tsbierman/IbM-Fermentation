@@ -1,4 +1,4 @@
-function update_bacterial_radius!(bac, constants)
+function update_bacterial_radius!(bac_vecfloat, constants_float)
     """
     This function updates the bacterial radius based on their masses.
 
@@ -11,6 +11,6 @@ function update_bacterial_radius!(bac, constants)
     """
     
     # Determine radius based on the mass and spherical cell
-    bac.radius = ( (bac.molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi)) ) .^ (1/3)
-    return bac
+    bac_vecfloat.radius = ( (bac_vecfloat.molarMass * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi)) ) .^ (1/3)
+    return bac_vecfloat
 end

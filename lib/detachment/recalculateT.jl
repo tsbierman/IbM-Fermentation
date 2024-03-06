@@ -1,4 +1,4 @@
-function recalculateT(T, x_index, y_index, kDet, grid, Visited, x_centre, y_centre)
+function recalculateT(T, x_index, y_index, kDet, grid_float, Visited, x_centre, y_centre)
     """
     This function recalculates T value at the gridcell[y_index, x_index] using 
     quadratic approximation of the gradient.
@@ -50,7 +50,7 @@ function recalculateT(T, x_index, y_index, kDet, grid, Visited, x_centre, y_cent
         error("All neighbours have infinite time of crossing")
     end
 
-    Fdet = calculateLocalDetachmentRate(x_index, y_index, kDet, grid, x_centre, y_centre)
+    Fdet = calculateLocalDetachmentRate(x_index, y_index, kDet, grid_float, x_centre, y_centre)
 
     if Fdet == 0
         warning("Detachment speed equals 0, thus infinite time of crossing") # Fdet can never be 0 due to formula
@@ -58,6 +58,6 @@ function recalculateT(T, x_index, y_index, kDet, grid, Visited, x_centre, y_cent
         return T_new
     end
 
-    T_new = computeRoot(Tx, Ty, Fdet, grid.dx)
+    T_new = computeRoot(Tx, Ty, Fdet, grid_float.dx)
     return T_new
 end

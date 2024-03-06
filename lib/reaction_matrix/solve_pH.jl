@@ -79,7 +79,7 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
             dspcM[:,5] = -(Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] .* StV .* aux) ./ dDenm
 
             # Evalutaion of the charge balance for the current Sh value, so evaluate dF(Sh)
-            dF = 1 + sum(spcM .* chrM)
+            dF = 1 + sum(dspcM .* chrM)
             # Error
             err = F / dF
             # Newton-Raphson

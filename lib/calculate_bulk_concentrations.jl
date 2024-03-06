@@ -1,4 +1,4 @@
-function calculate_slice_sphere_conversion(bac, constants, settings)
+function calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)
     """
     This function calculates the conversion factor to convert from the volume of
     the slice to the volume of the sphere
@@ -12,13 +12,13 @@ function calculate_slice_sphere_conversion(bac, constants, settings)
     f:                  The conversion factor from the volume of a slice to the volume of a sphere
     """
 
-    if settings.model_type in ("granule", "mature granule")
-        x = bac.x[bac.active]
-        y = bac.y[bac.active]
+    if settings_string.model_type in ("granule", "mature granule")
+        x = bac_vecfloat.x[bac_vecbool.active]
+        y = bac_vecfloat.y[bac_vecbool.active]
         centre_x = mean(x)
         centre_y = mean(y)
         radius_granule = maximum(sqrt.((x .- centre_x) .^2 + (y .- centre_y) .^2))
-        f = 4 * radius_granule / (3 * constants.bac_max_radius * 2)
+        f = 4 * radius_granule / (3 * constants_float.bac_max_radius * 2)
     else
         f = 1
     end
@@ -118,7 +118,7 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
 end
 
 
-function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reactionMatrix, dT, settings)
+function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, prev_conc, invHRT, reactionMatrix, dT, settings_bool, settings_string)
     """
     This function calculates the bulk layer concentrations. It assumes that the simulated
     bio-aggregate is representative of the entire reactor.
@@ -244,19 +244,19 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
     end
 
     # For easy use: unpack constants
-    Keq = constants.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
-    chrM = constants.chrM                               # A (ncompounds, 5) matrix with charge values
-    compoundNames = constants.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H)
-    pH = constants.pHsetpoint                           # The pH setpoint
-    Vr = constants.Vr                                   # The representative volume of reactor that is modelled [L]
-    Vg = constants.Vg                                   # The volume of a grid cell [L]
-    Dir_k = constants.Dir_k                             # A (nCompounds,) vector of booleans whether compounds follow Dirichlet boundary condition
-    influent = constants.influent_concentrations        # A (nCompounds,) vector with the influent concentrations [mol/L]
-    variableHRT = settings.variableHRT                  # A boolean whether HRT is variable
+    Keq = constants_matfloat.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
+    chrM = constants_matfloat.chrM                               # A (ncompounds, 5) matrix with charge values
+    compoundNames = constants_vecstring.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H)
+    pH = constants_float.pHsetpoint                           # The pH setpoint
+    Vr = constants_float.Vr                                   # The representative volume of reactor that is modelled [L]
+    Vg = constants_float.Vg                                   # The volume of a grid cell [L]
+    Dir_k = constants_vecbool.Dir_k                             # A (nCompounds,) vector of booleans whether compounds follow Dirichlet boundary condition
+    influent = constants_vecfloat.influent_concentrations        # A (nCompounds,) vector with the influent concentrations [mol/L]
+    variableHRT = settings_bool.variableHRT                  # A boolean whether HRT is variable
 
     if variableHRT
-        bulk_setpoint = constants.bulk_setpoint
-        setpoint_index = constants.setpoint_index
+        bulk_setpoint = constants_float.bulk_setpoint
+        setpoint_index = constants_vecint.setpoint_index[1]
     else
         bulk_setpoint = 0
         setpoint_index = 0
@@ -266,7 +266,7 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
         bulk_concentrations = prev_conc
     else
 
-        f = calculate_slice_sphere_conversion(bac, constants, settings)
+        f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)
 
         # The combination of dropdims and sum with those dimensions results in a vector that contains total change
         # over the whole matrix per compound. This is then adjusted to a single grid cell
@@ -277,7 +277,7 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
 
         try
             # Based on reaction_matrix, calculate new bulk concentrations with an ODE.
-            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings.structure_model, settings.type]
+            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings_bool.structure_model, settings_string.type]
             prob = ODEProblem(massbal, prev_conc, (0.0, dT), parameters)
             sol = solve(prob, Tsit5(), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
             bulk_conc_temp = sol.u[end]
@@ -293,7 +293,7 @@ function calculate_bulk_concentrations(bac, constants, prev_conc, invHRT, reacti
     end
 
     # Apply pH correction to bulk_concentrations
-    if settings.pHbulkCorrection
+    if settings_bool.pHbulkCorrection
         # Hardcoded stuff
         bulk_concentrations[findall(compoundNames .== "SO4")] = bulk_concentrations[findall(compoundNames .== "A")] ./ 2 # A was originaly NH3, but not present in testfile
         bulk_concentrations = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations)

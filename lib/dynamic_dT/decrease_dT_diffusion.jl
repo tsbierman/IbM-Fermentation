@@ -1,4 +1,4 @@
-function decrease_dT_diffusion!(Time, msg, dx, constants)
+function decrease_dT_diffusion!(Time, msg, dx, constants_vecfloat)
     """
     This function decreases the dT for diffusion timestepping
     
@@ -19,7 +19,7 @@ function decrease_dT_diffusion!(Time, msg, dx, constants)
         Time.changed_dT = Time.current
     end
     @printf("%s, \n \tthus dT decreased to %.3e\n", msg, Time.dT)
-    @printf("Neumann value of stability: %.5e\n", maximum(constants.diffusion_rates .* Time.dT ./ (dx ^ 2)))
+    @printf("Neumann value of stability: %.5e\n", maximum(constants_vecfloat.diffusion_rates .* Time.dT ./ (dx ^ 2)))
 
     return Time
 end

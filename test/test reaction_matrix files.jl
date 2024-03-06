@@ -4,15 +4,6 @@ using InvertedIndices
 using Random
 using DSP
 
-
-# include(string(pwd(),"\\lib\\set_concentrations.jl"))
-# include(string(pwd(),"\\lib\\reaction_matrix\\determine_max_growth_rate_and_maint.jl"))
-# include(string(pwd(),"\\lib\\reaction_matrix\\calculate_monod.jl"))
-# include(string(pwd(),"\\lib\\reaction_matrix\\solve_pH.jl"))
-# include(string(pwd(),"\\lib\\reaction_matrix\\rMatrix_section.jl"))
-# include(string(pwd(),"\\lib\\reaction_matrix\\calculate_reaction_matrix.jl"))
-# include(string(pwd(), "\\lib\\pre_processing\\loadPresetFile.jl"))
-# include(string(pwd(), "\\lib\\Struct_Module.jl"))
 include(string(pwd(), "\\inclusion_file.jl"))
 include(string(pwd(),"\\lib\\Lib_Module.jl"))
 
@@ -20,20 +11,20 @@ create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename, -1)
-grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid, bac)
-diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac, grid)
-Ks = constants.Ks
-Ki = constants.Ki
-Keq = constants.Keq
-chrM = constants.chrM
+grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)
+grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
+diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
+Ks = constants_matfloat.Ks
+Ki = constants_matfloat.Ki
+Keq = constants_matfloat.Keq
+chrM = constants_matfloat.chrM
 chunks = 0
 nChunks_dir = 4
 
 Sh_ini = 1e-5
 StV = [init_params.init_concs;1;0]
-calculate_pH = settings.pHincluded
-Tol = constants.pHtolerance
+calculate_pH = settings_bool.pHincluded
+Tol = constants_float.pHtolerance
 
 @testset "determine_max_growth_rate_and_maint" begin
     res = determine_max_growth_rate_and_maint(1, 298, 1e-7) # Mock values for test
@@ -82,13 +73,13 @@ end
     pH = 3.0
     fake_init_conc = [1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3]
     fake_bulk_conc = [1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1, 0]
-    fake_conc = ones(grid.ny, grid.nx, length(constants.compoundNames)) * 1e-4
+    fake_conc = ones(grid_int.ny, grid_int.nx, length(constants_vecstring.compoundNames)) * 1e-4
     fake_conc = set_concentrations!(fake_conc, fake_init_conc, diffusion_region)
-    reaction_matrix, mu, pH = calculate_reaction_matrix!(grid2bac, grid2nBacs, bac, diffusion_region, fake_conc, constants, pH, chunks, nChunks_dir, settings)
+    reaction_matrix, mu, pH = calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_vecint, bac_vecbool, diffusion_region, fake_conc, constants_float, constants_vecfloat, constants_vecint, constants_matfloat, pH, chunks, nChunks_dir, settings_bool)
 
-    if settings.model_type in ("granule", "mature granule")
+    if settings_string.model_type in ("granule", "mature granule")
         @test size(reaction_matrix) == (257,257,8)
-        @test length(mu) == length(bac.x)
+        @test length(mu) == length(bac_vecfloat.x)
         @test all(-1 .< mu .< 1)
         @test size(pH) == (257,257)
         @test all(3.0 .< pH .< 4.1)

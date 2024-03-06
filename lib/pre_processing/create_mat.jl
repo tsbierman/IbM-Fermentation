@@ -60,7 +60,7 @@ function blue_noise_circle(n, x_centre, y_centre, r)
         # Distance all candidates and existing points
         distance = sqrt.((X[1:npoints] .- candidate_x) .^2 .+ (Y[1:npoints] .- candidate_y) .^2) 
         # First find closest existing point for each candidate, then index of furthest existing point over all candidates.
-        _, index = findmax(minimum(distance, dims = 1))
+        _, index = findmax(minimum(distance, dims=1))
 
         # Store
         npoints = npoints + 1
@@ -125,7 +125,7 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
 end
 
 
-function AMXinside(bac, grid, constants)
+function AMXinside(bac_vecfloat, grid_float, grid_int, constants_vecstring)
     """
     This function assigns all the bacteria a specie. The closest to the centre are assigned with AMX,
     the others are random. The amount assigned with AMX remains random.
@@ -140,26 +140,26 @@ function AMXinside(bac, grid, constants)
     species:            A vector (nBac,) containing a number, representing the species of the organism
     """
     # Calculate distance from the centre and sort based on distance
-    distance = sqrt.((bac.x .- (grid.nx / 2 * grid.dx)) .^2 + (bac.y .- (grid.ny / 2 * grid.dy)) .^2)
+    distance = sqrt.((bac_vecfloat.x .- (grid_int.nx / 2 * grid_float.dx)) .^2 + (bac_vecfloat.y .- (grid_int.ny / 2 * grid_float.dy)) .^2)
     I = sortperm(distance)   # Returns indices
 
     # Determine index of AMX specie. Randomly assign species to bacteria and see how many are AMX
-    iAMX = findall(constants.speciesNames .== "B2")[1]
-    nAMX = sum(rand(1:length(constants.speciesNames), size(bac.x)) .== iAMX)
+    iAMX = findall(constants_vecstring.speciesNames .== "B2")[1]
+    nAMX = sum(rand(1:length(constants_vecstring.speciesNames), size(bac_vecfloat.x)) .== iAMX)
 
     # Generate storage for species and select nAMX closest to centre to be AMX
-    species = zeros(size(bac.x))
+    species = zeros(size(bac_vecfloat.x))
     species[I[1:nAMX]] .= iAMX
 
     # Generate random specie index for all the bacteria that do not have a specie (so 0 in species)
     # 1 less so we miss a specie. Then everything equal or higher than iAMX will shift upwards
-    species_other = rand(1:length(constants.speciesNames) .- 1, size(species[species .== 0]))
+    species_other = rand(1:length(constants_vecstring.speciesNames) .- 1, size(species[species .== 0]))
     species_other[species_other .>= iAMX] = species_other[species_other .>= iAMX] .+ 1
     species[I[nAMX+1:end]] = species_other
     return species
 end
 
-function shoving_loop(bac, grid, constants, n)
+function shoving_loop(bac_vecfloat, grid_float, grid_int, constants_float, n)
     """
     This function calls the bacteria_shove multiple thermodynamic_parameters
     
@@ -173,9 +173,9 @@ function shoving_loop(bac, grid, constants, n)
     bac:                Bac struct with updates x and y coordinates
     """
     for gg in 1:n
-        bac = bacteria_shove!(bac, grid, constants)
+        bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants_float)
     end
-    return bac
+    return bac_vecfloat
 end
 
 function create_mat(filename, simulation_number)
@@ -205,74 +205,80 @@ function create_mat(filename, simulation_number)
 
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
 
-    grid, bac_init, constants, settings, init_params = loadPresetFile(filename)
+    grid_float, grid_int, bac_init_float, bac_init_int, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = loadPresetFile(filename)
 
     # Initial Molar Mass is 60% of maximum molar Mass
-    molarMass = 0.6 * constants.max_bac_mass_grams / constants.bac_MW                           # [mol]
-    radius = ( (molarMass * constants.bac_MW / constants.bac_rho) * (3 / (4 * pi))) ^ (1/3)     # [m]
+    molarMass = 0.6 * constants_float.max_bac_mass_grams / constants_float.bac_MW                           # [mol]
+    radius = ( (molarMass * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi))) ^ (1/3)     # [m]
 
     println(">>>>>>>>>>>>>>>> INITIALISING BACTERIA")
 
-    bac = General()
+    bac_vecint = VectorInt_struct()
+    bac_vecfloat = VectorFloat_struct()
+    bac_vecbool = VectorBool_struct()
 
-    if settings.model_type in ("granule", "mature granule")
+    if settings_string.model_type in ("granule", "mature granule")
 
         # Create a single colony of bacteria around the centre
-        bac.x, bac.y = blue_noise_circle(bac_init.start_nBac, grid.nx / 2 * grid.dx, grid.ny / 2 * grid.dy, bac_init.granule_radius)
+        bac_vecfloat.x, bac_vecfloat.y = blue_noise_circle(bac_init_int.start_nBac, grid_int.nx / 2 * grid_float.dx, grid_int.ny / 2 * grid_float.dy, bac_init_float.granule_radius)
 
-    elseif settings.model_type in ("suspension",)
+    elseif settings_string.model_type in ("suspension",)
 
-        margin = 0.2 * grid.dx * grid.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
-        xrange = [margin, grid.dx*grid.nx - margin]
+        margin = 0.2 * grid_float.dx * grid_int.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
+        xrange = [margin, grid_float.dx * grid_int.nx - margin]
         yrange = xrange                                 # assume square domain
 
         # Create several colonies with some bacteria each
-        r_colony = (bac_init.start_nBacPerColony * radius * constants.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
-        bac.x, bac.y = distribute_microcolonies(bac_init.start_nColonies, bac_init.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
+        r_colony = (bac_init_int.start_nBacPerColony * radius * constants_float.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
+        bac_vecfloat.x, bac_vecfloat.y = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
     end
 
     # Set parameters for every of the bacteria
-    bac.molarMass = ones(length(bac.x)) * molarMass         # [mol]
-    bac.radius = ones(length(bac.x)) * radius               # [m]
-    bac.active = BitArray(ones(size(bac.x)))                # Binary/Boolean
+    bac_vecfloat.molarMass = ones(length(bac_vecfloat.x)) * molarMass         # [mol]
+    bac_vecfloat.radius = ones(length(bac_vecfloat.x)) * radius               # [m]
+    bac_vecbool.active = BitArray(ones(size(bac_vecfloat.x)))                # Binary/Boolean
 
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
-    bac = shoving_loop(bac, grid, constants, 5)
+    bac_vecfloat = shoving_loop(bac_vecfloat, grid_float, grid_int, constants_float, 5)
 
-    if settings.model_type in ("granule", "mature granule")
+    if settings_string.model_type in ("granule", "mature granule")
         # Remove bacteria that are outside the maximum granule radius due to shoving
-        keep = sqrt.((bac.x .- (grid.dx * grid.nx / 2)) .^2 + (bac.y .- (grid.dy * grid.ny / 2)) .^2 ) .<= bac_init.granule_radius
-        println("$(size(bac.x, 1)- sum(keep)) Bacteria removed outside of starting granule")
-        bac.x = bac.x[keep]
-        bac.y = bac.y[keep]
-        bac.radius = bac.radius[keep]
-        bac.molarMass = bac.molarMass[keep]
-        bac.active = bac.active[keep]
+        keep = sqrt.((bac_vecfloat.x .- (grid_float.dx * grid_int.nx / 2)) .^2 + (bac_vecfloat.y .- (grid_float.dy * grid_int.ny / 2)) .^2 ) .<= bac_init_float.granule_radius
+        println("$(size(bac_vecfloat.x, 1) - sum(keep)) Bacteria removed outside of starting granule")
+        bac_vecfloat.x = bac_vecfloat.x[keep]
+        bac_vecfloat.y = bac_vecfloat.y[keep]
+        bac_vecfloat.radius = bac_vecfloat.radius[keep]
+        bac_vecfloat.molarMass = bac_vecfloat.molarMass[keep]
+        bac_vecbool.active = bac_vecbool.active[keep]
     end
 
-    if settings.model_type == "mature granule"
-        bac.species = AMXinside(bac, grid, constants) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
+    if settings_string.model_type == "mature granule"
+        bac_vecint.species = AMXinside(bac_vecfloat, grid_float, grid_int, constants_vecstring) # If granule already mature, assign AMX types on the inside (Nitrospira specific)
     else
-        bac.species = rand((1:length(constants.speciesNames)), size(bac.x)) # Random species
+        bac_vecint.species = rand((1:length(constants_vecstring.speciesNames)), size(bac_vecfloat.x)) # Random species
     end
 
-    println("$(length(bac.x)) starting bacteria in the system")
+    println("$(length(bac_vecfloat.x)) starting bacteria in the system")
 
-    for specie in eachindex(constants.speciesNames)
-        println("\t $(sum(bac.species .== specie)) $(constants.speciesNames[specie])")
+    for specie in eachindex(constants_vecstring.speciesNames)
+        println("\t $(sum(bac_vecint.species .== specie)) $(constants_vecstring.speciesNames[specie])")
     end
 
     if simulation_number < 0 
         # For testing purposes
         println(">>>>>>>>>>>>>> DONE LOADING!")
-        return grid, bac, constants, settings, init_params
+        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params
 
     else 
         # Normal use case
         results_file = @sprintf("sim_%04d.jld2", simulation_number)
-        save(results_file, "grid", grid, "bac", bac, "constants", constants, "settings", settings, "init_params", init_params)
-        println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
+        
+        save(results_file, "grid_float", grid_float, "grid_int", grid_int, "bac_vecfloat", bac_vecfloat, "bac_vecint", bac_vecint, "bac_vecbool", bac_vecbool, 
+        "constants_float", constants_float, "constants_vecfloat", constants_vecfloat, "constants_vecint", constants_vecint, "constants_vecstring", constants_vecstring, "constants_vecbool", constants_vecbool, "constants_matfloat", constants_matfloat, 
+        "settings_bool", settings_bool, "settings_string", settings_string, "init_params", init_params)
 
+        println(">>>>>>>>>>>>>> DONE LOADING AND SAVING!")
+        return grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params
     end
 end
 

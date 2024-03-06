@@ -1,4 +1,4 @@
-function save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
+function save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
     """
     This function saves important variables required for restart at this point in time
     It will overwrite the last backup in order to always have the latest file
@@ -17,5 +17,5 @@ function save_backup(bac, bulk_concs, invHRT, conc, reaction_matrix, pH, directo
     results_file = string(directory, "\\backup.jld2")
 
     # Save everything
-    save(results_file, "bac", bac, "bulk_concs", bulk_concs, "invHRT", invHRT, "conc", conc, "reaction_matrix", reaction_matrix, "pH", pH)
+    save(results_file, "bac_vecfloat", bac_vecfloat, "bac_vecint", bac_vecint, "bac_vecbool", bac_vecbool, "bulk_concs", bulk_concs, "invHRT", invHRT, "conc", conc, "reaction_matrix", reaction_matrix, "pH", pH)
 end

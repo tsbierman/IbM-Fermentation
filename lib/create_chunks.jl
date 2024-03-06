@@ -39,11 +39,13 @@ function create_chunks(nChunks_dir, focus_region)
     indices_x = indices_x .- focus_region.x0 .+ 1
     indices_y = indices_y .- focus_region.y0 .+ 1
 
-    chunks = General()
-    chunks.indices_x = indices_x
-    chunks.indices_y = indices_y
-    chunks.dx_chunk = dx_chunk
-    chunks.dy_chunk = dy_chunk
+    chunks_matrix = MatrixFloat_struct()
+    chunks_int = Int_struct()
+    
+    chunks_matrix.indices_x = indices_x
+    chunks_matrix.indices_y = indices_y
+    chunks_int.dx_chunk = dx_chunk
+    chunks_int.dy_chunk = dy_chunk
 
-    return chunks
+    return chunks_matrix, chunks_int
 end
