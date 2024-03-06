@@ -3,6 +3,7 @@ import XLSX
 using InvertedIndices
 using Random
 
+include(string(pwd(),"\\lib\\bacteria\\Bacteria_Module.jl"))
 include(string(pwd(), "\\inclusion_file.jl"))
 
 filename = string(pwd(), "\\test\\test_file.xlsx")

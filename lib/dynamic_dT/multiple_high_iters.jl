@@ -1,4 +1,4 @@
-function multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants_float, constants_vecint)
+function multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants_vecint)
     """
     This function detects whether the previous steady states have been reached with
     high numbers of diffusion iterations.

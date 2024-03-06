@@ -5,25 +5,11 @@ using Random
 using DSP
 using Printf
 
-include(string(pwd(), "\\lib\\Struct_Module.jl"))
-
-Temp_Time = General()
-
-include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\bulk_conc_diff_within_limit.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\decrease_dT_bac.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\decrease_dT_diffusion.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\increase_dT_bac.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\increase_dT_diffusion.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\multiple_high_iters.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\multiple_low_initRES.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\non_convergent.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\slow_convergence.jl"))
-include(string(pwd(), "\\lib\\dynamic_dt\\upward_trend.jl"))
-
+include(string(pwd(), "\\inclusion_file.jl"))
+Temp_Time = Float_struct()
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
-grid, bac, constants, settings, init_params = create_mat(filename, -1)
+grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)
 
 @testset "bulk_conc_diff_within_limit" begin
     conc1 = 100 
@@ -40,11 +26,11 @@ grid, bac, constants, settings, init_params = create_mat(filename, -1)
     trio_standard = zeros(3)
     trio_standard[:] = [conc1, conc1, conc1]
 
-    @test bulk_conc_diff_within_limit(conc2, conc1, constants) == false
-    @test bulk_conc_diff_within_limit(conc3, conc1, constants) == true
-    @test bulk_conc_diff_within_limit(conc4, conc1, constants) == true
-    @test bulk_conc_diff_within_limit(temp_vector, trio_standard, constants) == false
-    @test bulk_conc_diff_within_limit(temp_vector2, duo_standard, constants) == true
+    @test bulk_conc_diff_within_limit(conc2, conc1, constants_float) == false
+    @test bulk_conc_diff_within_limit(conc3, conc1, constants_float) == true
+    @test bulk_conc_diff_within_limit(conc4, conc1, constants_float) == true
+    @test bulk_conc_diff_within_limit(temp_vector, trio_standard, constants_float) == false
+    @test bulk_conc_diff_within_limit(temp_vector2, duo_standard, constants_float) == true
 end
 
 @testset "decrease_dT_bac" begin
@@ -70,19 +56,19 @@ end
     Temp_Time.minDT = 5.29e-9
     Temp_Time.dT = 1e-8
 
-    decrease_dT_diffusion!(Temp_Time, "Testing enough space for time change", grid.dx, constants)
+    decrease_dT_diffusion!(Temp_Time, "Testing enough space for time change", grid_float.dx, constants_vecfloat)
     @test round(Temp_Time.dT,digits=9) == 0.9e-8
     @test Temp_Time.changed_dT == 15
 
     Temp_Time.current = 16
     Temp_Time.dT = 5.4e-9
-    decrease_dT_diffusion!(Temp_Time, "Testing not enough space for time change", grid.dx, constants)
+    decrease_dT_diffusion!(Temp_Time, "Testing not enough space for time change", grid_float.dx, constants_vecfloat)
     @test Temp_Time.dT == 5.29e-9
     @test Temp_Time.changed_dT == 16
 
     Temp_Time.current = 17
     Temp_Time.dT = 5.29e-9
-    decrease_dT_diffusion!(Temp_Time, "Testing already at minimum", grid.dx, constants)
+    decrease_dT_diffusion!(Temp_Time, "Testing already at minimum", grid_float.dx, constants_vecfloat)
     @test Temp_Time.dT == 5.29e-9
     @test Temp_Time.changed_dT == 16
 end
@@ -110,13 +96,13 @@ end
     Temp_Time.maxDT = 2.12e-7
     Temp_Time.dT = 1e-8
 
-    increase_dT_diffusion!(Temp_Time, "Testing enough space for time change", grid.dx, constants)
+    increase_dT_diffusion!(Temp_Time, "Testing enough space for time change", grid_float.dx, constants_vecfloat)
     @test round(Temp_Time.dT,digits=10) == 1.11e-8
     @test Temp_Time.changed_dT == 15
 
     Temp_Time.current = 16
     Temp_Time.dT = 2e-7
-    increase_dT_diffusion!(Temp_Time, "Testing not enough space for time change", grid.dx, constants)
+    increase_dT_diffusion!(Temp_Time, "Testing not enough space for time change", grid_float.dx, constants_vecfloat)
     @test Temp_Time.dT == 2.12e-7
     @test Temp_Time.changed_dT == 16
 end
@@ -133,12 +119,12 @@ end
     nDiffIters2 = [30, 50, 19, 25,]
     nDiffIters3 = [30, 30, 30, 30,]
 
-    @test multiple_high_iters(iDiffusion1, iProf1, nDiffIters1, Temp_Time, constants) == true
-    @test multiple_high_iters(iDiffusion2, iProf1, nDiffIters3, Temp_Time, constants) == false
-    @test multiple_high_iters(iDiffusion1, iProf1, nDiffIters2, Temp_Time, constants) == false
-    @test multiple_high_iters(iDiffusion1, iProf2, nDiffIters1, Temp_Time, constants) == false
+    @test multiple_high_iters(iDiffusion1, iProf1, nDiffIters1, Temp_Time, constants_vecint) == true
+    @test multiple_high_iters(iDiffusion2, iProf1, nDiffIters3, Temp_Time, constants_vecint) == false
+    @test multiple_high_iters(iDiffusion1, iProf1, nDiffIters2, Temp_Time, constants_vecint) == false
+    @test multiple_high_iters(iDiffusion1, iProf2, nDiffIters1, Temp_Time, constants_vecint) == false
     Temp_Time.changed_dT = 14
-    @test multiple_high_iters(iDiffusion1, iProf1, nDiffIters1, Temp_Time, constants) == false
+    @test multiple_high_iters(iDiffusion1, iProf1, nDiffIters1, Temp_Time, constants_vecint) == false
 end
 
 @testset "multiple_low_initRES" begin
@@ -151,11 +137,11 @@ end
     maxInitRES2 = [0.1, 0.2, 0.1,]
     maxInitRES3 = [0.1, 0.1, 0.1,]
 
-    @test multiple_low_initRES(iProf1, maxInitRES1, Temp_Time, constants) == true
-    @test multiple_low_initRES(iProf1, maxInitRES2, Temp_Time, constants) == false
-    @test multiple_low_initRES(iProf2, maxInitRES1, Temp_Time, constants) == false
+    @test multiple_low_initRES(iProf1, maxInitRES1, Temp_Time, constants_float, constants_vecint) == true
+    @test multiple_low_initRES(iProf1, maxInitRES2, Temp_Time, constants_float, constants_vecint) == false
+    @test multiple_low_initRES(iProf2, maxInitRES1, Temp_Time, constants_float, constants_vecint) == false
     Temp_Time.changed_dT_bac = 14
-    @test multiple_low_initRES(iProf1, maxInitRES1, Temp_Time, constants) == false
+    @test multiple_low_initRES(iProf1, maxInitRES1, Temp_Time, constants_float, constants_vecint) == false
 end
 
 @testset "non_convergent" begin
@@ -207,18 +193,18 @@ end
     RES_allsucc[3,248] = 10 + 2e-4
     iRES250 = 250
     iRES200 = 200
-    @test slow_convergence(iRES250, RES_allsucc, constants) == true
-    @test slow_convergence(iRES200, RES_allsucc, constants) == false
+    @test slow_convergence(iRES250, RES_allsucc, constants_float, constants_vecint) == true
+    @test slow_convergence(iRES200, RES_allsucc, constants_float, constants_vecint) == false
     RES_little_fail = deepcopy(RES_allsucc)
     RES_little_fail[3,248] = 10 + 2e-2
-    @test slow_convergence(iRES250, RES_little_fail, constants) == false
+    @test slow_convergence(iRES250, RES_little_fail, constants_float, constants_vecint) == false
     RES_direc_fail = deepcopy(RES_allsucc)
     RES_direc_fail[3,248] = 10 - 2e-2
-    @test slow_convergence(iRES250, RES_direc_fail, constants) == false
+    @test slow_convergence(iRES250, RES_direc_fail, constants_float, constants_vecint) == false
     RES_no_conv_true = deepcopy(RES_allsucc)
     RES_no_conv_true[3,249] = 10 + 0.9e-7
     RES_no_conv_true[3,248] = 10 + 1.9e-7
-    @test slow_convergence(iRES250, RES_no_conv_true, constants) == false
+    @test slow_convergence(iRES250, RES_no_conv_true, constants_float, constants_vecint) == false
 end
 
 @testset "upward_trend" begin

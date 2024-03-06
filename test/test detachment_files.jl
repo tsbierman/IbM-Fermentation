@@ -3,14 +3,7 @@ import XLSX
 using InvertedIndices
 using Random
 
-# Include the 4 detachment files
-
-include(string(pwd(), "\\lib\\detachment\\computeRoot.jl"))
-include(string(pwd(), "\\lib\\detachment\\recalculateT.jl"))
-include(string(pwd(), "\\lib\\detachment\\calcTimeOfDetach.jl"))
-include(string(pwd(), "\\lib\\detachment\\calculateLocalDetachmentRate.jl"))
-
-include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
+include(string(pwd(), "\\inclusion_file.jl"))
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
 grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)

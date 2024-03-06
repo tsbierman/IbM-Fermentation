@@ -212,7 +212,7 @@ function integTime(simulation_file, directory)
                 end
 
                 # Perform dynamic dT for diffusion (for next iteration)
-                if settings_bool.dynamicDT && multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants_float, constants_vecint)
+                if settings_bool.dynamicDT && multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants_vecint)
                     Time = increase_dT_diffusion!(Time, "Multiple steady states reached with more than $(constants_vecint.iterThresholdIncrease[1]) diffusion iterations", grid_float.dx, constants_vecfloat)
                 end
 
