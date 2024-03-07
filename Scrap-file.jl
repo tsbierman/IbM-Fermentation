@@ -9,3 +9,27 @@ using BenchmarkTools
 # b = [2,2,2,2,2,2]
 # @time a * 5 ./ b
 # @time a .* 5 ./ b
+
+
+# function func1(x)
+#     A = zeros(x,x)
+#     for i in 1:x
+#         for j in 1:x
+#             A[i,j] = 1
+#         end
+#     end
+#     return A
+# end
+
+# function func2(x)
+#     A = zeros(x,x)
+#     for i in 1:x
+#         for j in 1:x
+#             A[j, i] = 1
+#         end
+#     end
+#     return A
+# end
+
+# @btime func1(10000);
+# @btime func2(10000);
