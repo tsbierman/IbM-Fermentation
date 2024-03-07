@@ -325,7 +325,7 @@ function integTime(simulation_file, directory)
 
                     # Calculate and set bulk concentrations
                     tick()
-                    new_bulk_concs = prev_conc
+                    new_bulk_concs = copy(prev_conc)
                     while true
                         new_bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings_bool, settings_string)
                         if !settings_bool.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants_float)
@@ -342,7 +342,7 @@ function integTime(simulation_file, directory)
 
                     bulk_change = (new_bulk_concs .- bulk_concs) ./ Time.dT_bac # [mol_i/L/h]
 
-                    bulk_concs = new_bulk_concs
+                    bulk_concs = copy(new_bulk_concs)
                     conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
                     profiling[iProf, 10] = profiling[iProf, 10] + tok()
 
