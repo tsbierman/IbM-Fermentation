@@ -263,7 +263,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
     end
 
     if isa(reactionMatrix, Number) # If no reactionMatrix is formed (initiation), take previous concentrations
-        bulk_concentrations = prev_conc
+        bulk_concentrations = copy(prev_conc)
     else
 
         f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)

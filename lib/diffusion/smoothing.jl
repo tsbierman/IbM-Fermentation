@@ -16,7 +16,7 @@ function smoothing(phi, rhs, L_lhs)
     phi:            A matrix that has been smoothed
     """
     
-    L_sm = deepcopy(L_lhs)
+    L_sm = copy(L_lhs)
     L_sm[2,2] = 0
     phi = (rhs .- conv(phi, L_sm)[2:end-1,2:end-1]) ./ L_lhs[2,2]
     return phi
