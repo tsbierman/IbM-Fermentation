@@ -13,7 +13,7 @@ function calculate_spcM!(spcM, Sh, Keq, StV)
     spcM:           A (ncompounds, 5) matrix with updated concentrations per specie
     """
 
-    Denm = (1 .+ Keq[:, 1]) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
+    Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
     # Calculate concentrations for all the species. Even when not all species are occupied for some compounds,
     # thus some Keq are 0, the general formula will still work. Unnecessary parts will cancel outflow
@@ -68,14 +68,14 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
             F = Sh + sum(spcM .* chrM)                                      # Charge balance
 
             # Calculation of all derivated functions
-            Denm = (1 .+ Keq[:, 1]) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
+            Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
             dDenm = Denm .^2
-            aux = 3 * Sh^2 * (Keq[:, 1] .+ 1) .+ 2 * Sh * Keq[:, 2] .+ Keq[:, 2] .* Keq[:, 3]
+            aux = 3 .* Sh^2 .* (Keq[:, 1] .+ 1) .+ 2 .* Sh .* Keq[:, 2] .+ Keq[:, 2] .* Keq[:, 3]
 
-            dspcM[:,1] = (3 * Sh^2 * Keq[:, 1] .* StV) ./ (Denm) .- ((Keq[:, 1] .* StV * Sh^3) .* aux) ./ (dDenm)
-            dspcM[:,2] = (3 * Sh^2 * StV) ./ Denm .- (StV * Sh^3 .* aux) ./ dDenm
-            dspcM[:,3] = (2 * Sh * Keq[:, 2] .* StV) ./ Denm .- ((Keq[:, 2] .* StV * Sh^2) .* aux) ./ dDenm
-            dspcM[:,4] = (Keq[:, 2] .* Keq[:, 3] .* StV) ./ Denm .- ((Keq[:, 2] .* Keq[:, 3] .* StV * Sh) .* aux) ./ dDenm
+            dspcM[:,1] = (3 .* Sh^2 .* Keq[:, 1] .* StV) ./ (Denm) .- ((Keq[:, 1] .* StV .* Sh^3) .* aux) ./ (dDenm)
+            dspcM[:,2] = (3 .* Sh^2 .* StV) ./ Denm .- (StV .* Sh^3 .* aux) ./ dDenm
+            dspcM[:,3] = (2 .* Sh .* Keq[:, 2] .* StV) ./ Denm .- ((Keq[:, 2] .* StV .* Sh^2) .* aux) ./ dDenm
+            dspcM[:,4] = (Keq[:, 2] .* Keq[:, 3] .* StV) ./ Denm .- ((Keq[:, 2] .* Keq[:, 3] .* StV .* Sh) .* aux) ./ dDenm
             dspcM[:,5] = -(Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] .* StV .* aux) ./ dDenm
 
             # Evalutaion of the charge balance for the current Sh value, so evaluate dF(Sh)

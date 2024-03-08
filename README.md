@@ -39,7 +39,7 @@ IbM-Fermentation is build up in Julia. Thus, Julia must be installend on your co
         - This initiates the Java Virtual Machine (JVM). This only needs to be done once per Julia session.<br>
     3. Write `include("inclusion_file.jl")` to *Command Window*.<br>
         - This will import all required modules and include all required files for running a simulation. This only needs to be done once per Julia session.<br>
-    4. Write `create_mat("planning\\main.xlsx", xxxx)` to *Command Window* <br>(❗where xxxx is the simulation number from 1 to 9999❗).<br>
+    4. Write `create_mat("planning\\main.xlsx", xxxx);` to *Command Window* <br>(❗where xxxx is the simulation number from 1 to 9999❗).<br>
         - This reads out the excel file and stores the variabels in `sim_xxxx.jld2` in the Code folder.
 
 6. Execute IbM code<br>

@@ -16,17 +16,17 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float
 
     cycle = 0
 
-    while sum(bac_vecfloat.molarMass * constants_float.bac_MW .> constants_float.max_bac_mass_grams) > 0
+    while sum(bac_vecfloat.molarMass .* constants_float.bac_MW .> constants_float.max_bac_mass_grams) > 0
         cycle = cycle + 1
 
         # Select indices of too large bacteria
-        mask_tooBig = bac_vecfloat.molarMass * constants_float.bac_MW .> constants_float.max_bac_mass_grams
+        mask_tooBig = bac_vecfloat.molarMass .* constants_float.bac_MW .> constants_float.max_bac_mass_grams
         nCellsTooBig = sum(mask_tooBig)
 
         # Generate radial coordinates (random angle and fixed distance) and convert to cartesian coordiantes
-        phi = rand(nCellsTooBig) * 2 * pi
-        new_x = bac_vecfloat.x[mask_tooBig] + bac_vecfloat.radius[mask_tooBig] .* cos.(phi)
-        new_y = bac_vecfloat.y[mask_tooBig] + bac_vecfloat.radius[mask_tooBig] .* sin.(phi)
+        phi = rand(nCellsTooBig) .* 2 .* pi
+        new_x = bac_vecfloat.x[mask_tooBig] .+ bac_vecfloat.radius[mask_tooBig] .* cos.(phi)
+        new_y = bac_vecfloat.y[mask_tooBig] .+ bac_vecfloat.radius[mask_tooBig] .* sin.(phi)
 
         # Copy the other properties
         new_species = bac_vecint.species[mask_tooBig]
@@ -34,12 +34,12 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float
         new_active = BitArray(ones(nCellsTooBig))
 
         # Split mass over parent and child
-        new_molarMass = bac_vecfloat.molarMass[mask_tooBig] .* (0.45 .+ 0.1 * rand(nCellsTooBig))        # Mass of new cell is somewhere random between 0.45 and 0.55 of old mass
-        bac_vecfloat.molarMass[mask_tooBig] = bac_vecfloat.molarMass[mask_tooBig] - new_molarMass                 # Parent cell keeps remaining part
+        new_molarMass = bac_vecfloat.molarMass[mask_tooBig] .* (0.45 .+ 0.1 .* rand(nCellsTooBig))        # Mass of new cell is somewhere random between 0.45 and 0.55 of old mass
+        bac_vecfloat.molarMass[mask_tooBig] = bac_vecfloat.molarMass[mask_tooBig] .- new_molarMass                 # Parent cell keeps remaining part
 
         # Update radius of both
-        new_radius = ((new_molarMass * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi))) .^ (1/3)
-        bac_vecfloat.radius[mask_tooBig] = ((bac_vecfloat.molarMass[mask_tooBig] * constants_float.bac_MW / constants_float.bac_rho) * (3 / (4 * pi))) .^ (1/3)
+        new_radius = ((new_molarMass .* constants_float.bac_MW ./ constants_float.bac_rho) .* (3 ./ (4 .* pi))) .^ (1 ./ 3)
+        bac_vecfloat.radius[mask_tooBig] = ((bac_vecfloat.molarMass[mask_tooBig] .* constants_float.bac_MW ./ constants_float.bac_rho) .* (3 ./ (4 .* pi))) .^ (1 ./ 3)
 
         # Update values
         bac_vecfloat.x = [bac_vecfloat.x; new_x]                                      # [-]

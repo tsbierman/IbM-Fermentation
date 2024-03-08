@@ -29,7 +29,7 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_veci
 
     # convert initial pH (single value) to pH matrix
     if isa(pH, Number)
-        pH = ones(size(grid2nBacs)) * pH
+        pH = ones(size(grid2nBacs)) .* pH
     end
 
     # Extract variables from parameters

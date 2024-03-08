@@ -15,8 +15,8 @@ function sort_bacteria_into_chunks!(bac_vecfloat, bac_vecint, bac_vecbool, grid_
     """
 
     # Calculate which gridcell each bacteria is in
-    ix = ceil.(bac_vecfloat.x / grid_float.dx)
-    iy = ceil.(bac_vecfloat.y / grid_float.dy)
+    ix = ceil.(bac_vecfloat.x ./ grid_float.dx)
+    iy = ceil.(bac_vecfloat.y ./ grid_float.dy)
 
     # Calculate which chunk each bacteria is in
     ixChunk = ceil.((ix - focus_region.x0) / chunks_int.dx_chunk)

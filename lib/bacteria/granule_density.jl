@@ -10,9 +10,9 @@ function granule_density!(bac_vecfloat, constants_float)
     bac:                A bac struct with an updated biological density of the granule
     """
 
-    bac_m = bac_vecfloat.molarMass * constants_float.bac_MW                                                                        # [g] for every bacteria
+    bac_m = bac_vecfloat.molarMass .* constants_float.bac_MW                                                                        # [g] for every bacteria
 
     # Approximated as a square due to irregular growth directions
-    bac_vecfloat.bac_rho_bio = sum(bac_m) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * 2e-6)   # [g/m3] The 2e-6 is the depth dimension
+    bac_vecfloat.bac_rho_bio = sum(bac_m) ./ ((maximum(bac_vecfloat.y) .- minimum(bac_vecfloat.y)) .* (maximum(bac_vecfloat.x) .- minimum(bac_vecfloat.x)) .* 2e-6)   # [g/m3] The 2e-6 is the depth dimension
     return bac_vecfloat
 end
