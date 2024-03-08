@@ -18,6 +18,7 @@ function smoothing(phi, rhs, L_lhs)
     
     L_sm = copy(L_lhs)
     L_sm[2,2] = 0
-    phi = (rhs .- conv(phi, L_sm)[2:end-1,2:end-1]) ./ L_lhs[2,2]
+    # phi = (rhs .- conv(phi, L_sm)[2:end-1,2:end-1]) ./ L_lhs[2,2]
+    phi = (rhs .- imfilter(phi, reflect(centered(L_sm)), Fill(0))) ./ L_lhs[2,2]
     return phi
 end
