@@ -136,8 +136,9 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_flo
     kernel = ones(3,3) ./ -8
     kernel[2,2] = 1
     hasBac = grid2nBacs[diffNodesY, diffNodesX] .> 0                # A BitArray of only estimated diffusion region
-    isBacBoundary = conv(hasBac, kernel)[2:end-1,2:end-1] .> 1e-15  # Some numbers end up very small, but technically larger than 0 (1e-17)
-    
+    # isBacBoundary = conv(hasBac, kernel)[2:end-1,2:end-1] .> 1e-15  # Some numbers end up very small, but technically larger than 0 (1e-17)
+    isBacBoundary = imfilter(hasBac, reflect(centered(kernel)), Fill(0)) .> 1e-15  # Some numbers end up very small, but technically larger than 0 (1e-17)
+
     # For the boundary of bacterial grid cells, compute for the neighbouring grid cells whether
     # they are in diffusion region
     maxOffsetX = ceil(grid_float.blayer_thickness / grid_float.dx)              # Maximum offset to check

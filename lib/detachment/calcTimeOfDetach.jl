@@ -104,7 +104,8 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     kernel[2,2] = 1
 
     # Narrow_band is the outermost grids of the aggregate
-    Narrow_band = conv(biofilm, kernel)[2:end-1, 2:end-1] .> 1e-15      # Some numbers are very small, but should be 0
+    # Narrow_band = conv(biofilm, kernel)[2:end-1, 2:end-1] .> 1e-15      # Some numbers are very small, but should be 0
+    Narrow_band = imfilter(biofilm, reflect(centered(kernel)), Fill(0)) .> 1e-15      # Some numbers are very small, but should be 0
 
     # ---------------------------------- START DEBUG ------------------------------------
     # return plotLogicalGrid(detachment_grid, Narrow_band)  # Plot test for Narrow_band

@@ -72,6 +72,7 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
 
         # Use convolution to calculate the diffusion, but only keep the original matrix shape
         RES = conv(padded_conc, L)[3:end-2,3:end-2]                                             # [mol/L]
+        # RES = imfilter(padded_conc, reflect(centered(L)), Inner())
         RES = RES ./ characteristic_time[index] .+ reaction_matrix[:,:,index]                    # [mol/L/h]
 
         # Only look at RES value in the diffusion region, RES of bulk layer has by definition 0 RES.
