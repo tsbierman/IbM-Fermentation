@@ -14,8 +14,8 @@ function rand_circle(N, x_centre, y_centre, r)
     """
     # Create estimate that is actually in the circle
     Ns = round(4 / pi * N + 2.5 * sqrt(N) + 100)
-    X = rand(1, Int(Ns)) * (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
-    Y = rand(1, Int(Ns)) * (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
+    X = rand(1, Int(Ns)) .* (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
+    Y = rand(1, Int(Ns)) .* (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
     
     I = findall(sqrt.(X .^2 .+ Y .^2) .<= r)    # Check which are within radius
     X = X[I[1:N],:] .+ x_centre                 # Select and move to existing centre
@@ -102,8 +102,8 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
     y = transpose(repeat(ylist, inner=(1,nsections)))
 
     # Create some noise in both coordinates and update the vectors
-    noise_x = rand(size(x,1), size(x,2)) * 0.6 * space_margin .- 0.3 * space_margin
-    noise_y = rand(size(y,1), size(y,2)) * 0.6 * space_margin .- 0.3 * space_margin
+    noise_x = rand(size(x,1), size(x,2)) .* 0.6 .* space_margin .- 0.3 .* space_margin
+    noise_y = rand(size(y,1), size(y,2)) .* 0.6 .* space_margin .- 0.3 .* space_margin
 
     x = x + noise_x
     y = y + noise_y
@@ -140,7 +140,7 @@ function AMXinside(bac_vecfloat, grid_float, grid_int, constants_vecstring)
     species:            A vector (nBac,) containing a number, representing the species of the organism
     """
     # Calculate distance from the centre and sort based on distance
-    distance = sqrt.((bac_vecfloat.x .- (grid_int.nx / 2 * grid_float.dx)) .^2 + (bac_vecfloat.y .- (grid_int.ny / 2 * grid_float.dy)) .^2)
+    distance = sqrt.((bac_vecfloat.x .- (grid_int.nx ./ 2 .* grid_float.dx)) .^2 + (bac_vecfloat.y .- (grid_int.ny ./ 2 .* grid_float.dy)) .^2)
     I = sortperm(distance)   # Returns indices
 
     # Determine index of AMX specie. Randomly assign species to bacteria and see how many are AMX
@@ -234,8 +234,8 @@ function create_mat(filename, simulation_number)
     end
 
     # Set parameters for every of the bacteria
-    bac_vecfloat.molarMass = ones(length(bac_vecfloat.x)) * molarMass         # [mol]
-    bac_vecfloat.radius = ones(length(bac_vecfloat.x)) * radius               # [m]
+    bac_vecfloat.molarMass = ones(length(bac_vecfloat.x)) .* molarMass         # [mol]
+    bac_vecfloat.radius = ones(length(bac_vecfloat.x)) .* radius               # [m]
     bac_vecbool.active = BitArray(ones(size(bac_vecfloat.x)))                # Binary/Boolean
 
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
@@ -243,7 +243,7 @@ function create_mat(filename, simulation_number)
 
     if settings_string.model_type in ("granule", "mature granule")
         # Remove bacteria that are outside the maximum granule radius due to shoving
-        keep = sqrt.((bac_vecfloat.x .- (grid_float.dx * grid_int.nx / 2)) .^2 + (bac_vecfloat.y .- (grid_float.dy * grid_int.ny / 2)) .^2 ) .<= bac_init_float.granule_radius
+        keep = sqrt.((bac_vecfloat.x .- (grid_float.dx .* grid_int.nx ./ 2)) .^2 + (bac_vecfloat.y .- (grid_float.dy .* grid_int.ny ./ 2)) .^2 ) .<= bac_init_float.granule_radius
         println("$(size(bac_vecfloat.x, 1) - sum(keep)) Bacteria removed outside of starting granule")
         bac_vecfloat.x = bac_vecfloat.x[keep]
         bac_vecfloat.y = bac_vecfloat.y[keep]

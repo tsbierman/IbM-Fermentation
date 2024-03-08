@@ -23,7 +23,7 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
 
     elseif settings_string.detachment == "naive"
         # Detachment based on distance from centre
-        bac_distance_from_centre = sqrt.((bac_vecfloat.x .- grid_float.dx * grid_int.nx / 2) .^2 + (bac_vecfloat.y .- grid_float.dy * grid_int.ny / 2) .^2)
+        bac_distance_from_centre = sqrt.((bac_vecfloat.x .- grid_float.dx .* grid_int.nx ./ 2) .^2 .+ (bac_vecfloat.y .- grid_float.dy .* grid_int.ny ./ 2) .^2)
         bac_detach = bac_distance_from_centre .> constants_float.max_granule_radius
         nCellsDetach = sum(bac_detach)
 
@@ -55,7 +55,7 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
 
             for bac_index in iBacs
                 # Mass gets adjusted according to the time that has passed and the detachment Time
-                bac_vecfloat.molarMass[bac_index] = bac_vecfloat.molarMass[bac_index] * (1 - r)
+                bac_vecfloat.molarMass[bac_index] = bac_vecfloat.molarMass[bac_index] .* (1 .- r)
             end
         end
 
@@ -84,15 +84,15 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
         # Due to erosion, some bacteria on the outside are way too small 
         # Only factor 2 smaller than inactive bacteria should be reached
         # cells within the granule will not be removed
-        mask_tooSmall = bac_vecfloat.molarMass * constants_float.bac_MW .< constants_float.min_bac_mass_grams / 2
+        mask_tooSmall = bac_vecfloat.molarMass .* constants_float.bac_MW .< constants_float.min_bac_mass_grams ./ 2
         xcentre = mean(bac_vecfloat.x[bac.active])
         ycentre = mean(bac_vecfloat.y[bac.active])
-        dist = sqrt.((bac_vecfloat.x .- xcentre) .^2 + (bac_vecfloat.y .- ycentre) .^2)
+        dist = sqrt.((bac_vecfloat.x .- xcentre) .^2 .+ (bac_vecfloat.y .- ycentre) .^2)
 
         # A cell is considered on the "outside" when the difference in distance to the centre
         # compared to the distance of the furthest active and large enough cell is larger than 
         # 1 boundary layer thickness
-        mask_outside = dist .> max(dist[bac_vecbool.active .& .!mask_tooSmall]) - grid_float.blayer_thickness
+        mask_outside = dist .> max(dist[bac_vecbool.active .& .!mask_tooSmall]) .- grid_float.blayer_thickness
         mask_outsideCellRemoval = mask_tooSmall .& mask_outside
         nCellsRemoved = sum(mask_outsideCellRemoval)
 

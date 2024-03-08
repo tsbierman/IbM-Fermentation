@@ -15,8 +15,8 @@ function determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
     maxBacPerGrid = 9 # Based on radius, this number is maximum 9 (all minimum radius)
 
     # Determine grid cell per bacteria
-    index_x = ceil.(bac_vecfloat.x / grid_float.dx)
-    index_y = ceil.(bac_vecfloat.y / grid_float.dy)
+    index_x = ceil.(bac_vecfloat.x ./ grid_float.dx)
+    index_y = ceil.(bac_vecfloat.y ./ grid_float.dy)
     bac_grid = hcat(index_x, index_y)
 
     # Generate matrices

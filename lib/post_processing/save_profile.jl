@@ -92,7 +92,7 @@ function save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentr
     # reactor_properties
     reactor_saved_matfloat.bulk_concs[iSave, :] = bulk_concentrations
     reactor_saved_vecfloat.HRT[iSave] = 1 / invHRT
-    reactor_saved_vecfloat.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants_float.bac_MW) / ((maximum(bac_vecfloat.y) - minimum(bac_vecfloat.y)) * (maximum(bac_vecfloat.x) - minimum(bac_vecfloat.x)) * grid_float.dz) # [g/m3]
+    reactor_saved_vecfloat.granule_density[iSave] = sum(bac_vecfloat.molarMass .* constants_float.bac_MW) ./ ((maximum(bac_vecfloat.y) .- minimum(bac_vecfloat.y)) .* (maximum(bac_vecfloat.x) .- minimum(bac_vecfloat.x)) .* grid_float.dz) # [g/m3]
 
     # Save structs to file
     save(results_file, "bac_saved_vecint", bac_saved_vecint, "bac_saved_matfloat", bac_saved_matfloat, "bac_saved_matint", bac_saved_matint, "bac_saved_matbool", bac_saved_matbool, "conc_saved", conc_saved, "pH_saved", pH_saved, "reactor_saved_matfloat", reactor_saved_matfloat, "reactor_saved_vecfloat", reactor_saved_vecfloat)

@@ -15,8 +15,8 @@ function update_bacterial_mass!(bac_vecfloat, bac_vecbool, dT)
     decrease_index = bac_vecfloat.mu .<  0 .& bac_vecbool.active # Decrease mass when mu negative and active bacteria
     
     # Updating
-    bac_vecfloat.molarMass[increase_index] = bac_vecfloat.molarMass[increase_index] + dT * bac_vecfloat.mu[increase_index] .* bac_vecfloat.molarMass[increase_index]  
-    bac_vecfloat.molarMass[decrease_index] = bac_vecfloat.molarMass[decrease_index] + dT * bac_vecfloat.mu[decrease_index] .* bac_vecfloat.molarMass[decrease_index]
+    bac_vecfloat.molarMass[increase_index] = bac_vecfloat.molarMass[increase_index] .+ dT .* bac_vecfloat.mu[increase_index] .* bac_vecfloat.molarMass[increase_index]  
+    bac_vecfloat.molarMass[decrease_index] = bac_vecfloat.molarMass[decrease_index] .+ dT .* bac_vecfloat.mu[decrease_index] .* bac_vecfloat.molarMass[decrease_index]
 
     return bac_vecfloat
 end

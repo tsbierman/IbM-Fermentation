@@ -102,14 +102,14 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
                         cumulative_mass = sum(bac_molarMass[iBacs[speciesGrid .== curr_species]] .* bac_active[iBacs[speciesGrid .== curr_species]]) # [molX]
 
                         # Update reaction_matrix element for this grid cell
-                        concentrationChange = mMetabolism[:, curr_species] * mu_noMaintenance           # [mol_i/molX/h] Biomass specific change
+                        concentrationChange = mMetabolism[:, curr_species] .* mu_noMaintenance           # [mol_i/molX/h] Biomass specific change
                         
                         if mu_withMaintenance < 0
-                            concentrationChange = concentrationChange .- mDecay[:, curr_species] * mu_withMaintenance
+                            concentrationChange = concentrationChange .- mDecay[:, curr_species] .* mu_withMaintenance
                         end
                         
                         # Total concentration Changes
-                        concentrationChange = concentrationChange * cumulative_mass                     # [mol_i/h] Total change for this specie
+                        concentrationChange = concentrationChange .* cumulative_mass                     # [mol_i/h] Total change for this specie
 
                         # Fill in matrix
                         reaction_matrix[y_index, x_index, :] = reaction_matrix[y_index, x_index, :] .+ concentrationChange  # [mol_i/h]

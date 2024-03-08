@@ -21,8 +21,8 @@ function getDiffusionNodes(bac_vecfloat, grid_float, grid_int)
     offsetX = grid_float.blayer_thickness + grid_float.dx
     offsetY = grid_float.blayer_thickness + grid_float.dy
 
-    nodeEndCoordinatesX = (1:grid_int.nx) * grid_float.dx
-    nodeEndCoordinatesY = (1:grid_int.ny) * grid_float.dy
+    nodeEndCoordinatesX = (1:grid_int.nx) .* grid_float.dx
+    nodeEndCoordinatesY = (1:grid_int.ny) .* grid_float.dy
 
     # The following part is designed such that even if a small part of a grid cell
     # is within the diffusion region (boundary_layer + some offset), it is true

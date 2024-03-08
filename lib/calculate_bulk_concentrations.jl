@@ -17,7 +17,7 @@ function calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_
         y = bac_vecfloat.y[bac_vecbool.active]
         centre_x = mean(x)
         centre_y = mean(y)
-        radius_granule = maximum(sqrt.((x .- centre_x) .^2 + (y .- centre_y) .^2))
+        radius_granule = maximum(sqrt.((x .- centre_x) .^2 .+ (y .- centre_y) .^2))
         f = 4 * radius_granule / (3 * constants_float.bac_max_radius * 2)
     else
         f = 1
@@ -94,7 +94,7 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
         u[findall(compoundNames .== "Na")] .= NaHCO3            # "Add" NaHCO3 from previous iteration to the system
         u[findall(compoundNames .== "CO2")] .= NaHCO3           # "Add" NaHCO3 from previous iteration to the system
 
-        Denm = (1 .+ Keq[:, 1]) * Sh^3 .+ Keq[:, 2] * Sh^2 .+ Keq[:, 2] .* Keq[:, 3] * Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
+        Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
         # Calculate the concentrations for all the species. Even when not all species are occupied for some compounds,
         # thus some Keq are 0, the general formula will still work. Unnecessary parts will cancel out
@@ -236,7 +236,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
             end
     
             # Always calculate the change of non-dirichlet bulk concentrations
-            dy[.!Dir_k] = invHRT * (reactor_influx[.!Dir_k] - bulk_conc[.!Dir_k]) .+ cumulative_reacted[.!Dir_k]
+            dy[.!Dir_k] = invHRT .* (reactor_influx[.!Dir_k] .- bulk_conc[.!Dir_k]) .+ cumulative_reacted[.!Dir_k]
     
         end
     
@@ -270,7 +270,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
 
         # The combination of dropdims and sum with those dimensions results in a vector that contains total change
         # over the whole matrix per compound. This is then adjusted to a single grid cell
-        cumulative_reacted = dropdims(sum(reactionMatrix, dims=(1,2)), dims=(1,2)) * Vg * f / Vr # [mol/L /h]
+        cumulative_reacted = dropdims(sum(reactionMatrix, dims=(1,2)), dims=(1,2)) .* Vg .* f ./ Vr # [mol/L /h]
 
         # Convert from Vector{Any} to Vector{Float64}
         prev_conc = convert(Array{Float64}, prev_conc)

@@ -17,9 +17,9 @@ function calculate_rhs_dirichlet(phi, L_rhs, value, diffRegion)
                     Outside the region, an artifical vlaue of the bulk_concentration is set.
     """
 
-    adjusted_phi = diffRegion .* phi .+ .!diffRegion * value                            # Fix outside diffusion region
+    adjusted_phi = diffRegion .* phi .+ .!diffRegion .* value                            # Fix outside diffusion region
     rhs_diffRegion = conv(adjusted_phi, L_rhs)[2:end-1,2:end-1]                         # Convolution
-    rhs = diffRegion .* rhs_diffRegion .+ .!diffRegion .* ones(size(phi)) * value       # Fix outside diffusion region
+    rhs = diffRegion .* rhs_diffRegion .+ .!diffRegion .* ones(size(phi)) .* value       # Fix outside diffusion region
 
     return rhs
 end
@@ -57,7 +57,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     iter_final = 5
 
     #convert concentration to mol/m3
-    conc = conc * 1000
+    conc = conc .* 1000
 
     # Stencil Initialisation
     L = [0 1 0; 1 -4 1; 0 1 0]                  # Laplacian stencil
@@ -65,22 +65,22 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     I[2,2] = 1
 
     base = [1 2 1; 2 4 2; 1 2 1]
-    L_restriction = base/16
-    L_prolongation = base/4
+    L_restriction = base ./ 16
+    L_prolongation = base ./ 4
 
     for icompound in 1:nCompounds
         # stencil updates/declarations
         alpha = dT * diffusion_coef[icompound] / (2 * dx^2)
-        L_lhs = I .- alpha * L                  # Lefthand-side stencil
-        L_0 = alpha * L                         # Basis Laplacian stencil
-        L_rhs = I .+ alpha * L                  # Righthand-side stencil
+        L_lhs = I .- alpha .* L                  # Lefthand-side stencil
+        L_0 = alpha .* L                         # Basis Laplacian stencil
+        L_rhs = I .+ alpha .* L                  # Righthand-side stencil
 
         # Create right hand side
         # - boundary conditions
-        rhs_bc = calculate_rhs_dirichlet(conc[:,:,icompound], L_rhs, bulk_concentrations[icompound] * 1000, diffRegion)     # [ny,nx,ncompounds]
+        rhs_bc = calculate_rhs_dirichlet(conc[:,:,icompound], L_rhs, bulk_concentrations[icompound] .* 1000, diffRegion)     # [ny,nx,ncompounds]
 
         # - Reaction matrix
-        rhs_react = dT * 1000 * reaction_matrix[:,:,icompound]
+        rhs_react = dT .* 1000 .* reaction_matrix[:,:,icompound]
 
         # - Combine
         rhs = rhs_bc .+ rhs_react
@@ -88,7 +88,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
         # solve using multigrid
         isSolution = false      # without running, not isSolution
         while !isSolution
-            conc[:,:,icompound] = V_Cycle!(conc[:,:,icompound], diffRegion, bulk_concentrations[icompound] * 1000, rhs, L_0, L_restriction, L_prolongation, 9, 0, iter_pre, iter_post, iter_final)
+            conc[:,:,icompound] = V_Cycle!(conc[:,:,icompound], diffRegion, bulk_concentrations[icompound] .* 1000, rhs, L_0, L_restriction, L_prolongation, 9, 0, iter_pre, iter_post, iter_final)
             residual_diffRegion = residual(conc[:,:,icompound], rhs, L_lhs)     # Check residuals
             residual_diffRegion = diffRegion .* residual_diffRegion             # Only for the diffusion region
             isSolution = sum(residual_diffRegion .^2) < accuracy^2              # Check whether condition is met, not the case? --> Another V-Cycle
@@ -108,7 +108,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     end
 
     # convert concentration back to mol/L
-    conc = conc / 1000
+    conc = conc ./ 1000
    
     return conc
 end

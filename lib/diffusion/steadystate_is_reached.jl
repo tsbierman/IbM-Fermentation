@@ -72,7 +72,7 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
 
         # Use convolution to calculate the diffusion, but only keep the original matrix shape
         RES = conv(padded_conc, L)[3:end-2,3:end-2]                                             # [mol/L]
-        RES = RES ./ characteristic_time[index] + reaction_matrix[:,:,index]                    # [mol/L/h]
+        RES = RES ./ characteristic_time[index] .+ reaction_matrix[:,:,index]                    # [mol/L/h]
 
         # Only look at RES value in the diffusion region, RES of bulk layer has by definition 0 RES.
         compound_steadystate[index] = isReached_compound(RES[diffRegion], method, steadystate_tolerance)
