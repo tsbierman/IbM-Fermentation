@@ -29,19 +29,19 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
         decay_index = specie_mu_withMain .< 0                                           # Find which ones are decaying but still active
         mass_decaying_bac = bac_vecfloat.molarMass[specie_index][decay_index]                    # Select mass [mol] of decaying bacteria of the specie
         decayed_biomass = sum(mass_decaying_bac .* specie_mu_withMain[decay_index])     # Calculate how much biomass in total [mol_X] is lost due to decay
-        compoundChange_decay = constants_matfloat.MatrixDecay[:, specie] * decayed_biomass       # Compound change [mol_i/h], note: NEGATIVE!
+        compoundChange_decay = constants_matfloat.MatrixDecay[:, specie] .* decayed_biomass       # Compound change [mol_i/h], note: NEGATIVE!
 
         # Growth change
         specie_maint = constants_vecfloat.maintenance[specie]                                    # Get maintenance
         specie_mu_withoutMain = specie_mu_withMain .+ specie_maint                      # Convert mu
         increased_biomass = sum(bac_vecfloat.molarMass[specie_index] .* specie_mu_withoutMain)   # Increase of biomass due to growth
-        compoundChange_growth = constants_matfloat.MatrixMet[:,specie] * increased_biomass       # Compound change due to growth   [mol_i/h]
+        compoundChange_growth = constants_matfloat.MatrixMet[:,specie] .* increased_biomass       # Compound change due to growth   [mol_i/h]
 
         # Update estimate
         estimated_compounds = estimated_compounds .+ compoundChange_growth .- compoundChange_decay # Update estimated compounds, - compound_decay due to it begin negative        
     end
 
-    actual_compoundChange = dropdims(sum(reaction_matrix, dims=(1,2)), dims=(1,2)) * constants_float.Vg       # Convert from [mol_i/L/h] (grid level) to [mol_i/h]
+    actual_compoundChange = dropdims(sum(reaction_matrix, dims=(1,2)), dims=(1,2)) .* constants_float.Vg       # Convert from [mol_i/L/h] (grid level) to [mol_i/h]
     difference = actual_compoundChange .- estimated_compounds
     biomass_closes = maximum(abs.(difference)) <= tolerance
 
@@ -50,9 +50,9 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
 
     # Conversion factor volume slice to volume sphere
     f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)
-    actual_compoundChange = actual_compoundChange * f / constants_float.Vr    # Convert from [mol_i/h] to [mol_i/L/h] (reactor level)
+    actual_compoundChange = actual_compoundChange .* f ./ constants_float.Vr    # Convert from [mol_i/h] to [mol_i/L/h] (reactor level)
 
-    balances = (influent .- outflow) * invHRT .+ actual_compoundChange - bulk_change
+    balances = (influent .- outflow) .* invHRT .+ actual_compoundChange .- bulk_change
     balances_closes = maximum(abs.(balances[.!constants_vecbool.Dir_k])) <= tolerance
     dirichlet_closes = maximum(abs.(balances[constants_vecbool.Dir_k] .- actual_compoundChange[constants_vecbool.Dir_k])) <= tolerance
 

@@ -22,12 +22,12 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
     """
     
     # Create a correct left-hand-side stencil according to A_lhs = I - 1/2 ^2d * L_0
-    L_lhs = [0 0 0; 0 1 0; 0 0 0] .- ((1/2)^(2*depth)) * L_0
+    L_lhs = [0 0 0; 0 1 0; 0 0 0] .- ((1 ./ 2) .^(2 .* depth)) .* L_0
 
     # Pre-recursion smoothing
     for itr in 1:iter_pre
         phi = smoothing(phi, f, L_lhs)                          # Smooth with the matrix A
-        phi = phi .*diffRegion .+ bulk_value * .!diffRegion     # But not for the bulk region, that should be Dirichlet (or in case of error, 0)
+        phi = phi .*diffRegion .+ bulk_value .* .!diffRegion     # But not for the bulk region, that should be Dirichlet (or in case of error, 0)
     end
 
     # Compute Residual errors
@@ -45,7 +45,7 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
     if ceil(sqrt(length(phi))) <= maxDepth                                      # If the length of a dimension is the smallest size or smaller
 
         # stop recursion, but do some final smoothing with the last restricted residuals and error
-        L_lhs_deeper = [0 0 0; 0 1 0; 0 0 0] .- ((1/2)^(2*(depth+1))) * L_0     # Create a new stencil for this final depth
+        L_lhs_deeper = [0 0 0; 0 1 0; 0 0 0] .- ((1 ./ 2) .^(2 .* (depth .+1))) .* L_0     # Create a new stencil for this final depth
         for itr in 1:iter_final
             eps = smoothing(eps, rhs, L_lhs_deeper)                             # Smooth the errors
             eps = eps .* next_diffRegion                                        # But only for diffusion region
@@ -56,12 +56,12 @@ function V_Cycle!(phi, diffRegion, bulk_value, f, L_0, L_restriction, L_prolonga
     end
 
     # Prolongation or eps and Correction of phi
-    phi = phi + prolongation(eps, L_prolongation, size(phi))
+    phi = phi .+ prolongation(eps, L_prolongation, size(phi))
 
     # Post recursion smoothing
     for itr in 1:iter_post
         phi = smoothing(phi, f, L_lhs)                          # Smooth with the matrix A
-        phi = phi .* diffRegion .+ bulk_value * .!diffRegion    # But not for bulk region
+        phi = phi .* diffRegion .+ bulk_value .* .!diffRegion    # But not for bulk region
     end
     return phi
 end

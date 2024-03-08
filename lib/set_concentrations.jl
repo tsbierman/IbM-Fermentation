@@ -12,7 +12,7 @@ function set_concentrations!(conc_old, set_concs, mask)
     """
 
     set_concs = reshape(set_concs, 1, 1, :)
-    conc = .!mask .* conc_old + mask .* set_concs
+    conc = .!mask .* conc_old .+ mask .* set_concs
     
     return conc
 end
