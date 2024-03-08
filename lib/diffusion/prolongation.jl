@@ -15,7 +15,8 @@ function prolongation(phi_coarse, L_prolongation, sz)
 
     phi_fine = zeros(sz)
     phi_fine[1:2:end, 1:2:end] = phi_coarse
-    phi_fine = conv(phi_fine, L_prolongation)[2:end-1,2:end-1]
+    # phi_fine = conv(phi_fine, L_prolongation)[2:end-1,2:end-1]
+    phi_fine = imfilter(phi_fine, reflect(centered(L_prolongation)), Fill(0))
 
     return phi_fine
 end

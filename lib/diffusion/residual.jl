@@ -14,6 +14,7 @@ function residual(phi, rhs, L_lhs)
     r:                  the calculated residuals
     """
     
-    r = rhs .- conv(phi, L_lhs)[2:end-1,2:end-1]
+    # r = rhs .- conv(phi, L_lhs)[2:end-1,2:end-1]
+    r = rhs .- imfilter(phi, reflect(centered(L_lhs)), Fill(0))
     return r
 end
