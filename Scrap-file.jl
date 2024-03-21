@@ -33,3 +33,18 @@ using BenchmarkTools
 
 # @btime func1(10000);
 # @btime func2(10000);
+
+# a = [1 0 -1; 1 0 0; -1 0.5 0.5]
+# b = [1,2,3]
+
+# c = a .* b
+# d = sum(c, dims=1)
+# e = dropdims(sum(c, dims=1), dims=1)
+# display(c)
+# display(d)
+# display(e)
+
+# f = [1,2]
+# g = zeros(size(b))
+# g[1:length(f)] = f
+# display(g)
