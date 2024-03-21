@@ -130,6 +130,8 @@ function loadPresetFile(filename)
     settings_bool.structure_model = values_solv[names_solv .== "Structure model"][1]                         # Boolean
     if settings_bool.structure_model
         settings_string.type = values_solv[names_solv .== "Structure model type"][1]                           # [Neut, Comm, Comp, Copr]
+    else
+        settings_string.type = "None"
     end
 
     settings_bool.parallelized = values_solv[names_solv .== "Parallelisation"][1]                            # Boolean
