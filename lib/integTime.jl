@@ -33,7 +33,7 @@ function integTime(simulation_file, directory)
     if isfile(backup_file) && isfile(profiling_file)
         # load from files
         bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH = load(backup_file, "bac_vecfloat", "bac_vecint", "bac_vecbool", "bulk_concs", "invHRT", "conc", "reaction_matrix", "pH")
-        profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time = load(profiling_file, "profiling", "maxErrors", "normOverTime", "nDiffIters", "bulk_history", "Time")
+        profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat = load(profiling_file, "profiling", "maxErrors", "normOverTime", "nDiffIters", "maxInitRES", "bulk_history", "Time", "Time_vecfloat")
     else
         # Initiate from preset values
         conc, bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool = initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, init_params, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string)
@@ -380,7 +380,7 @@ function integTime(simulation_file, directory)
 
                         # Save all important variables for continuing simulation from this profilingResults
                         save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
-                        save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)
+                        save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)
                     end
 
                     if settings_string.detachment == "SBR"
@@ -402,5 +402,5 @@ function integTime(simulation_file, directory)
     save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
     # save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
     save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
-    save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)   # Save performance
+    save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)   # Save performance
 end

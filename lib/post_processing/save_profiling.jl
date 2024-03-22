@@ -1,4 +1,4 @@
-function save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_history, Time, Time_vecfloat, directory)
+function save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)
     """
     This function saves important profiling arrays with information on the performance
     of the simulation. It will overwrite the last backup in order to always 
@@ -17,5 +17,5 @@ function save_profiling(profiling, maxErrors, normOverTime, nDiffIters, bulk_his
     results_file = string(directory, "\\profilingResults.jld2")
 
     # Save everything
-    save(results_file, "profiling", profiling, "maxErrors", maxErrors, "normOverTime", normOverTime, "nDiffIters", nDiffIters, "bulk_history", bulk_history, "Time", Time, "Time_vecfloat", Time_vecfloat)
+    save(results_file, "profiling", profiling, "maxErrors", maxErrors, "normOverTime", normOverTime, "nDiffIters", nDiffIters, "maxInitRES", maxInitRES, "bulk_history", bulk_history, "Time", Time, "Time_vecfloat", Time_vecfloat)
 end
