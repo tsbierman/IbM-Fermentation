@@ -69,6 +69,7 @@ include("lib\\post_processing\\save_backup.jl")
 include("lib\\post_processing\\save_profile.jl")
 include("lib\\post_processing\\save_profiling.jl")
 include("lib\\post_processing\\save_slice.jl")
+include("lib\\post_processing\\plotBacs.jl")
 println(">>>>>>>>>>>>>>INCLUDED POST_PROCESSING FILES")
 
 # Reaction_matrix files
