@@ -30,7 +30,7 @@ function muratio(mu, species, inc)
 end
 
 
-function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, bacNames, dT_save, sim_number)
+function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, bacNames, dT_save, sim_number, include_radius)
 
     nBacs = bac_vecint.nBacs[i]
     x = bac_matfloat.x[i, 1:nBacs] * 1e6            # In µm
@@ -57,7 +57,11 @@ function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matb
 
     plot()
     for i in eachindex(x)
-        plot!(circleShape(x[i], y[i], radius[i]), seriestype =[:shape], aspect_rate=1, c=colors[i], linewidth=0.1, fillalpha=alphas[i], aspect_ratio=1, label=false)
+        if !include_radius && !active[i]
+            plot!(circleShape(x[i], y[i], 4.64e-7 * 1e6), seriestype =[:shape], aspect_rate=1, c=colors[i], linewidth=0.1, linealpha= 0.2, fillalpha=alphas[i], aspect_ratio=1, label=false)
+        else
+            plot!(circleShape(x[i], y[i], radius[i]), seriestype =[:shape], aspect_rate=1, c=colors[i], linewidth=0.1, fillalpha=alphas[i], aspect_ratio=1, label=false)
+        end
     end
 
     for i in eachindex(bacNames)
@@ -105,7 +109,15 @@ function getlimitdata(bac_vecint, bac_matfloat, grid_float, index)
 end
 
 
-function plotBacs(sim_number, finished, only_last)
+function plotBacs(sim_number, finished, only_last, include_radius)
+    """
+    Function that plots the bacteria
+    Arguments:
+    sim_number              Integer indicating the simulation number
+    finished                Boolean indicating whether simulation is finished (influences where data is taken from)
+    only_last               Boolean whether only final state should be plotted, if false, a gif is made
+    include_radius          Boolean indicating whether inactive bacteria should be plotted with their real radius (true) or a fixed radius (false). Fixed radius shows species of inactive cells better
+    """
 
     bac_vecint, bac_matfloat, bac_matint, bac_matbool, grid_float, grid_int, constants_float, constants_vecstring = loaddata(sim_number, finished)
     
@@ -113,7 +125,7 @@ function plotBacs(sim_number, finished, only_last)
     xlim, ylim = getlimitdata(bac_vecint, bac_matfloat, grid_float, lastnonzero)
 
     if only_last
-        fig = save_plot(lastnonzero, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, constants_vecstring.speciesNames, constants_float.dT_save, sim_number)
+        fig = save_plot(lastnonzero, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, constants_vecstring.speciesNames, constants_float.dT_save, sim_number, include_radius)
     else
         # Gif implementation
         println("Sorry, not implemented yet")
