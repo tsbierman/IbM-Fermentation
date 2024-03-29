@@ -30,7 +30,7 @@ function muratio(mu, species, inc)
 end
 
 
-function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, bacNames, dT_save, sim_number, include_radius)
+function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, bacNames, dT_save, sim_number, only_last, include_radius)
 
     nBacs = bac_vecint.nBacs[i]
     x = bac_matfloat.x[i, 1:nBacs] * 1e6            # In µm
@@ -67,6 +67,11 @@ function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matb
     for i in eachindex(bacNames)
         scatter!([],[], color = colors_database[i], linewidth=0.1, label=bacNames[i])
     end
+
+    if !only_last
+        plot!([],[], title="Time = $((i-1) * dT_save)", label=false)
+    end
+
     fig = plot!(xlimits=xlim.*1e6, ylimits=ylim.*1e6, xlabel="Position along x-axis [µm]", ylabel="Position along y-axis [µm]",
                 foreground_color_legend = nothing, background_color_legend = nothing, legendposition=:bottomright, dpi=600)
 
@@ -125,15 +130,20 @@ function plotBacs(sim_number, finished, only_last, include_radius)
     xlim, ylim = getlimitdata(bac_vecint, bac_matfloat, grid_float, lastnonzero)
 
     if only_last
-        fig = save_plot(lastnonzero, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, constants_vecstring.speciesNames, constants_float.dT_save, sim_number, include_radius)
+        fig = save_plot(lastnonzero, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, constants_vecstring.speciesNames, constants_float.dT_save, sim_number, only_last, include_radius)
     else
         # Gif implementation
-        println("Sorry, not implemented yet")
-        # for i in 1:lastnonzero
-        #     if bac_vecint.nBacs[i] != 0
-        #         save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool)
-        #     end
-        # end
+        fig = "DONE"
+        anim = @animate for i in 1:lastnonzero
+            if bac_vecint.nBacs[i] != 0
+                save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matbool, constants_vecstring.speciesNames, constants_float.dT_save, sim_number, only_last, include_radius)
+            end
+        end
+        gif(anim, string(pwd(), "\\results\\$(sim_number)\\$(sim_number).gif"), fps=10)
+
+        for i in 1:lastnonzero
+            rm(string(pwd(), "\\results\\$(sim_number)\\$(i).png"))
+        end
     end
 
     println("DONE!")
