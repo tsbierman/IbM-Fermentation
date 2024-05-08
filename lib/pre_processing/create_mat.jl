@@ -286,6 +286,7 @@ end
 import XLSX
 using Random
 using Plots
+using StatsPlots
 using InvertedIndices
 using Statistics
 using DSP
