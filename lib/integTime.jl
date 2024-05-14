@@ -128,6 +128,7 @@ function integTime(simulation_file, directory)
 
         if mod(iDiffusion, constants_vecint.nItersCycle[1]) == 0
             println("Currently at diffusion iteration $(iDiffusion) (max error: $(maximum(RESvalues[:, iRES])))\n")
+            println(RESvalues[:,iRES])
         end
 
         # diffuse (MG)

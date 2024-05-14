@@ -260,6 +260,7 @@ function create_mat(filename, simulation_number)
         bac_vecfloat.radius = bac_vecfloat.radius[keep]
         bac_vecfloat.molarMass = bac_vecfloat.molarMass[keep]
         bac_vecbool.active = bac_vecbool.active[keep]
+        bac_vecint.colony_nums = bac_vecint.colony_nums[keep]
     end
 
     if settings_string.model_type == "mature granule"

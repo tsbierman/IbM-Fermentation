@@ -353,6 +353,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
 
         if any(bulk_concentrations .< 0)
             @warn("DEBUG:actionRequired, debug: negative bulk concentration encountered after pH control... correction required?")
+            println(bulk_concentrations)
             bulk_concentrations = bulk_concentrations .* (bulk_concentrations .> 0)
         end
     end
