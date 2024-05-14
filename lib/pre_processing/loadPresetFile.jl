@@ -78,7 +78,11 @@ function loadPresetFile(filename)
     names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2])) # It takes some extra empty rows, this removes that
     constants_float.pHsetpoint = values_para[names_para .== "pH setpoint"][1]                     # [-]
     constants_float.T = values_para[names_para .== "Temperature (K)"][1]                          # [K]
+    constants_float.kla = values_para[names_para .== "kLa"][1]                                    # [h-1]
+    constants_float.Pgas = values_para[names_para .== "Gas pressure"][1]                          # [bar]
+    constants_float.R = values_para[names_para .== "Gas constant"][1]                             # [kJ/mol*K]
     constants_float.Vr = values_para[names_para .== "Representative volume"][1] * 1000            # [L]
+    constants_float.Vgas = values_para[names_para .== "Representative gas volume"][1] * 1000      # [L]
     constants_float.reactor_density = values_para[names_para .== "Density reactor"][1]            # [g/L]
 
     settings_bool.variableHRT = values_para[names_para .== "Variable HRT"][1]                    # [Bool]
@@ -254,6 +258,18 @@ function loadPresetFile(filename)
         end
     end
 
+    kh_file = file["Kh"]
+    constants_vecfloat.Kh = collect(skipmissing(kh_file[:,2]))
+    constants_vecint.Gas_k = collect(skipmissing(kh_file[:,4]))
+
+    if any(constants_vecfloat.Kh[constants_vecint.Gas_k .!= 0] .== 0.0)
+        throw(ErrorException("Species that participate in gas-liquid transfer need an Henry constant, please check sheet Kh"))
+    end
+
+    if any(constants_vecfloat.Kh[constants_vecint.Gas_k .== 0] .!= 0.0)
+        throw(ErrorException("Henry constant provided for specie that is not participating in gas-liquid transfer, please check sheet Kh"))
+    end
+
     # Constants (Yield, eDonor, mu_max, maint)
     yield_mu_file = file["Yield-Mu"]
     bac_names = collect(skipmissing(yield_mu_file[2:end,1]))
@@ -267,14 +283,17 @@ function loadPresetFile(filename)
     yield = values_Ymu[:, findall(names_Ymu .== "Yield")]
     eD = values_Ymu[:, findall(names_Ymu .== "eD")]
 
-    constants_vecfloat.maintenance = dropdims(values_Ymu[:,findall(names_Ymu .== "Maintenance")], dims=2)
-    constants_vecfloat.mu_max = dropdims(values_Ymu[:,findall(names_Ymu .== "Max growth rate")], dims=2)
+    temp_maint = dropdims(values_Ymu[:,findall(names_Ymu .== "Maintenance")], dims=2)
+    temp_mumax = dropdims(values_Ymu[:,findall(names_Ymu .== "Max growth rate")], dims=2)
 
-    # Test whether any of the maintenance or mu is unknown (missing)
-    if any(ismissing.(constants_vecfloat.maintenance)) || any(ismissing.(constants_vecfloat.mu_max))
+    # Test whether any of the maintenance or mu is NA (missing)
+    if any(temp_maint .== "NA") || any(temp_mumax .== "NA")
         constants_vecfloat.maintenance = [NaN]
         constants_vecfloat.mu_max = [NaN]
         println("Maintenance and maximum growth rate are not set, thus calculating dynamically. \nPlease make sure the equations and species match up in the code.\n")
+    else
+        constants_vecfloat.maintenance = temp_maint
+        constants_vecfloat.mumax = temp_mumax
     end
 
     # Constants (ReactionMatrix)
@@ -316,9 +335,9 @@ function loadPresetFile(filename)
             throw(ErrorException("Catabolism is not normalised towards the electron Donor"))
         end
 
-        # Calculate metabolism matrix entry TODO: make sure this is correct!
-        # It seems to me that if eD is also used in anabolism that this equation does not hold anymore!
-        constants_matfloat.MatrixMet[:, species] = cata ./ Y .+ ana
+        # Calculate metabolism matrix entry. If no eD used in anabolism and catabolism is normilised (check above), lambda_cat = 1/Y
+        lambda_cat = ((1/Y) - abs(ana[eD_index][1])) / abs(cata[eD_index][1])
+        constants_matfloat.MatrixMet[:, species] = cata .* lambda_cat .+ ana
 
         # Set decay matrix entry
         constants_matfloat.MatrixDecay[:, species] = values_reacM[first_compoundindex[1]:last_compoundindex[1], iDecay[species]]

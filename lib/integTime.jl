@@ -349,7 +349,7 @@ function integTime(simulation_file, directory)
                     # Place for balance check/analyse metabolites
                     if Time.current >= Time.analyse
 
-                        biomass_close, balance_close, dirichlet_close = check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecstring, constants_vecbool, constants_matfloat, settings_string, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
+                        biomass_close, balance_close, dirichlet_close = check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_string, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
                         println("Biomass closes: $(biomass_close)")
                         println("Balances closing: $(balance_close)")
                         println("Dirichlet closing: $(dirichlet_close)")
@@ -371,8 +371,8 @@ function integTime(simulation_file, directory)
                     Time.save = Time.save + constants_float.dT_save
 
                     # Save all important variables
-                    save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
-                    # save_profile(bac, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
+                    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+                    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
 
                     if Time.current >= Time.backup
                         # Set next backup time
@@ -399,8 +399,8 @@ function integTime(simulation_file, directory)
     end
 
     # Save all important variables one last time?
-    save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
-    # save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
+    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
+    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
     save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
     save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)   # Save performance
 end

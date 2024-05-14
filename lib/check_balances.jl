@@ -1,4 +1,4 @@
-function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecstring, constants_vecbool, constants_matfloat, settings_string, reaction_matrix, bulk_concentrations, invHRT, bulk_change, tolerance)
+function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint,constants_vecstring, constants_vecbool, constants_matfloat, settings_string, reaction_matrix, bulk_concentrations, invHRT, bulk_change, tolerance)
     """
     This function checks whether the amount of biomass produces/decayed alligns with the compounds consumed/produced.
     It also checks whether the balance of the whole reactor closes.
@@ -48,11 +48,33 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
     influent = constants_vecfloat.influent_concentrations
     outflow = bulk_concentrations
 
+    CO2_index = findall(constants_vecstring.compoundNames)
+    Sh = 10^-constants_float.pHsetpoint
+    Keq = constants_matfloat.Keq
+    Denm = (1 .+ Keq[CO2_index, 1]) .* Sh^3 .+ Keq[CO2_index, 2] .* Sh^2 .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Sh .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Keq[CO2_index, 4]
+    CO2_conc = (bulk_conc[CO2_index] .* Sh^3) ./ Denm  
+
+    copybulk_conc = copy(outflow)
+    copybulk_conc[CO2_index] = CO2_conc
+
+    # Calculations required for the gas-liquid transfer
+    p_h2o = 0.0313 * exp(43980/(constants_float.R*1000) * (1/298 - 1/constants_float.T))
+    solubilities = constants_vecfloat.Kh[constants_vecint.Gas_k .== 1] .* outflow[constants_vecint.Gas_k .== 1] .* constants_float.R*10 .* constants_float.T       # Same units as prev_conc (as long as R and Kh are in the same units [mol/L]
+    gas_transfer_rates = constants_float.kla .* (copybulk_conc[constants_vecint.Gas_k .== -1] .- solubilities) # [mol/L/h]
+    Qgas = constants_float.R*10 * constants_float.T / (constants_float.Pgas - p_h2o) * constants_float.Vr * sum(gas_transfer_rates) 
+
     # Conversion factor volume slice to volume sphere
     f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)
     actual_compoundChange = actual_compoundChange .* f ./ constants_float.Vr    # Convert from [mol_i/h] to [mol_i/L/h] (reactor level)
 
-    balances = (influent .- outflow) .* invHRT .+ actual_compoundChange .- bulk_change
+    balances = zeros(shape(outflow))
+
+    change_liquid = .!constants_vecbool.Dir_k .& (constants_vecint.Gas_k .!= 1)
+
+    balances[change_liquid] = (influent[change_liquid] .- outflow[change_liquid]) .* invHRT .+ actual_compoundChange[change_liquid] .- bulk_change[change_liquid]
+    balances[constants_vecint.Gas_k .!= -1] = balances[constants_vecint.Gas_k .!= -1] .- gas_transfer_rates
+    balances[constants_vecint.Gas_k .!= 1] = -Qgas ./ constants_float.Vgas .* outlfow[constants_vecint.Gas_k .== 1] .+ gas_transfer_rates .* constants_float.Vr ./ constants_float.Vgas .- bulk_change[constants_vecint.Gas_k .!= 1]
+
     balances_closes = maximum(abs.(balances[.!constants_vecbool.Dir_k])) <= tolerance
     dirichlet_closes = maximum(abs.(balances[constants_vecbool.Dir_k] .- actual_compoundChange[constants_vecbool.Dir_k])) <= tolerance
 
