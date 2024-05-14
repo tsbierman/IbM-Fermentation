@@ -36,6 +36,7 @@ function sort_bacteria_into_chunks!(bac_vecfloat, bac_vecint, bac_vecbool, grid_
     bac_vecfloat.radius = bac_vecfloat.radius[sortChunkIndex]
     bac_vecbool.active = bac_vecbool.active[sortChunkIndex]
     bac_vecfloat.mu = bac_vecfloat.mu[sortChunkIndex]
+    bac_vecint.colony_nums = bac_vecint.colony_nums[sortChunkIndex]
 
     return bac_vecfloat, bac_vecint, bac_vecbool
 

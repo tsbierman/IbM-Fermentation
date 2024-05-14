@@ -115,13 +115,20 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
     x = x[i]
     y = y[i]
     
+    centres_x = copy(x)
+    centres_y = copy(y)
+
+    colony_nums = collect(1:nColonies)
+    
     # For every coordinate (1 cell), generate a colony around the cell and store its coordinates    
     for index in eachindex(x)
         x_microcol, y_microcol = blue_noise_circle(nBacPerCol, x[index], y[index], r_colony)
         x = [x;x_microcol[2:end]]
         y = [y;y_microcol[2:end]]
+        added_colony_nums = ones(nBacPerCol-1) * index
+        colony_nums = [colony_nums;added_colony_nums]
     end
-    return x, y
+    return x, y, centres_x, centres_y, colony_nums
 end
 
 
@@ -221,6 +228,9 @@ function create_mat(filename, simulation_number)
 
         # Create a single colony of bacteria around the centre
         bac_vecfloat.x, bac_vecfloat.y = blue_noise_circle(bac_init_int.start_nBac, grid_int.nx / 2 * grid_float.dx, grid_int.ny / 2 * grid_float.dy, bac_init_float.granule_radius)
+        bac_vecfloat.centres_x = [grid_int.nx / 2 * grid_float.dx]
+        bac_vecfloat.centres_y = [grid_int.ny / 2 * grid_float.dy]
+        bac_vecint.colony_nums = ones(length(bac_vecfloat.x))
 
     elseif settings_string.model_type in ("suspension",)
 
@@ -230,7 +240,7 @@ function create_mat(filename, simulation_number)
 
         # Create several colonies with some bacteria each
         r_colony = (bac_init_int.start_nBacPerColony * radius * constants_float.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
-        bac_vecfloat.x, bac_vecfloat.y = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
+        bac_vecfloat.x, bac_vecfloat.y, bac_vecfloat.centres_x, bac_vecfloat.centres_y, bac_vecint.colony_nums = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
     end
 
     # Set parameters for every of the bacteria

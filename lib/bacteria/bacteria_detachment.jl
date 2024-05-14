@@ -22,8 +22,15 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
         return bac_vecfloat, bac_vecint, bac_vecbool
 
     elseif settings_string.detachment == "naive"
+
+        bac_distance_from_centre = zeros(length(bac_vecfloat.x))
+        for index in 1:maximum(bac_vecint.colony_nums)
+            bac_index = bac_vecint.colony_nums .== index
+            bac_distance_from_centre[bac_index] = sqrt.((bac_vecfloat.x[bac_index] .- bac_vecfloat.centres_x[index]).^2 .+ (bac_vecfloat.y[bac_index] .- bac_vecfloat.centres_y[index]).^2)
+        end
+
         # Detachment based on distance from centre
-        bac_distance_from_centre = sqrt.((bac_vecfloat.x .- grid_float.dx .* grid_int.nx ./ 2) .^2 .+ (bac_vecfloat.y .- grid_float.dy .* grid_int.ny ./ 2) .^2)
+        # bac_distance_from_centre = sqrt.((bac_vecfloat.x .- grid_float.dx .* grid_int.nx ./ 2) .^2 .+ (bac_vecfloat.y .- grid_float.dy .* grid_int.ny ./ 2) .^2)
         bac_detach = bac_distance_from_centre .> constants_float.max_granule_radius
         nCellsDetach = sum(bac_detach)
 
