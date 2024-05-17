@@ -71,7 +71,8 @@ function save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentr
     end
     
     # Set values
-    iSave = ceil(Time  / constants_float.dT_save)  + 1
+    # iSave = ceil(Time  / constants_float.dT_save) + 1
+    iSave = ceil(Int, (Time+0.01) / constants_float.dT_save)
 
     # Bacterial variables
     nBacs = length(bac_vecfloat.x)

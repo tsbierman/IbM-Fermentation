@@ -83,7 +83,8 @@ function integTime(simulation_file, directory)
         bulk_history[:,1] = bulk_concs # Is added after changing iProf, so first value should be placed already
 
         # Initialise saving file
-        save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+        # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+        save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
     end
 
     # Initialise storing space

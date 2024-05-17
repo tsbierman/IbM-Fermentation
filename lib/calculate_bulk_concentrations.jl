@@ -82,11 +82,11 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
     
     Tol = 1e-14                 # Very close to 0, alligns with pH 14
     Tp = 1                      # Initialisation
-    CO2_correction = 0
     u = [conc; 1; 0]            # Add values for H2O and H concentrations (even though H is always empty)
     # u contains the total concentration of the compunds (summation of all species)
 
     NaHCO3 = conc[findall(compoundNames .== "Na")][1] # Assume all Na comes from NaHCO3, as initial guess
+    CO2_concentration = conc[findall(compoundNames .== "CO2")][1]
 
     # w = 1     # This is the water concentrations. Due to the magnitude of the equilibrium constant (Keq), it does not matter whether we choose 1 or 55.
                 # If it is desired to implement and change this, at a "/ w" after the Keq[:,1] below in lines 102 and 107.
@@ -96,8 +96,7 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
 
     while abs(Tp) > Tol
         u[findall(compoundNames .== "Na")] .= NaHCO3            # "Add" NaHCO3 from previous iteration to the system
-        # u[findall(compoundNames .== "CO2")] .= NaHCO3           # "Add" NaHCO3 from previous iteration to the system
-        u[findall(compoundNames .== "CO2")] = u[findall(compoundNames .== "CO2")] .- CO2_correction
+        u[findall(compoundNames .== "CO2")] .= CO2_concentration           # "Add" NaHCO3 from previous iteration to the system
 
         Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
@@ -112,15 +111,13 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
         Tp = Sh + sum(spcM .* chrM)                                     # Charge balance (protons + charge for all other compounds)
 
         # Tp will be negative when we are not at the solution yet, thus increasing NaHCO3, mimicking an addition
-        CO2_correction = Tp
+        CO2_concentration = CO2_concentration - Tp
         NaHCO3 = NaHCO3 - Tp
     end
 
     # Set Na and CO2 concentrations again for bulk
     conc[findall(compoundNames .== "Na")] .= NaHCO3
-    # conc[findall(compoundNames .== "CO2")] .= NaHCO3
-    conc[findall(compoundNames .== "CO2")] = conc[findall(compoundNames .== "CO2")] .- CO2_correction
-
+    conc[findall(compoundNames .== "CO2")] .= CO2_concentration
 
     return conc
 end
