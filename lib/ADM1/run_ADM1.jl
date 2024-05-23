@@ -16,7 +16,6 @@ function run_ADM1()
     R = 8.314e-5        # Gas constant          [m3 bar/mol/K]
     R_joule = 8.314     # Gas constant          [J /mole/K]
     Q = 1               # Liquid inflowing      [m3/d]
-    HRT = Vliq/Q
     kla = 1             # Specific transfer rate d-1
     pH = 7.0
     S_H_ion = 10^-(pH) * 1000  # Proton concentration  [mol/m3]
@@ -24,6 +23,8 @@ function run_ADM1()
 
     # Rate parameters (specific for 35 Celsius)
     # Specific Monod Maximum uptake rates
+    # UNITS NORMALIZED FOR THE RIGHT BIOMASS??
+    # CHECK WHETHER THE 10x IS REQUIRED!!!!!!!!!!!
     km_sug = 250.0      # molS/molX/d
     km_but = 200.0      # molS/molX/d
     km_pro = 185.714    # molS/molX/d
@@ -44,7 +45,7 @@ function run_ADM1()
     kdec_ac  = 0.2      # d-1
     kdec_h2  = 0.2      # d-1
 
-    # Equilibrium constants
+    # Equilibrium constants TODO CHECK IF RIGHT TEMPERATURE!!!!!!!
     K_a_co2_base = 10^-6.35 * 1000  # [mol/m3]
     K_a_IN_base  = 10^-9.25 * 1000  # [mol/m3]
     K_a_ac  = 10^-4.76 * 1000       # [mol/m3]
@@ -53,6 +54,7 @@ function run_ADM1()
     K_a_co2 = adjust_parameter_for_temperature(K_a_co2_base, 7646.0, R_joule, 298, T)
     K_a_IN =  adjust_parameter_for_temperature(K_a_IN_base, 51965.0, R_joule, 298, T)
 
+    # UNITS NORMALIZED FOR THE RIGHT BIOMASS??   
     # Biomass yields (specific for 35 Celsius)
     Ysug = 0.12             # molX/molS
     Ybut = 0.06             # molX/molS
@@ -98,6 +100,8 @@ function run_ADM1()
     c0 = [S_sug_0, S_but_0, S_pro_0, S_ac_0, S_h2_0, S_ch4_0, S_IC_0, S_IN_0,
             X_sug_0, X_but_0, X_pro_0, X_ac_0, X_h2_0, X_I_0,
             S_h2_g_0, S_ch4_g_0, S_co2_g_0]
+
+            # CHECK WHETHER THESE NUMBERS ARE STILL CORRECT!!!!!!!!!!
 
                     #   Gluc,    But,               Pro,                     Ac,                H2,              CH4,          IC,                      IN,      Xsug,   Xbut,  Xpro,  Xac,   Xh2,   XI
     reaction_matrix = [-1        0.156-0.13*Ysug    0.462857-0.38571*Ysug    1.23-1.025*Ysug    2.28-1.9*Ysug    0             1.527429-1.27286*Ysug   -Ysug     Ysug    0      0      0      0      0;   # Glucose uptake
@@ -172,12 +176,11 @@ function run_ADM1()
             S_h2_g, S_ch4_g, S_co2_g = concs
 
         S_co2 = S_IC * S_H_ion / (S_H_ion + K_a_co2)    # [mol/m3]
+        p_h2o = 0.0313 * exp(43980/8.314 * (1/298 - 1/T)) # [bar]
 
         # Liquid rates
         liquid_rates = ADM1_rates(concs)   # [moli/m3/d]
 
-        p_h2o = 0.0313 * exp(43980/8.314 * (1/298 - 1/T)) # [bar]
-        
         # Solubilities
         S_h2_s  = KH_h2  * S_h2_g  * R * T      # [mol/m3]
         S_ch4_s = KH_ch4 * S_ch4_g * R * T      # [mol/m3]
@@ -196,13 +199,16 @@ function run_ADM1()
         # SOLVE pH???? Does not seem necessary as we enfore a pH of 7 (and everything is bulk)
         # Use similar solve system as the IbM (control_pH in calculate_bulk_concentrations)
 
+        # All liquid compound balances
         f = zeros(size(concs))
         f[1:length(liquid_rates)] = Q ./ Vliq .* (conc_in .- concs[1:length(liquid_rates)]) .+ liquid_rates # [mol/m3/d]
 
+        # Adjustment for gas transfer
         f[5] = f[5] - rt_h2     # [mol/m3/d]
         f[6] = f[6] - rt_ch4    # [mol/m3/d]
         f[7] = f[7] - rt_co2    # [mol/m3/d]
 
+        # Gas compound balances
         f[15] = - S_h2_g  * Qg / Vg + rt_h2  * Vliq/Vg  # [mol/m3/d]
         f[16] = - S_ch4_g * Qg / Vg + rt_ch4 * Vliq/Vg  # [mol/m3/d]
         f[17] = - S_co2_g * Qg / Vg + rt_co2 * Vliq/Vg  # [mol/m3/d]

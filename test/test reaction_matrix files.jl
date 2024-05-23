@@ -12,8 +12,8 @@ include(create_mat_file)
 
 filename = string(pwd(), "\\test\\test_file.xlsx")
 grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)
-grid2bac, grid2nBacs = Lib_Module.determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
-diffusion_region, focus_region = Lib_Module.determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
+grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
+diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
 Ks = constants_matfloat.Ks
 Ki = constants_matfloat.Ki
 Keq = constants_matfloat.Keq

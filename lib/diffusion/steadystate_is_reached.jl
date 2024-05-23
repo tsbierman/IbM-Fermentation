@@ -58,7 +58,7 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
     method = constants_vecstring.RESmethod[1]                                # mean, max or norm
 
     L = [0 1 0; 1 -4 1; 0 1 0]                                  # 2D Laplacian stencil base
-    nCompounds = length(constants_vecstring.compoundNames)
+    nCompounds = length(constants_vecfloat.diffusion_rates)
     characteristic_time = dx^2 ./ constants_vecfloat.diffusion_rates     # [h]
     compound_steadystate = BitArray(zeros(nCompounds))          # Binary storage system
 

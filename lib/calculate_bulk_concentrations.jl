@@ -25,7 +25,7 @@ function calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_
     return f
 end
 
-function correct_negative_concentrations(conc)
+function correct_negative_concentrations!(conc)
     """
     This function performs a correction to get rid of any negative concentrations
 
@@ -38,6 +38,7 @@ function correct_negative_concentrations(conc)
     ------------------------------------------------------------
             CONTAINS HARDCODED LINES FOR NITROSPIRA 
     ------------------------------------------------------------
+    Disabled the correction, but kept the warning to see whether needed
     """
 
     # Find where there are negative
@@ -45,18 +46,20 @@ function correct_negative_concentrations(conc)
 
     if length(negative_indices) > 0
         @warn("DEBUG: noActionRequired, debug: negative concentration encountered and corrected")
-        for neg_index in negative_indices
-            # if [NH3] < 0, then remove excess consumption from [NO2]
-            if neg_index == 1
-                conc[2] = conc[2] + conc[1]
-                conc[1] = 0
+        # Disabled the actual correction, as it is NITROSPIRA specific
+        
+        # for neg_index in negative_indices
+        #     # if [NH3] < 0, then remove excess consumption from [NO2]
+        #     if neg_index == 1
+        #         conc[2] = conc[2] + conc[1]
+        #         conc[1] = 0
 
-            # if [NO2] < 0, then remove excess consumption from [NO3]
-            elseif neg_index == 2
-                conc[3] = conc[3] + conc[2]
-                conc[2] = 0
-            end
-        end
+        #     # if [NO2] < 0, then remove excess consumption from [NO3]
+        #     elseif neg_index == 2
+        #         conc[3] = conc[3] + conc[2]
+        #         conc[2] = 0
+        #     end
+        # end
     end
     return conc
 end
@@ -82,17 +85,18 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
     u = [conc; 1; 0]            # Add values for H2O and H concentrations (even though H is always empty)
     # u contains the total concentration of the compunds (summation of all species)
 
-    NaHCO3 = conc[findall(compoundNames .== "CO2")][1] # Assume all CO2 comes from NaHCO3, as initial guess
+    NaHCO3 = conc[findall(compoundNames .== "Na")][1] # Assume all Na comes from NaHCO3, as initial guess
+    CO2_concentration = conc[findall(compoundNames .== "CO2")][1]
 
     # w = 1     # This is the water concentrations. Due to the magnitude of the equilibrium constant (Keq), it does not matter whether we choose 1 or 55.
-                # If it is desired to implement and change this, at a "/ w" after the Keq[:,1] below in lines 172 and 177.
+                # If it is desired to implement and change this, at a "/ w" after the Keq[:,1] below in lines 102 and 107.
 
     spcM = zeros(size(chrM))                                    # Store the calculated species
     Sh = 10 ^(-pH)                                              # Concentration of protons
 
     while abs(Tp) > Tol
         u[findall(compoundNames .== "Na")] .= NaHCO3            # "Add" NaHCO3 from previous iteration to the system
-        u[findall(compoundNames .== "CO2")] .= NaHCO3           # "Add" NaHCO3 from previous iteration to the system
+        u[findall(compoundNames .== "CO2")] .= CO2_concentration           # "Add" NaHCO3 from previous iteration to the system
 
         Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
@@ -107,12 +111,13 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
         Tp = Sh + sum(spcM .* chrM)                                     # Charge balance (protons + charge for all other compounds)
 
         # Tp will be negative when we are not at the solution yet, thus increasing NaHCO3, mimicking an addition
+        CO2_concentration = CO2_concentration - Tp
         NaHCO3 = NaHCO3 - Tp
     end
 
     # Set Na and CO2 concentrations again for bulk
     conc[findall(compoundNames .== "Na")] .= NaHCO3
-    conc[findall(compoundNames .== "CO2")] .= NaHCO3
+    conc[findall(compoundNames .== "CO2")] .= CO2_concentration
 
     return conc
 end
@@ -156,6 +161,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
             variableHRT:                A Boolean indicating whether HRT is variable
             bulk_setpoint:              The setpoint concentration for outflow of compound[setpoint_index]
             Dir_k:                      A (nCompounds,) BitArray of which compounds follow Dirichlet boundary condition
+            Gas_k:                      A (nCompounds,) vector of intergers indicating whether and in what way compounds are involved in the gasphase
             structure_model:            A Boolean indicating whether a structure model is used
             structure_type:             A string indicating which structure type is used
             invHRT:                     1/HRT
@@ -169,8 +175,19 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
         bulk_setpoint = p[4]
         setpoint_index = p[5]
         Dir_k = p[6]
-        structure_model = p[7]
-        structure_type = p[8]
+        Gas_k = p[7]
+        structure_model = p[8]
+        structure_type = p[9]
+        T = p[10]
+        R = p[11]
+        Kh = p[12]
+        kla = p[13]
+        Pgas = p[14]
+        Vr = p[15]
+        Vgas = p[16]
+        compoundNames = p[17]
+        Keq = p[18]
+        pH = p[19]
     
         dy = zeros(length(bulk_conc))
     
@@ -234,9 +251,33 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
                     invHRT = -cumulative_reacted[setpoint_index] / (reactor_influx[setpoint_index] - bulk_setpoint)
                 end
             end
+
+            # First calculate the Fully protonated CO2 concentration, as that is the one that has to be used for the transfer
+            CO2_index = findall(compoundNames .== "CO2")[1]                           # Integer, select CO2 index
+            Sh = 10^(-pH)                                                             # Proton concentration
+            Denm = (1 .+ Keq[CO2_index, 1]) .* Sh^3 .+ Keq[CO2_index, 2] .* Sh^2 .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Sh .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Keq[CO2_index, 4]
+            CO2_conc = (bulk_conc[CO2_index] .* Sh^3) ./ Denm                         # Fully protonated IC concentration (taken from spcM calculations)
+
+            copybulk_conc = copy(bulk_conc)                                             # Make copy of bulk concentrations
+            copybulk_conc[CO2_index] = CO2_conc                                         # Replace IC concentration with CO2 (fully protonated) concentrations
+
+            # Calculations required for the gas-liquid transfer
+            p_h2o = 0.0313 * exp(43980/(R*100) * (1/298 - 1/T))                      # Vapor pressure
+            solubilities = Kh[Gas_k .== 1] .* bulk_conc[Gas_k .== 1] .* R .* T       # Same units as prev_conc (as long as R and Kh are in the same units [mol/L]
+            gas_transfer_rates = kla .* (copybulk_conc[Gas_k .== -1] .- solubilities) # [mol/L/h]
+            Qgas = R * T / (Pgas - p_h2o) * Vr * sum(gas_transfer_rates)        # [L/h]
     
             # Always calculate the change of non-dirichlet bulk concentrations
-            dy[.!Dir_k] = invHRT .* (reactor_influx[.!Dir_k] .- bulk_conc[.!Dir_k]) .+ cumulative_reacted[.!Dir_k]
+            change_liquid = .!Dir_k .& (Gas_k .!= 1)
+
+            # Change of liquid concentrations not due to gas-liquid transport
+            dy[change_liquid] = invHRT .* (reactor_influx[change_liquid] .- bulk_conc[change_liquid]) .+ cumulative_reacted[change_liquid]
+
+            # Change of liquid concentrations due to gas-liquid transport
+            dy[Gas_k .== -1] = dy[Gas_k .== -1] .- gas_transfer_rates
+            
+            # Change of gaseous compounds
+            dy[Gas_k .== 1] = -Qgas ./ Vgas .* bulk_conc[Gas_k .== 1] .+ gas_transfer_rates .* Vr ./ Vgas
     
         end
     
@@ -245,12 +286,19 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
 
     # For easy use: unpack constants
     Keq = constants_matfloat.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
+    Kh = constants_vecfloat.Kh                                   # Henry constants [mol/L/bar]
     chrM = constants_matfloat.chrM                               # A (ncompounds, 5) matrix with charge values
-    compoundNames = constants_vecstring.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H)
+    compoundNames = constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]             # A (ncompounds,) vector with the compound names (without H2O or H)
     pH = constants_float.pHsetpoint                           # The pH setpoint
+    T = constants_float.T                                     # Temperature in Kelvin
+    R = constants_float.R * 10                              # Gas constant [L bar/(K mol)]
+    Pgas = constants_float.Pgas                             # Gas pressure [bar]
+    kla = constants_float.kla                               # kla [h-1]
     Vr = constants_float.Vr                                   # The representative volume of reactor that is modelled [L]
     Vg = constants_float.Vg                                   # The volume of a grid cell [L]
+    Vgas = constants_float.Vgas
     Dir_k = constants_vecbool.Dir_k                             # A (nCompounds,) vector of booleans whether compounds follow Dirichlet boundary condition
+    Gas_k = constants_vecint.Gas_k                           # A (nCompounds,) vector of intergers indicating whether and in what way compounds are involved in the gasphase
     influent = constants_vecfloat.influent_concentrations        # A (nCompounds,) vector with the influent concentrations [mol/L]
     variableHRT = settings_bool.variableHRT                  # A boolean whether HRT is variable
 
@@ -269,19 +317,20 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
         f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)
 
         # The combination of dropdims and sum with those dimensions results in a vector that contains total change
-        # over the whole matrix per compound. This is then adjusted to a single grid cell
+        # over the whole matrix per compound. This is then adjusted from a single grid cell to the whole reactor
         cumulative_reacted = dropdims(sum(reactionMatrix, dims=(1,2)), dims=(1,2)) .* Vg .* f ./ Vr # [mol/L /h]
+        cumulative_reacted = [cumulative_reacted; zeros(sum(Gas_k .== 1))]  # Add elements to account for the Gas compounds (non reactive, but required for indexing)
 
         # Convert from Vector{Any} to Vector{Float64}
         prev_conc = convert(Array{Float64}, prev_conc)
 
         try
             # Based on reaction_matrix, calculate new bulk concentrations with an ODE.
-            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, settings_bool.structure_model, settings_string.type]
+            parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, Gas_k, settings_bool.structure_model, settings_string.type, T, R, Kh, kla, Pgas, Vr, Vgas, compoundNames, Keq, pH]
             prob = ODEProblem(massbal, prev_conc, (0.0, dT), parameters)
             sol = solve(prob, Tsit5(), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
             bulk_conc_temp = sol.u[end]
-            bulk_concentrations = correct_negative_concentrations(bulk_conc_temp) #<E: Negative concentration from mass balance of reactor. />
+            bulk_concentrations = correct_negative_concentrations!(bulk_conc_temp) #<E: Negative concentration from mass balance of reactor. />
 
         catch e # it should just work
             println("Something bad has happened \n $(typeof(e))")
@@ -295,8 +344,9 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
     # Apply pH correction to bulk_concentrations
     if settings_bool.pHbulkCorrection
         # Hardcoded stuff
-        bulk_concentrations[findall(compoundNames .== "SO4")] = bulk_concentrations[findall(compoundNames .== "A")] ./ 2 # A was originaly NH3, but not present in testfile
-        bulk_concentrations = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations)
+        # Disabled next line as it is hardcoded. It seems to be that SO4 is used to neutralise the NH3 before correcting pH
+        # bulk_concentrations[findall(compoundNames .== "SO4")] = bulk_concentrations[findall(compoundNames .== "NH3")] ./ 2
+        bulk_concentrations[Gas_k .!= 1] = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations[Gas_k .!= 1])
 
         if any(bulk_concentrations .< 0)
             @warn("DEBUG:actionRequired, debug: negative bulk concentration encountered after pH control... correction required?")
