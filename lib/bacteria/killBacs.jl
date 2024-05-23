@@ -16,5 +16,6 @@ function killBacs!(bac_vecfloat, bac_vecint, bac_vecbool, indices)
     bac_vecfloat.molarMass = bac_vecfloat.molarMass[Not(indices)]
     bac_vecbool.active = bac_vecbool.active[Not(indices)]
     bac_vecfloat.mu = bac_vecfloat.mu[Not(indices)]
+    bac_vecint.colony_nums = bac_vecint.colony_nums[Not(indices)]
     return bac_vecfloat, bac_vecint, bac_vecbool
 end

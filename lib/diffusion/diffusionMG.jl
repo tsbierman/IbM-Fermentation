@@ -48,7 +48,7 @@ function diffusionMG!(conc, reaction_matrix, bulk_concentrations, diffRegion, gr
     # variable declarations/unpacking
     diffusion_coef = constants_vecfloat.diffusion_rates # [m2/h]
     accuracy = constants_float.diffusion_accuracy
-    nCompounds = length(diffusion_coef)
+    nCompounds = length(diffusion_coef)                 # Only liquid compounds
     dx = grid_float.dx
     dT = Time.dT
 

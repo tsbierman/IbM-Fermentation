@@ -32,6 +32,7 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float
         new_species = bac_vecint.species[mask_tooBig]
         new_mu = bac_vecfloat.mu[mask_tooBig]
         new_active = BitArray(ones(nCellsTooBig))
+        new_colony_nums = bac_vecint.colony_nums[mask_tooBig]
 
         # Split mass over parent and child
         new_molarMass = bac_vecfloat.molarMass[mask_tooBig] .* (0.45 .+ 0.1 .* rand(nCellsTooBig))        # Mass of new cell is somewhere random between 0.45 and 0.55 of old mass
@@ -49,6 +50,7 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float
         bac_vecfloat.radius = [bac_vecfloat.radius; new_radius]                       # [m]
         bac_vecfloat.mu = [bac_vecfloat.mu; new_mu]                                   # [h-1]
         bac_vecbool.active = [bac_vecbool.active; new_active]                       # [Boolean]
+        bac_vecint.colony_nums = [bac_vecint.colony_nums; new_colony_nums]
     end
 
     return bac_vecfloat, bac_vecint, bac_vecbool, cycle
