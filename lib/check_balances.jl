@@ -19,8 +19,9 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
     dirichlet_closes:       A Boolean indicating whether the dirichlet boundary condition balances close
     """
 
-    estimated_compounds = zeros(length(constants_vecstring.compoundNames))
-    
+    estimated_compounds = zeros(length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]))
+    Sh = 10^-constants_float.pHsetpoint
+
     for specie in 1:length(constants_vecstring.speciesNames)
         specie_index = (bac_vecint.species .== specie) .* bac_vecbool.active                    # Find index of active bacteria of specific specie
         specie_mu_withMain = bac_vecfloat.mu[specie_index]                                       # Obtain their growth rates
@@ -32,7 +33,12 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
         compoundChange_decay = constants_matfloat.MatrixDecay[:, specie] .* decayed_biomass       # Compound change [mol_i/h], note: NEGATIVE!
 
         # Growth change
-        specie_maint = constants_vecfloat.maintenance[specie]                                    # Get maintenance
+        if isnan(constants_vecfloat.maintenance[1])
+            _, specie_maint = determine_max_growth_rate_and_maint(specie, constants_float.T, Sh)
+        else
+            specie_maint = constants_vecfloat.maintenance[specie]                                    # Get maintenance
+        end
+        
         specie_mu_withoutMain = specie_mu_withMain .+ specie_maint                      # Convert mu
         increased_biomass = sum(bac_vecfloat.molarMass[specie_index] .* specie_mu_withoutMain)   # Increase of biomass due to growth
         compoundChange_growth = constants_matfloat.MatrixMet[:,specie] .* increased_biomass       # Compound change due to growth   [mol_i/h]
@@ -48,11 +54,10 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
     influent = constants_vecfloat.influent_concentrations
     outflow = bulk_concentrations
 
-    CO2_index = findall(constants_vecstring.compoundNames)
-    Sh = 10^-constants_float.pHsetpoint
+    CO2_index = findall(constants_vecstring.compoundNames.== "CO2")[1]
     Keq = constants_matfloat.Keq
     Denm = (1 .+ Keq[CO2_index, 1]) .* Sh^3 .+ Keq[CO2_index, 2] .* Sh^2 .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Sh .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Keq[CO2_index, 4]
-    CO2_conc = (bulk_conc[CO2_index] .* Sh^3) ./ Denm  
+    CO2_conc = (bulk_concentrations[CO2_index] .* Sh^3) ./ Denm  
 
     copybulk_conc = copy(outflow)
     copybulk_conc[CO2_index] = CO2_conc
@@ -66,14 +71,15 @@ function check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, 
     # Conversion factor volume slice to volume sphere
     f = calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_float, settings_string)
     actual_compoundChange = actual_compoundChange .* f ./ constants_float.Vr    # Convert from [mol_i/h] to [mol_i/L/h] (reactor level)
+    actual_compoundChange = [actual_compoundChange; zeros(sum(constants_vecint.Gas_k .== 1))] # Patch for gaseous compounds
 
-    balances = zeros(shape(outflow))
+    balances = zeros(size(outflow))
 
     change_liquid = .!constants_vecbool.Dir_k .& (constants_vecint.Gas_k .!= 1)
 
     balances[change_liquid] = (influent[change_liquid] .- outflow[change_liquid]) .* invHRT .+ actual_compoundChange[change_liquid] .- bulk_change[change_liquid]
-    balances[constants_vecint.Gas_k .!= -1] = balances[constants_vecint.Gas_k .!= -1] .- gas_transfer_rates
-    balances[constants_vecint.Gas_k .!= 1] = -Qgas ./ constants_float.Vgas .* outlfow[constants_vecint.Gas_k .== 1] .+ gas_transfer_rates .* constants_float.Vr ./ constants_float.Vgas .- bulk_change[constants_vecint.Gas_k .!= 1]
+    balances[constants_vecint.Gas_k .== -1] = balances[constants_vecint.Gas_k .== -1] .- gas_transfer_rates
+    balances[constants_vecint.Gas_k .== 1] = -Qgas ./ constants_float.Vgas .* outflow[constants_vecint.Gas_k .== 1] .+ gas_transfer_rates .* constants_float.Vr ./ constants_float.Vgas .- bulk_change[constants_vecint.Gas_k .== 1]
 
     balances_closes = maximum(abs.(balances[.!constants_vecbool.Dir_k])) <= tolerance
     dirichlet_closes = maximum(abs.(balances[constants_vecbool.Dir_k] .- actual_compoundChange[constants_vecbool.Dir_k])) <= tolerance

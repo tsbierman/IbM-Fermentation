@@ -68,11 +68,29 @@ function loadPresetFile(filename)
         constants_float.minDT_bac = values_discr[names_discr .== "Minimum dT bacteria"][1]       # [h]
     end
 
+    # Get Henry Constants and position of 
+    kh_file = file["Kh"]
+    constants_vecfloat.Kh = collect(skipmissing(kh_file[:,2]))
+    constants_vecint.Gas_k = collect(skipmissing(kh_file[:,4]))
+
+    names_henry = collect(skipmissing(kh_file[:,1]))
+    constants_vecstring.compoundNames = names_henry
+    nLiquidCompounds = length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1])
+
+    if any(constants_vecfloat.Kh[constants_vecint.Gas_k .!= 0] .== 0.0)
+        throw(ErrorException("Species that participate in gas-liquid transfer need an Henry constant, please check sheet Kh"))
+    end
+
+    if any(constants_vecfloat.Kh[constants_vecint.Gas_k .== 0] .!= 0.0)
+        throw(ErrorException("Henry constant provided for specie that is not participating in gas-liquid transfer, please check sheet Kh"))
+    end
+
     # Constants (Diffusion)
-    names_diff, values_diff = collect(skipmissing(file["Diffusion"][:,1])), collect(skipmissing(file["Diffusion"][:,2]))
-    constants_vecstring.compoundNames = names_diff
-    nCompounds = length(constants_vecstring.compoundNames)
+    values_diff = collect(skipmissing(file["Diffusion"][:,2]))
     constants_vecfloat.diffusion_rates = values_diff                                                 # [m2/h]
+    if length(constants_vecfloat.diffusion_rates) != nLiquidCompounds
+        throw(ErrorException("Amount of Diffusion rates and Liquid Compounds do not allign, please check"))
+    end
 
     # Constants (Operational parameters)
     names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2])) # It takes some extra empty rows, this removes that
@@ -88,7 +106,7 @@ function loadPresetFile(filename)
     settings_bool.variableHRT = values_para[names_para .== "Variable HRT"][1]                    # [Bool]
     init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                              # [1/h]
 
-    # Only if varaible HRT is enabled
+    # Only if variable HRT is enabled
     if settings_bool.variableHRT
         constants_float.bulk_setpoint = values_para[names_para .== "Setpoint"][1]              # [mol/L]
         compound_name = values_para[names_para .== "Compound setpoint"][1] 
@@ -159,8 +177,8 @@ function loadPresetFile(filename)
     end
 
     # For the species with a Dirichlet, the influent concentration is taken as the bulk concentration
-    init_params.init_concs = copy(values_init)                                            # [mol/L]
-    init_params.init_bulk_conc = copy(values_init)                                        # [mol/L]
+    init_params.init_concs = copy(values_init[constants_vecint.Gas_k .!= 1])             # [mol/L], Only Liquid compounds
+    init_params.init_bulk_conc = copy(values_init)                                        # [mol/L]  All compounds
     init_params.init_bulk_conc[constants_vecbool.Dir_k] = constants_vecfloat.influent_concentrations[constants_vecbool.Dir_k]
 
     # Constants (Equilibrium constants & charge matrix)
@@ -168,15 +186,15 @@ function loadPresetFile(filename)
     names_thermo = thermodynamic_parameters[:,1]
     nColumns = length(file["ThermoParam"][2,:]) - 4             # -4 due to Compound names, preferred subspecies, compound phase and cell with text, bit Hardcoded but should remain the same amount of columns
 
-    # Divide in sections and locate H2O and H indices
-    section_starts = findall(names_thermo .== constants_vecstring.compoundNames[1])
-    section_ends = findall(names_thermo .== constants_vecstring.compoundNames[end])
+    # Divide in sections and locate H2O and H indices, only Liquid Compounds for Speciation
+    section_starts = findall(names_thermo .== constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1][1])
+    section_ends = findall(names_thermo .== constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1][end])
     H2O_index = findall(names_thermo .== "H2O")
     H_index = findall(names_thermo .== "H")
     dG_rows = collect(section_starts[1]:section_ends[1])
 
     # Check the order of the compounds names
-    compound_names_matrix = reshape(constants_vecstring.compoundNames, length(constants_vecstring.compoundNames),:) # Change shape to compare with thermodynamic names
+    compound_names_matrix = reshape(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1], length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]),:) # Change shape to compare with thermodynamic names
     if thermodynamic_parameters[:,1][dG_rows] != (compound_names_matrix)
         throw(ErrorException("Compounds do not have the same name or are not in the same order"))
     end
@@ -245,7 +263,7 @@ function loadPresetFile(filename)
     # Reactive indices
     constants_vecint.reactive_indices = zeros(Int, length(uniq_compounds))
     if settings_bool.speciation
-        sz = (nCompounds+2, nColumns)
+        sz = (nLiquidCompounds+2, nColumns)
 
         for (index, uniq) in enumerate(uniq_compounds)
             I = findall(constants_vecstring.compoundNames .== uniq)[1][1]
@@ -256,18 +274,6 @@ function loadPresetFile(filename)
         for (index, uniq) in enumerate(uniq_compounds)
             constants_vecint.reactive_indices[index] = findall(constants_vecstring.compoundNames .== uniq)[1]
         end
-    end
-
-    kh_file = file["Kh"]
-    constants_vecfloat.Kh = collect(skipmissing(kh_file[:,2]))
-    constants_vecint.Gas_k = collect(skipmissing(kh_file[:,4]))
-
-    if any(constants_vecfloat.Kh[constants_vecint.Gas_k .!= 0] .== 0.0)
-        throw(ErrorException("Species that participate in gas-liquid transfer need an Henry constant, please check sheet Kh"))
-    end
-
-    if any(constants_vecfloat.Kh[constants_vecint.Gas_k .== 0] .!= 0.0)
-        throw(ErrorException("Henry constant provided for specie that is not participating in gas-liquid transfer, please check sheet Kh"))
     end
 
     # Constants (Yield, eDonor, mu_max, maint)
@@ -302,14 +308,14 @@ function loadPresetFile(filename)
     compounds = collect(skipmissing(file["ReactionMatrix"][3:end,1]))
     values_reacM = reshape(collect(skipmissing(file["ReactionMatrix"][3:end, 2:end])), length(compounds), length(reaction_names))
 
-    first_compoundindex = findall(constants_vecstring.compoundNames[1] .== compounds)
-    last_compoundindex = findall(constants_vecstring.compoundNames[end] .== compounds)
+    first_compoundindex = findall(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1][1] .== compounds)
+    last_compoundindex = findall(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1][end] .== compounds)
 
     if bac_names_RM != constants_vecstring.speciesNames
         throw(ErrorException("Bacteria species do not have the same name or are not in the same order"))
     end
 
-    if compounds[first_compoundindex[1]:last_compoundindex[1]] != constants_vecstring.compoundNames
+    if compounds[first_compoundindex[1]:last_compoundindex[1]] != constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]
         throw(ErrorException("Compounds do not have the same name, or are not in the same order"))
     end
 
@@ -317,8 +323,8 @@ function loadPresetFile(filename)
     iAnab = findall(reaction_names .== "Anab")
     iDecay = findall(reaction_names .== "Decay")
 
-    constants_matfloat.MatrixMet = zeros(nCompounds, length(constants_vecstring.speciesNames))
-    constants_matfloat.MatrixDecay = zeros(nCompounds, length(constants_vecstring.speciesNames))
+    constants_matfloat.MatrixMet = zeros(nLiquidCompounds, length(constants_vecstring.speciesNames))
+    constants_matfloat.MatrixDecay = zeros(nLiquidCompounds, length(constants_vecstring.speciesNames))
 
     for species = 1:length(constants_vecstring.speciesNames)
         # get anabolism and catabolism

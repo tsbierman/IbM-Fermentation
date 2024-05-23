@@ -31,7 +31,8 @@ function init_save_profile(constants_float, constants_vecint, constants_vecstrin
 
     # Concentration variable
     nCompounds = length(constants_vecstring.compoundNames)
-    conc_saved = zeros(Float32, nSaves, grid_int.nx, grid_int.ny, nCompounds)            # Matrix, Float 32 bit (single precision)
+    nLiquidCompounds = length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]) 
+    conc_saved = zeros(Float32, nSaves, grid_int.nx, grid_int.ny, nLiquidCompounds)            # Matrix, Float 32 bit (single precision)
 
     # pH variable
     pH_saved = zeros(Float32, nSaves, grid_int.nx, grid_int.ny)

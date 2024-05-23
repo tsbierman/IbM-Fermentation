@@ -32,12 +32,13 @@ function integTime(simulation_file, directory)
 
     if isfile(backup_file) && isfile(profiling_file)
         # load from files
-        bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH = load(backup_file, "bac_vecfloat", "bac_vecint", "bac_vecbool", "bulk_concs", "invHRT", "conc", "reaction_matrix", "pH")
+        bac_vecfloat, bac_vecint, bac_vecbool, all_bulk_concs, invHRT, conc, reaction_matrix, pH = load(backup_file, "bac_vecfloat", "bac_vecint", "bac_vecbool", "bulk_concs", "invHRT", "conc", "reaction_matrix", "pH")
+        bulk_concs = all_bulk_concs[constants_vecint.Gas_k .!= 1]                   # Only Liquid Compounds
+        gas_bulk_concs = all_bulk_concs[constants_vecint.Gas_k .== 1]               # Only Gas Compounds
         profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat = load(profiling_file, "profiling", "maxErrors", "normOverTime", "nDiffIters", "maxInitRES", "bulk_history", "Time", "Time_vecfloat")
     else
         # Initiate from preset values
-        conc, bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool = initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, init_params, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string)
-        
+        conc, bulk_concs, gas_bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool = initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, init_params, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string)
 
         # Initiate time and profiling information/storage from preset
         Time = Float_struct()
@@ -66,7 +67,7 @@ function integTime(simulation_file, directory)
             maxErrors = zeros(Float32, maximum_space_needed)                            # Vector to store max Error per dT_bac
             normOverTime = zeros(Float32, maximum_space_needed)                         # Vector to store norm of concentration differance per dT_bac
             nDiffIters = zeros(UInt16, maximum_space_needed)                            # Vector to store number of diffusion iterations per steady state
-            bulk_history = zeros(Float32, size(bulk_concs, 1), maximum_space_needed)    # Matrix to store bulk concentrations over time
+            bulk_history = zeros(Float32, (size(bulk_concs, 1) + size(gas_bulk_concs, 1)), maximum_space_needed)    # Matrix to store bulk concentrations over time
             maxInitRES = zeros(Float32, maximum_space_needed)                           # Vector to store maximum initial RES values
         else
             max_space_needed = ceil(constants_float.simulation_end / constants_float.dT_bac) + 1
@@ -76,19 +77,19 @@ function integTime(simulation_file, directory)
             maxErrors = zeros(Float32, max_space_needed)                                # Vector to store max Error per dT_bac
             normOverTime = zeros(Float32, max_space_needed)                             # Vector to store norm of concentration differance per dT_bac
             nDiffIters = zeros(UInt16, max_space_needed)                                # Vector to store number of diffusion iterations per steady state
-            bulk_history = zeros(Float32, size(bulk_concs, 1), max_space_needed)        # Matrix to store bulk concentrations over time
+            bulk_history = zeros(Float32, (size(bulk_concs, 1) + size(gas_bulk_concs, 1)), max_space_needed)        # Matrix to store bulk concentrations over time
             maxInitRES = zeros(Float32, max_space_needed)                               # Vector to store maximum initial RES values
             Time.minDT = Time.dT
         end
-        bulk_history[:,1] = bulk_concs # Is added after changing iProf, so first value should be placed already
+        bulk_history[:,1] = [bulk_concs; gas_bulk_concs] # Is added after changing iProf, so first value should be placed already
 
         # Initialise saving file
-        # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
-        save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
+        # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+        save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
     end
 
     # Initialise storing space
-    RESvalues = zeros(length(constants_vecstring.compoundNames), 10000) # Reserve space for n steady state checks beforehand (can be more)
+    RESvalues = zeros(length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]), 10000) # Reserve space for n steady state checks beforehand (can be more)
     norm_diff = zeros(10000)
     res_bacsim = zeros(10000, 2)
 
@@ -129,12 +130,11 @@ function integTime(simulation_file, directory)
 
         if mod(iDiffusion, constants_vecint.nItersCycle[1]) == 0
             println("Currently at diffusion iteration $(iDiffusion) (max error: $(maximum(RESvalues[:, iRES])))\n")
-            println(RESvalues[:,iRES])
         end
 
         # diffuse (MG)
         tick()
-        try
+        try # Only liquid compounds are used for diffusion
             conc[yRange, xRange, :] = diffusionMG!(conc[yRange, xRange, :], reaction_matrix[yRange, xRange, :], bulk_concs, diffusion_region[yRange, xRange], grid_float, constants_float, constants_vecfloat, constants_vecstring, Time)
         catch e
             if isa(e, ErrorException)
@@ -145,7 +145,7 @@ function integTime(simulation_file, directory)
         end
         profiling[iProf, 1] = profiling[iProf, 1] + tok()
 
-        # Set bulk layer concentrations (in theory, not needed anymore with correct diffusion model)
+        # Set bulk layer concentrations (in theory, not needed anymore with correct diffusion model), only for the liquid Compounds
         conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
 
         # Update bacterial mass
@@ -166,7 +166,7 @@ function integTime(simulation_file, directory)
             # Increase counter of RES checks performed
             iRES = iRES + 1
 
-            # Perform check for steady state
+            # Perform check for steady state Only for Liquid Compounds
             tick()
             ssReached, RESvalues[:, iRES] = steadystate_is_reached(conc[yRange, xRange, :], reaction_matrix[yRange, xRange, :], grid_float.dx, bulk_concs, diffusion_region[yRange, xRange], constants_float, constants_vecfloat, constants_vecstring)
             norm_diff[iRES] = sqrt(sum((prev_conc .- conc).^2)) # Difference between two diffusions
@@ -231,7 +231,7 @@ function integTime(simulation_file, directory)
                     # Reset counters for next iteration
                     iDiffusion = 1
                     iRES = 0
-                    RESvalues = zeros(length(constants_vecstring.compoundNames), 10000)
+                    RESvalues = zeros(length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]), 10000)
 
                     # Reaction_matrix & mu & pH are already calculated (steady state so still valid)
 
@@ -327,10 +327,10 @@ function integTime(simulation_file, directory)
 
                     # Calculate and set bulk concentrations
                     tick()
-                    new_bulk_concs = copy(prev_conc)
-                    while true
-                        new_bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, bulk_concs, invHRT, reaction_matrix, Time.dT_bac, settings_bool, settings_string)
-                        if !settings_bool.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, bulk_concs, constants_float)
+                    new_bulk_concs = copy([bulk_concs;gas_bulk_concs]) # Random initialisation
+                    while true # Required for all the compounds
+                        new_bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, [bulk_concs;gas_bulk_concs], invHRT, reaction_matrix, Time.dT_bac, settings_bool, settings_string)
+                        if !settings_bool.dynamicDT || bulk_conc_diff_within_limit(new_bulk_concs, [bulk_concs;gas_bulk_concs], constants_float)
                             break
                         end
 
@@ -342,16 +342,16 @@ function integTime(simulation_file, directory)
                         Time = decrease_dT_bac!(Time, "Too large bulk concentration jump detected")
                     end
 
-                    bulk_change = (new_bulk_concs .- bulk_concs) ./ Time.dT_bac # [mol_i/L/h]
-
-                    bulk_concs = copy(new_bulk_concs)
-                    conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
+                    bulk_change = (new_bulk_concs .- [bulk_concs;gas_bulk_concs]) ./ Time.dT_bac # [mol_i/L/h]
+                    bulk_concs = copy(new_bulk_concs[constants_vecint.Gas_k .!= 1])
+                    gas_bulk_concs = copy(new_bulk_concs[constants_vecint.Gas_k .== 1])
+                    conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)        # Only for liquid compounds
                     profiling[iProf, 10] = profiling[iProf, 10] + tok()
 
                     # Place for balance check/analyse metabolites
                     if Time.current >= Time.analyse
 
-                        biomass_close, balance_close, dirichlet_close = check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_string, reaction_matrix, bulk_concs, invHRT, bulk_change, 1e-3)
+                        biomass_close, balance_close, dirichlet_close = check_balances(bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_string, reaction_matrix, [bulk_concs;gas_bulk_concs], invHRT, bulk_change, 1e-3)
                         println("Biomass closes: $(biomass_close)")
                         println("Balances closing: $(balance_close)")
                         println("Dirichlet closing: $(dirichlet_close)")
@@ -360,7 +360,7 @@ function integTime(simulation_file, directory)
                     end
 
                     iProf = iProf + 1
-                    bulk_history[:, iProf] = bulk_concs
+                    bulk_history[:, iProf] = [bulk_concs;gas_bulk_concs]        # All Bulk compounds need saving
                     Time_vecfloat.history[iProf] = Time.current
 
                     # Set next bacterial time
@@ -373,15 +373,15 @@ function integTime(simulation_file, directory)
                     Time.save = Time.save + constants_float.dT_save
 
                     # Save all important variables
-                    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
-                    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
+                    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+                    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
 
                     if Time.current >= Time.backup
                         # Set next backup time
                         Time.backup = Time.backup + constants_float.dT_backup
 
                         # Save all important variables for continuing simulation from this profilingResults
-                        save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
+                        save_backup(bac_vecfloat, bac_vecint, bac_vecbool, [bulk_concs;gas_bulk_concs], invHRT, conc, reaction_matrix, pH, directory)
                         save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)
                     end
 
@@ -401,8 +401,8 @@ function integTime(simulation_file, directory)
     end
 
     # Save all important variables one last time?
-    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
-    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concs, pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
-    save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
+    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
+    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
+    save_backup(bac_vecfloat, bac_vecint, bac_vecbool, [bulk_concs;gas_bulk_concs], invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
     save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)   # Save performance
 end

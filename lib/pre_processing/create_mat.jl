@@ -72,7 +72,7 @@ function blue_noise_circle(n, x_centre, y_centre, r)
 end
 
 
-function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange)
+function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange, constants_float)
     """
     This function creates several microcolonies over the available grid. 
     It does so by calling the blue_noise_circle function to create a cluster 
@@ -108,9 +108,29 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
     x = x + noise_x
     y = y + noise_y
 
-    # Shuffle the coordinates and only select how many we will need
-    i = randperm(length(x))
-    i = i[1:nColonies]
+    counter = 0
+    i = "existing"
+    while counter < 20
+
+        # Shuffle the coordinates and only select how many we will need
+        i = randperm(length(x))
+        i = i[1:nColonies]
+        temp_x1 = x[i]
+        temp_y1 = y[i]
+        temp_x2 = transpose(temp_x1)
+        temp_y2 = transpose(temp_y1)
+        dist = sqrt.((temp_x1 .- temp_x2).^2 .+ (temp_y1 .- temp_y2).^2) # Distances between all the points
+        dist[dist .== 0.0] .= Inf                                        # Distance from self to Inf
+        min_distance = minimum(dist)
+        if min_distance > constants_float.max_granule_radius * 2
+            break
+        end
+
+        counter = counter + 1
+        if counter == 20
+            throw(ErrorException("Unable to reach sufficient distance between aggregates within $(counter) random iterations"))
+        end
+    end
 
     x = x[i]
     y = y[i]
@@ -240,7 +260,7 @@ function create_mat(filename, simulation_number)
 
         # Create several colonies with some bacteria each
         r_colony = (bac_init_int.start_nBacPerColony * radius * constants_float.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
-        bac_vecfloat.x, bac_vecfloat.y, bac_vecfloat.centres_x, bac_vecfloat.centres_y, bac_vecint.colony_nums = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange) # Generate all coordinates
+        bac_vecfloat.x, bac_vecfloat.y, bac_vecfloat.centres_x, bac_vecfloat.centres_y, bac_vecint.colony_nums = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange, constants_float) # Generate all coordinates
     end
 
     # Set parameters for every of the bacteria

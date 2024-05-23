@@ -19,8 +19,10 @@ function initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, 
     """
 
     # Calculate boundary conditions
-    bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, 
+    all_bulk_concs, invHRT = calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, 
     init_params.init_bulk_conc, init_params.invHRT[1], 0, constants_float.dT_bac, settings_bool, settings_string)
+    bulk_concs = all_bulk_concs[constants_vecint.Gas_k .!= 1]               # Only liquid Compounds
+    gas_bulk_concs = all_bulk_concs[constants_vecint.Gas_k .== 1]           # Only Gas Compounds
 
     # Make bacterial-grid matrices
     grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
@@ -35,13 +37,13 @@ function initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, 
     # end
 
     # Initialise concentrations and pH
-    conc = zeros(grid_int.ny, grid_int.nx, length(constants_vecstring.compoundNames))
+    conc = zeros(grid_int.ny, grid_int.nx, length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1])) # Only liquid compounds for the concentration matrix
     conc = set_concentrations!(conc, init_params.init_concs, diffusion_region)
-    reaction_matrix = zeros(grid_int.ny, grid_int.nx, size(conc,3))
+    reaction_matrix = zeros(grid_int.ny, grid_int.nx, size(conc,3))                                                 # Only need for Liquid Compounds
     pH = ones(grid_int.ny, grid_int.nx) .* constants_float.pHsetpoint
 
     # Set bulk layer concentrations
-    conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)
+    conc = set_concentrations!(conc, bulk_concs, .!diffusion_region)            # Only set for Liquid Compounds
 
     settings_bool.parallelized = false # at init: compute sequentially
     # Calculate reaction matrix
@@ -49,5 +51,5 @@ function initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, 
     grid2nBacs[yRange, xRange], bac_vecfloat, bac_vecint, bac_vecbool, diffusion_region[yRange, xRange, :], conc[yRange, xRange, :], constants_float, constants_vecfloat, constants_vecint, constants_matfloat, 
     pH[yRange,xRange], 0, 0, settings_bool)
 
-    return conc, bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool
+    return conc, bulk_concs, gas_bulk_concs, invHRT, reaction_matrix, pH, bac_vecfloat, bac_vecint, bac_vecbool
 end

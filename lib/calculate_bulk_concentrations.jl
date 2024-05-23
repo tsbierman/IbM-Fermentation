@@ -276,7 +276,6 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
             # Change of liquid concentrations due to gas-liquid transport
             dy[Gas_k .== -1] = dy[Gas_k .== -1] .- gas_transfer_rates
             
-
             # Change of gaseous compounds
             dy[Gas_k .== 1] = -Qgas ./ Vgas .* bulk_conc[Gas_k .== 1] .+ gas_transfer_rates .* Vr ./ Vgas
     
@@ -289,7 +288,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
     Keq = constants_matfloat.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
     Kh = constants_vecfloat.Kh                                   # Henry constants [mol/L/bar]
     chrM = constants_matfloat.chrM                               # A (ncompounds, 5) matrix with charge values
-    compoundNames = constants_vecstring.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H)
+    compoundNames = constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]             # A (ncompounds,) vector with the compound names (without H2O or H)
     pH = constants_float.pHsetpoint                           # The pH setpoint
     T = constants_float.T                                     # Temperature in Kelvin
     R = constants_float.R * 10                              # Gas constant [L bar/(K mol)]
@@ -320,6 +319,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
         # The combination of dropdims and sum with those dimensions results in a vector that contains total change
         # over the whole matrix per compound. This is then adjusted from a single grid cell to the whole reactor
         cumulative_reacted = dropdims(sum(reactionMatrix, dims=(1,2)), dims=(1,2)) .* Vg .* f ./ Vr # [mol/L /h]
+        cumulative_reacted = [cumulative_reacted; zeros(sum(Gas_k .== 1))]  # Add elements to account for the Gas compounds (non reactive, but required for indexing)
 
         # Convert from Vector{Any} to Vector{Float64}
         prev_conc = convert(Array{Float64}, prev_conc)
@@ -346,11 +346,10 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
         # Hardcoded stuff
         # Disabled next line as it is hardcoded. It seems to be that SO4 is used to neutralise the NH3 before correcting pH
         # bulk_concentrations[findall(compoundNames .== "SO4")] = bulk_concentrations[findall(compoundNames .== "NH3")] ./ 2
-        bulk_concentrations = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations)
+        bulk_concentrations[Gas_k .!= 1] = controlpH(Keq, chrM, compoundNames, pH, bulk_concentrations[Gas_k .!= 1])
 
         if any(bulk_concentrations .< 0)
             @warn("DEBUG:actionRequired, debug: negative bulk concentration encountered after pH control... correction required?")
-            println(bulk_concentrations)
             bulk_concentrations = bulk_concentrations .* (bulk_concentrations .> 0)
         end
     end
