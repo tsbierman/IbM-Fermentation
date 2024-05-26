@@ -189,6 +189,16 @@ function integTime(simulation_file, directory)
                 elseif non_convergent(iRES, RESvalues, constants_float.tolerance_no_convergence)
                     Time = decrease_dT_diffusion!(Time, "Convergence is stuck", grid_float.dx, constants_vecfloat)
                 end
+
+                if iDiffusion > 5000 && slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
+                    # Accept SS under non-convergent conditions when diffusion iteration number is high
+                    ssReached = true
+                end
+
+                if iDiffusion > 10000
+                    ssReached = true
+                end
+
             else
                 if iDiffusion > 5000 && slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
                     # Without dynamic timestep & negative concentrations
