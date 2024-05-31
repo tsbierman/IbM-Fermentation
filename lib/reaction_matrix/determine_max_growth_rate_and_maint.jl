@@ -42,13 +42,13 @@ function determine_max_growth_rate_and_maint(species, T, Sh)
     if species == 1 # BO
         UL = 5.5
         LL = 4.0
-        maint = 0.2/24 # h-1
+        maint = 1.2/10/24 # h-1 10% of max growth rate
         mu_max = 1.2 * calculate_inhibition(UL, LL, pH) / 24
 
     elseif species == 2 # AM
         UL = 7.0
         LL = 6.0
-        maint = 0.2/24 # h-1
+        maint = 0.4/10/24 # h-1 10% of max growth rate
         mu_max = 0.4 * calculate_inhibition(UL, LL, pH) / 24
 
         # AM Alternative, upper and lower inhibition
@@ -59,7 +59,7 @@ function determine_max_growth_rate_and_maint(species, T, Sh)
     elseif species == 3 # HM
         UL = 6.0
         LL = 5.0
-        maint = 0.2/24 # h-1
+        maint = 2.1/10/24 # h-1 10% of max growth rate
         mu_max = 2.1 * calculate_inhibition(UL, LL, pH) / 24
     
     # Nitrospira values
