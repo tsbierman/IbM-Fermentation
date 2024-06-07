@@ -190,23 +190,25 @@ function integTime(simulation_file, directory)
                     Time = decrease_dT_diffusion!(Time, "Convergence is stuck", grid_float.dx, constants_vecfloat)
                 end
 
-                if iDiffusion > 5000 && slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
+                # HARDCODED VALUE!
+                if iDiffusion > 5000 && maximum(RESvalues[:,iRES]) <= 0.075 && slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
                     # Accept SS under non-convergent conditions when diffusion iteration number is high
                     ssReached = true
                 end
-
-                if iDiffusion > 10000
+                # HARDCODED VALUE!
+                if iDiffusion > 10000 && maximum(RESvalues[:,iRES]) <= 0.075
                     ssReached = true
                 end
 
             else
-                if iDiffusion > 5000 && slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
+                # HARDCODED VALUE!
+                if iDiffusion > 5000  && maximum(RESvalues[:,iRES]) <= 0.075 && slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
                     # Without dynamic timestep & negative concentrations
                     # Due to too large step size, accept SS under non-convergent conditions
                     ssReached = true
                 end
-
-                if iDiffusion > 10000
+                # HARDCODED VALUE!
+                if iDiffusion > 10000 && maximum(RESvalues[:,iRES]) <= 0.075
                     ssReached = true
                 end
             end
@@ -375,6 +377,8 @@ function integTime(simulation_file, directory)
 
                     # Set next bacterial time
                     Time.bac = Time.bac + Time.dT_bac
+                    # Enforce garbage collection
+                    GC.gc()
                 end
 
                 # Time advancements (dT_save)

@@ -328,7 +328,7 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
             # Based on reaction_matrix, calculate new bulk concentrations with an ODE.
             parameters = [cumulative_reacted, influent, variableHRT, bulk_setpoint, setpoint_index, Dir_k, Gas_k, settings_bool.structure_model, settings_string.type, T, R, Kh, kla, Pgas, Vr, Vgas, compoundNames, Keq, pH]
             prob = ODEProblem(massbal, prev_conc, (0.0, dT), parameters)
-            sol = solve(prob, Tsit5(), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
+            sol = solve(prob, Rosenbrock23(autodiff=false), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
             bulk_conc_temp = sol.u[end]
             bulk_concentrations = correct_negative_concentrations!(bulk_conc_temp) #<E: Negative concentration from mass balance of reactor. />
 
