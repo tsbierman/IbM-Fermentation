@@ -84,8 +84,8 @@ function integTime(simulation_file, directory)
         bulk_history[:,1] = [bulk_concs; gas_bulk_concs] # Is added after changing iProf, so first value should be placed already
 
         # Initialise saving file
-        # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
-        save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
+        save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+        # save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, 0, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
     end
 
     # Initialise storing space
@@ -387,8 +387,8 @@ function integTime(simulation_file, directory)
                     Time.save = Time.save + constants_float.dT_save
 
                     # Save all important variables
-                    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
-                    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
+                    save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
+                    # save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory) # Entire plane of simulation
 
                     if Time.current >= Time.backup
                         # Set next backup time
@@ -415,8 +415,8 @@ function integTime(simulation_file, directory)
     end
 
     # Save all important variables one last time?
-    # save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
-    save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
+    save_slice(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)         # Slice of simulation
+    # save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, [bulk_concs;gas_bulk_concs], pH, invHRT, Time.current, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)       # Entire plane of simulation
     save_backup(bac_vecfloat, bac_vecint, bac_vecbool, [bulk_concs;gas_bulk_concs], invHRT, conc, reaction_matrix, pH, directory)                      # Backup to start up halfway
     save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitRES, bulk_history, Time, Time_vecfloat, directory)   # Save performance
 end
