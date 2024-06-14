@@ -1,5 +1,6 @@
 using DifferentialEquations
 using ODE
+using Plots
 
 function run_ADM1()  
 
@@ -180,6 +181,6 @@ function run_ADM1()
     end
 
     prob = ODEProblem(ADM1_balances, c0, (0.0, sim_time))
-    sol = solve(prob, Rosenbrock23(autodiff=false), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
-    return sol.u
+    sol = solve(prob, Rodas4P(autodiff=false), isoutofdomain=(y,p,t)->any(x->x.<0,y), reltol=1e-8, abstol=1e-20)
+    return sol.t, sol.u
 end
