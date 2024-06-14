@@ -50,12 +50,17 @@ function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matb
     #                    "B2"=> "#009E48",
     #                    "B3"=> "#E59201")
     # Color_dict for Nitrospira
-    colors_dict = Dict("An-NRMX"=> "#E69F00",
-                       "CMX"=> "#56B4E9",
-                       "NOB"=> "#009E73",
-                       "AOB"=> "#F0E422",
-                       "NRMX"=> "#0072B2",
-                       "AMX"=> "#D55E00")
+    # colors_dict = Dict("An-NRMX"=> "#E69F00",
+    #                    "CMX"=> "#56B4E9",
+    #                    "NOB"=> "#009E73",
+    #                    "AOB"=> "#F0E422",
+    #                    "NRMX"=> "#0072B2",
+    #                    "AMX"=> "#D55E00")
+
+    colors_dict = Dict("BO" => "#A020F0",
+                       "AM" => "#E8BB00",
+                       "HM" => "#3bd6c6")
+                      
     c = [colors_dict[bName] for bName in bacNames]
     rC, gC, bC = HEX2RGB(c)
     colors_database = [RGB(rC[i]/255, gC[i]/255, bC[i]/255) for i in eachindex(rC)]
@@ -89,8 +94,12 @@ end
 
 function loaddata(sim_number, finished)
 
-    directory = string(pwd(), @sprintf("\\results\\%04d\\results1D.jld2", sim_number))
-
+    if isfile(string(pwd(), @sprintf("\\results\\%04d\\results1D.jld2", sim_number)))
+        directory = string(pwd(), @sprintf("\\results\\%04d\\results1D.jld2", sim_number))
+    else
+        directory = string(pwd(), @sprintf("\\results\\%04d\\results2D.jld2", sim_number))
+    end
+    
     if finished
         sim_file = string(pwd(), @sprintf("\\results\\%04d\\sim_%04d.jld2", sim_number, sim_number))
     else
