@@ -116,28 +116,28 @@ using BenchmarkTools
 # bool2 = [-1,1,0,1,0,0,-1,1,1]
 # a[bool1 .& (bool2 .!= 1)]
 
-# using Plots
+using Plots
 
-# R = 8.314/1000
-# T = 298.15
-# but_base = 48.3
+R = 8.314/1000
+T = 298.15
+but_base = 48.3
 # pro_base = 76.1
-# meth_base = -135.926
+meth_base = -135.926
 
-# log_range = 1:7
-# num_range = [10.0^(-num) for num in log_range]
+log_range = 1:7
+num_range = [10.0^(-num) for num in log_range]
 
-# but = [but_base + R * T * log(num^2) for num in num_range]
+but = [but_base + R * T * log(num^2) for num in num_range]
 # pro = [pro_base + R * T * log(num^3) for num in num_range]
-# meth = [meth_base + R * T * log(num^(-4)) for num in num_range]
+meth = [meth_base + R * T * log(num^(-4)) for num in num_range]
 
-# hline([0], linestyle=:dash, c=:black, label=false)
-# plot!(log_range, but, label="Butyrate oxidation", linewidth=3)
+hline([0], linestyle=:dash, c=:black, label=false)
+plot!(log_range, but, label="Butyrate oxidation", linewidth=3, c="#A020F0")
 # plot!(log_range, pro, label="Propionate oxidation", linewidth=3)
-# plot!(log_range, meth, label="Methanogenesis", linewidth=3)
-# xflip!(true)
-# plot!(xlabel="-log10(pH2)", ylabel="kJ/reaction", legend_position=:bottomleft)
-# savefig("Gibbs energy of formation.png")
+plot!(log_range, meth, label="Hydrogenotrophic methanogenesis", linewidth=3, c="#3bd6c6")
+xflip!(true)
+plot!(xlabel="-log$(Char(0x2081))$(Char(0x2080))(pH$(Char(0x2082)))", ylabel="kJ/reaction", legend_position=:bottomleft)
+savefig("Gibbs energy of formation.png")
 
 # variable = zeros(3,3)
 # display(variable)
