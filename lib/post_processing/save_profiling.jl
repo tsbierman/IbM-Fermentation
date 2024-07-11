@@ -9,7 +9,8 @@ function save_profiling(profiling, maxErrors, normOverTime, nDiffIters, maxInitR
     normOverTime:       A vector with per dT_bac the norm of delta-concentrations
     nDiffIters:         A vector with per dT_bac the number of diffusion iterations
     bulk_history:       A vector with per dT_bac the bulk concentration of each compound
-    Time                A Time struct with decreased dT (diffusion)
+    Time                A "Float" struct containing Time-related parameters of type Float64
+    Time_vecfloat       A "VectorFloat" struct containing Time-related parameters of type Vector{Float64}
     directory:          The directory where results are to be stored in
     """
 

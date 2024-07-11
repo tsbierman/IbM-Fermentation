@@ -1,14 +1,13 @@
 function init_save_profile(constants_float, constants_vecint, constants_vecstring, grid_int)
     """
-    This function initialises the resulting structs that will contain saved information.
-    It utilizes datatypes within the required precision with the lowest storage requirements.
+    This function initialises the structs that will contain saved information.
     
     Arguments
-    constants:              A "General" struct containing all the simulation constants
-    grid:                   A "General" struct containing all parameters related to the grid
+    constants_XYZ:          A struct containing the simulation constants
+    grid_int:               A "Int" struct containing grid parameters of type Int
     
     Returns
-    XXX_saved               A "General" struct that containing all variables of "General" struct XXX, that need to be saved
+    XXX_saved               A struct containing initialised for saving struct XXX.
                             They are initialised for the number of saves that are going to be made
     """
 
@@ -21,13 +20,13 @@ function init_save_profile(constants_float, constants_vecint, constants_vecstrin
     bac_saved_matint = MatrixInt_struct()
     bac_saved_matbool = MatrixBool_struct()
 
-    bac_saved_vecint.nBacs = zeros(Int32, nSaves)                             # Vector, Unsigned Integer, 32 bit
-    bac_saved_matfloat.x = zeros(Float64, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
-    bac_saved_matfloat.y = zeros(Float64, nSaves, max_nBac)            # Matrix, Float 32 bit (single precision)
-    bac_saved_matfloat.radius = zeros(Float64, nSaves, max_nBac)       # Matrix, Float 32 bit (single precision)
-    bac_saved_matint.species = zeros(Int32, nSaves, max_nBac)        # Matrix, Unsigned Integer, 8 bit
-    bac_saved_matbool.active = zeros(Bool, nSaves, max_nBac)          # Matrix, Boolean
-    bac_saved_matfloat.mu = zeros(Float64, nSaves, max_nBac)           # Matrix, Float 32 bit (single precision)
+    bac_saved_vecint.nBacs = zeros(Int32, nSaves)                   # Vector, Integer, 32 bit
+    bac_saved_matfloat.x = zeros(Float64, nSaves, max_nBac)         # Matrix, Float 64 bit (double precision)
+    bac_saved_matfloat.y = zeros(Float64, nSaves, max_nBac)         # Matrix, Float 64 bit (double precision)
+    bac_saved_matfloat.radius = zeros(Float64, nSaves, max_nBac)    # Matrix, Float 64 bit (double precision)
+    bac_saved_matint.species = zeros(Int32, nSaves, max_nBac)       # Matrix, Integer, 32 bit
+    bac_saved_matbool.active = zeros(Bool, nSaves, max_nBac)        # Matrix, Boolean
+    bac_saved_matfloat.mu = zeros(Float64, nSaves, max_nBac)        # Matrix, Float 64 bit (double precision)
 
     # Concentration variable
     nCompounds = length(constants_vecstring.compoundNames)
@@ -40,9 +39,9 @@ function init_save_profile(constants_float, constants_vecint, constants_vecstrin
     # reactor properties
     reactor_saved_matfloat = MatrixFloat_struct()
     reactor_saved_vecfloat = VectorFloat_struct()
-    reactor_saved_matfloat.bulk_concs = zeros(Float64, nSaves, nCompounds)       # Matrix, Float 32 bit (single precision)
-    reactor_saved_vecfloat.HRT = zeros(Float64, nSaves)                          # Vector, Float 32 bit (single precision)
-    reactor_saved_vecfloat.granule_density = zeros(Float64, nSaves)              # Vector, Float 32 bit (single precision)
+    reactor_saved_matfloat.bulk_concs = zeros(Float64, nSaves, nCompounds)       # Matrix, Float 64 bit (double precision)
+    reactor_saved_vecfloat.HRT = zeros(Float64, nSaves)                          # Vector, Float 64 bit (double precision)
+    reactor_saved_vecfloat.granule_density = zeros(Float64, nSaves)              # Vector, Float 64 bit (double precision)
 
     return bac_saved_vecint, bac_saved_matfloat, bac_saved_matint, bac_saved_matbool, conc_saved, pH_saved, reactor_saved_matfloat, reactor_saved_vecfloat
 end
@@ -51,15 +50,16 @@ end
 function save_profile(bac_vecfloat, bac_vecint, bac_vecbool, conc, bulk_concentrations, pH, invHRT, Time, grid_float, grid_int, constants_float, constants_vecint, constants_vecstring, directory)
     """
     This function saves important variables of the whole simulation domain
-    It does so in other structs that are generated or loaded
+    Saving is done in separate structs, stored in a .jld2 file
     
-    bac:                    A "General" struct containing all parameters related to the bacteria
+    bac_XYZ:                A struct containing bacterial parameters
     conc:                   A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
     bulk_concentrations:    A (ncompounds,) vector of the bulk liquid concentrations of all compounds
     pH:                     A (ny, nx) matrix containing the pH value per grid cell
-    Time:                   The simulation time (not the struct!)
-    grid:                   A "General" struct containing all parameters related to the grid
-    constants:              A "General" struct containing all the simulation constants
+    invHRT:                 The inverse of the HRT
+    Time:                   The current simulation time (not the struct!)
+    grid_XYZ:               A struct containing grid parameters
+    constants_XYZ:          A struct containing simulation constants
     directory:              The directory where results are to be stored in
     """
 

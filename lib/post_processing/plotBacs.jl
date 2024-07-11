@@ -1,7 +1,7 @@
 function circleShape(h, k, r)
     """
     Function to plot the bacteria as circles
-    Arguments:
+    Arguments
     h,k,r:      x, y and radius
     """
 
@@ -40,7 +40,7 @@ function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matb
     """
     This function plots and saves the data.
 
-    Arguments:
+    Arguments
     i:                  Index to be plotted
     xlim, ylim:         plotting range information
     bac_XYZ:            Several Structs with bacterial information
@@ -49,15 +49,15 @@ function save_plot(i, xlim, ylim, bac_vecint, bac_matfloat, bac_matint, bac_matb
     sim_number:         Simulation number
     include_radius:     A Boolean indicating whether inactive bacteria should have their true radius. If false, inactivation radius is used (increases visibility)
 
-    Returns:
+    Returns
     A figure of the granule (and saves it)
     """
 
     # Select all data
     nBacs = bac_vecint.nBacs[i]
-    x = bac_matfloat.x[i, 1:nBacs] * 1e6            # in µm
-    y = bac_matfloat.y[i, 1:nBacs] * 1e6            # in µm
-    radius = bac_matfloat.radius[i, 1:nBacs] * 1e6  # in µm
+    x = bac_matfloat.x[i, 1:nBacs] * 1e6            # [µm]
+    y = bac_matfloat.y[i, 1:nBacs] * 1e6            # [µm]
+    radius = bac_matfloat.radius[i, 1:nBacs] * 1e6  # [µm]
     species = bac_matint.species[i, 1:nBacs]
     active = bac_matbool.active[i, 1:nBacs]
     mu = bac_matfloat.mu[i, 1:nBacs]
@@ -127,14 +127,14 @@ function loaddata(sim_number, finished)
     """
     This function loads all the required data.
 
-    Arguments: 
+    Arguments
     sim_number:             The simulation number
     finished:               A boolean indicating whether the simulation has been completed
 
-    Returns:
-    bac_XYZ:                Several structs containing bacterial information
-    grid_XYZ:               Several structs containing grid information
-    constants_XYZ:          Several structs containing constants
+    Returns
+    bac_XYZ:                A struct containing bacterial parameters
+    grid_XYZ:               A struct containing grid parameters
+    constants_XYZ:          A struct containing simulation constants
     """
 
     # Get data
@@ -162,12 +162,12 @@ function getlimitdata(bac_vecint, bac_matfloat, grid_float, index)
     """
     This function selects the plotting limits, based on the most recent data
 
-    Arguments:
+    Arguments
     bac_XYZ:                Several Structs containing bacterial information
     grid_float:             A Float_Struct with grid information
     index:                  The index of the time point to be plotted
 
-    Returns:
+    Returns
     xlim, ylim:             tuples with the plotting boundaries in the x- and y-direction
     """
 
@@ -189,14 +189,13 @@ function plotBacs(sim_number, finished, index, include_radius)
     """
     Function that plots the bacteria
 
-    Arguments:
+    Arguments
     sim_number:             The simulation number
     finished:               Boolean indicating whether simulation is finished (influences where data is taken from)
     index:                  Integer indicating which data is used. When index = -1, most recent data is used. When index = 0, a gif is made
     include_radius:         A Boolean indicating whether inactive bacteria should have their true radius. If false, inactivation radius is used (increases visibility)
 
-    Returns:
-
+    Returns
     A plot (or a gif)
     """
 

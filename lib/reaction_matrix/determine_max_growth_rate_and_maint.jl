@@ -37,6 +37,7 @@ function determine_max_growth_rate_and_maint(species, T, Sh)
     maint:                  The calculated maintenance for this specie
     """
 
+    # Anaerobic Fermentation
     pH = -log10(Sh)
 
     if species == 1 # BO
@@ -62,7 +63,8 @@ function determine_max_growth_rate_and_maint(species, T, Sh)
         maint = 2.1/10/24 # h-1 10% of max growth rate
         mu_max = 2.1 * calculate_inhibition(UL, LL, pH) / 24
     
-    # Nitrospira values
+    
+    # Nitrospira
     # if species == 1 # AOB
     #     mu_max = ((1.28*10^(12) * exp(-8183/T)) / (1 + ((2.05*10^(-9))/Sh) + (Sh/(1.66*10^(-7)))))/24
     #     maint = (1.651*10^(11) * exp(-8183/T))/24

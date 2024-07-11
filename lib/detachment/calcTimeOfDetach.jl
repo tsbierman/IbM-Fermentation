@@ -1,6 +1,6 @@
 function getFreeNeighbourCount(i, j, Visited)
     """
-    Count the number of non-biomass neighbouring gridcells for gridcel[j,i] 
+    This function counts the number of neighbouring gridcells without biomass for gridcell [j,i] 
     This calculation is performed before the Fast-Marching algorithm, so
     only cells that do not contain biomass will be in Visited
 
@@ -10,7 +10,7 @@ function getFreeNeighbourCount(i, j, Visited)
     Visited:            A (ny,nx) BitMatrix indicating whether each gridcell is outside the biofilm
 
     Returns
-    nFreeNb:            A number inidicating how many neighbouring gridcells of gridcell[j,i] 
+    nFreeNb:            A number inidicating how many neighbouring gridcells of gridcell [j,i] 
                         do not have any cells in them.
     """
     
@@ -36,7 +36,7 @@ end
 
 function string_to_coordinates(string_coords)
     """
-    Turns the string into an y and x-coordinate
+    This function turns the string into an y- and x-coordinate
 
     Arguments
     string_coords:      The coordinates in a string (y,x)
@@ -56,16 +56,16 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     This function calculates the time of detachment for each gridcell in the simulation domain
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
-    grid2bac:           A matrix (ny, nx, ?) which contains for each gridcell which bacteria is located
-                        there. The number corresponds to the index in the bac struct
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    grid_float:         A "Float" struct containing grid parameters of type Float64
+    grid_int:           A "Int" struct containing grid parameters of type Int
+    grid2bac:           A matrix (ny, nx, 9) which contains for each gridcell which bacteria is located
+                        there. The number corresponds to the index in the bac structs
     grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
-    constants:          A "General" struct containing all the simulation constants
+    constants_float:    A "Float" struct containing simulation constants of type Float64
 
     Returns
     T:                  A (ny, nx) matrix which contains the time of detachment for each gridcell
-    It returns a matrix with per gridcell the time of detachment
     """
 
     # Extract variables
@@ -75,12 +75,12 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     x_centre = mean(bac_vecfloat.x)
     y_centre = mean(bac_vecfloat.y)
 
-    # Where are bacteria located in the grid? The grid2nBacs is slightly extended and morphed into a logical matrix
-    detachment_grid_float = deepcopy(grid_float)                                                    # To keep the original grid values from changing
+    # Determine the location of the organisms
+    detachment_grid_float = deepcopy(grid_float)    # To keep the original grid values from changing
     detachment_grid_int = deepcopy(grid_int)
     detachment_grid_float.blayer_thickness = constants_float.kDist * constants_float.bac_max_radius * 2   # Distance factor * diameter
 
-    # Returns logical matrix with per cell whether it is in a certain region. As we set the the boundary layer very small,
+    # Returns logical matrix with per gridcell whether it is in a certain region. As we set the the boundary layer very small,
     # this will only be the aggregate of the granule
     aggregate, _ = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, detachment_grid_float, detachment_grid_int)
     biofilm = aggregate .> 0
@@ -91,27 +91,26 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
 
     # Create matrices
     T = zeros(size(grid2nBacs))
-    Visited = .!biofilm                         # Everything not biofilm will not have to be calculated and thus is already "Visited"
+    Visited = .!biofilm               # Everything not-biofilm will not have to be calculated and thus is already "Visited"
 
     # ---------------------------------- START DEBUG ------------------------------------
     # return plotLogicalGrid(detachment_grid, Visited)      # Plot test for Visited
     # ----------------------------------- END DEBUG -------------------------------------
 
-    # Make kernel to find narrow band (edge-finder)
+    # Make kernel to find narrow band (edge-finder kernel)
     kernel = zeros(3,3)
     kernel[[1,3], 2] .= -1/4
     kernel[2, [1,3]] .= -1/4
     kernel[2,2] = 1
 
     # Narrow_band is the outermost grids of the aggregate
-    # Narrow_band = conv(biofilm, kernel)[2:end-1, 2:end-1] .> 1e-15      # Some numbers are very small, but should be 0
     Narrow_band = imfilter(biofilm, reflect(centered(kernel)), Fill(0)) .> 1e-15      # Some numbers are very small, but should be 0
 
     # ---------------------------------- START DEBUG ------------------------------------
     # return plotLogicalGrid(detachment_grid, Narrow_band)  # Plot test for Narrow_band
     # ----------------------------------- END DEBUG -------------------------------------
 
-    # Far is the inner part of the aggregate
+    # "Far" is the inner part of the aggregate
     Far = biofilm .& .!Narrow_band
 
     # ---------------------------------- START DEBUG ------------------------------------
@@ -128,7 +127,7 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
         x_index = coor[2]
         Fdetach = calculateLocalDetachmentRate(x_index, y_index, kDet, grid_float, x_centre, y_centre)
 
-        # COPIED IMPORTANT:
+        # COPIED IMPORTANT FROM MATLAB:
         # --------- IMPORTANT ----------
         # What is the impact of the number of free neighbours?
         # In idynomics it is calculated with the number of non-biomass
@@ -197,6 +196,7 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     return T
 end
 
+# Visualisation can be used combined with a DEBUG from above
 # ----------------------- START VISUALISATION -----------------------------
 # # Read_file
 # using Plots
@@ -204,7 +204,7 @@ end
 # include(string(pwd(), "\\lib\\pre_processing\\create_mat.jl"))
 # include(string(pwd(), "\\lib\\determine_where_bacteria_in_grid.jl"))
 # filename = string(pwd(), "\\test\\test_file.xlsx")
-# grid, bac, constants, settings, init_params = create_mat(filename)
-# grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid, bac)
-# calcTimeOfDetach(bac, grid, grid2bac, grid2nBacs, constants)
+# grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, constants_float, constants_vecfloat, constants_vecint, constants_vecstring, constants_vecbool, constants_matfloat, settings_bool, settings_string, init_params = create_mat(filename, -1)
+# grid2bac, grid2nBacs =determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
+# calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants_float)
 # ----------------------- END VISUALISATION -----------------------------

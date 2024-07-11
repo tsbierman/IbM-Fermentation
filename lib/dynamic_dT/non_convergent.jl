@@ -5,7 +5,7 @@ function non_convergent(iRES, RESvalues, tol)
 
     Arguments
     iRES:               The number of steady state checks since last bacterial advancement (dt_bac change)
-    RESvalues:          The RESisdual values of this steady state
+    RESvalues:          The RESidual values of this steady state
     tol:                The difference between consecutive maximum RES values below which the system is considered non-convergent
 
     Returns
@@ -13,9 +13,9 @@ function non_convergent(iRES, RESvalues, tol)
     """
 
     # Currently, a SS check is done every 2 diffusion iterations
-    if iRES > 5 # If lower than 5, not enough steady state checks performed to consider non-convergent
+    if iRES > 5 # If lower than 5, not enough steady state checks performed to check non-convergent
         no_conv_positive = abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) < tol &&    # Checks difference between current and previous maximum(RES), < tol? --> not enough change
-        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-2])) < 2*tol                        # Checks difference between current and pre-previous maximum(RES), < tol? --> not enough change together they check whether convergence goes fast enough
+        abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-2])) < 2*tol                        # Checks difference between current and pre-previous maximum(RES), < tol? --> not enough change. Together they check whether convergence goes fast enough
 
         no_conv_negative = maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1]) > 0 &&           # Checks whether current error (iRES) is larger than previous, if so, --> not converging
         abs(maximum(RESvalues[:, iRES]) - maximum(RESvalues[:, iRES-1])) > 1e-5                         # Checks difference between current and previous maximum(RES), if so --> changes to fast, together they check if there is little of a lot of divergence

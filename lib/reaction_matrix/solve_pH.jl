@@ -1,16 +1,16 @@
 function calculate_spcM!(spcM, Sh, Keq, StV)
     """
     This function calculates the specieMatrix (spcM) based on the compound concentrations,
-    the Keq and the proton concentration.
+    the Keq and the proton concentration (Sh).
 
     Arguments
-    spcM:           A (ncompounds, 5) matrix containing the current concentrations per specie
+    spcM:           A (ncompounds, 5) matrix containing the current concentrations per chemical specie
     Sh:             The proton concentration
     Keq:            A (ncompounds,) vector containing all equilibrium constants (Kd and Ka)
-    StV:            A (ncompounds,) vector containing the total concentration per compound (so sum(species))
+    StV:            A (ncompounds,) vector containing the total concentration per compound (so sum(chemcial species))
 
     Returns
-    spcM:           A (ncompounds, 5) matrix with updated concentrations per specie
+    spcM:           A (ncompounds, 5) matrix with updated concentrations per chemical specie
     """
 
     Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
@@ -32,14 +32,14 @@ function solve_pH(Sh_ini, StV, Keq, chrM, calculate_pH, Tol)
 
     Arguments
     Sh_ini:         The initial guess for the proton concentration
-    StV:            A (ncompounds,) vector containing the total concentration per compound (so sum(species))
+    StV:            A (ncompounds,) vector containing the total concentration per compound (so sum(chemical species))
     Keq:            A (ncompounds,) vector containing all equilibrium constants (Kd and Ka)
-    chrM:           A (ncompounds, 5) matrix indicating the charge per specie
-    calculate_pH:   A Boolean(bool) indicating whether pH needs to be calculated, if false, pH is a set value
+    chrM:           A (ncompounds, 5) matrix indicating the charge per chemical specie
+    calculate_pH:   A Boolean (Bool) indicating whether pH needs to be calculated, if false, pH is a set value
     Tol:            The Newton-Raphson tolerance
 
     Returns
-    spcM:           A (ncompounds, 5) matrix containing the current concentrations per specie for the current pH
+    spcM:           A (ncompounds, 5) matrix containing the current concentrations per chemical specie for the current pH
     Sh:             The updated proton concentration
     """
 

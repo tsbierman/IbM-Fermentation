@@ -1,7 +1,7 @@
 function IbM(simulation_number)
     """
     This is the main function to run the IbM model for the given preset file 
-    (naming convention: sim_xxxx.mat, where xxxx is the simulation number)
+    (naming convention: sim_xxxx.jld2, where xxxx is the simulation number)
     
     ->  creates a folder in the Results directory for the output of the simulation
     ->  Run the simulation based on the simulation file 
@@ -10,9 +10,6 @@ function IbM(simulation_number)
     ->  Move the preset file in the corresponding results folder 
         (signifying that the simulation has been run) after running the model
     """
-
-    # Get needed file
-    # include(string(pwd(), "\\lib\\integTime.jl"))
 
     ENV["TICKTOCK_MESSAGES"] = false # Disables messages by TickTock module 
 

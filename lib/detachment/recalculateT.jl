@@ -1,20 +1,21 @@
 function recalculateT(T, x_index, y_index, kDet, grid_float, Visited, x_centre, y_centre)
     """
-    This function recalculates T value at the gridcell[y_index, x_index] using 
+    This function recalculates the T-value at the gridcell[y_index, x_index] using 
     quadratic approximation of the gradient.
 
     Arguments
     T:                  A (ny,nx) matrix with the current detachment times
     y_index, x_index:   The coordinates of the gridcell that needs recalculation of the T value
     kDet:               The detachment constant determining how fast detachment takes place
-    grid:               A "General" struct containing all parameters related to the grid
+    grid_float:         A "Float" struct containing grid parameters of type Float64
     Visited:            A (ny,nx) BitMatrix with per gridcell whether the correct T-Value has been calculated
-    x_centre, y_centre: The coordinats of the centre of the granule
+    x_centre, y_centre: The coordinates of the centre of the aggregate
 
     Returns
     T_new:              A (ny, nx) matrix with the updated detachment times
     """
 
+    # Retrieve info
     right_visited = Visited[y_index, x_index + 1]
     left_visited = Visited[y_index, x_index - 1]
 
@@ -31,7 +32,7 @@ function recalculateT(T, x_index, y_index, kDet, grid_float, Visited, x_centre, 
     end
 
     top_visited = Visited[y_index + 1, x_index]
-    bottom_visited = (y_index != 1) && Visited[y_index - 1, x_index]            # Why only check in this case
+    bottom_visited = (y_index != 1) && Visited[y_index - 1, x_index]            # Why only check both in this case
 
     if top_visited
         if bottom_visited                                                       # If both neighbouring T's are already Visited

@@ -2,12 +2,12 @@ function plot_active_mass_fractions(sim_number, time_index)
     """
     This function makes a horizontal bar plot of the active mass fractions.
 
-    Arguments:
+    Arguments
     sim_number:         The simulation number
     time_index:         The index (in time) of the data that needs to be plot_concentration_domain
                         If time_index = -1, take the most recent data
 
-    Returns:
+    Returns
     A barplot (and saves it)
     """
 

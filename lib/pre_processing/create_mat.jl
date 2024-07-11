@@ -14,21 +14,15 @@ function rand_circle(N, x_centre, y_centre, r)
     """
     # Create estimate that is actually in the circle
     Ns = round(4 / pi * N + 2.5 * sqrt(N) + 100)
-    X = rand(1, Int(Ns)) .* (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
-    Y = rand(1, Int(Ns)) .* (2*r) .- r           # Random decimal times Diameter, shifted to be around 0.
+    X = rand(1, Int(Ns)) .* (2*r) .- r              # Random decimal times Diameter, shifted to be around 0.
+    Y = rand(1, Int(Ns)) .* (2*r) .- r              # Random decimal times Diameter, shifted to be around 0.
     
-    I = findall(sqrt.(X .^2 .+ Y .^2) .<= r)    # Check which are within radius
-    X = X[I[1:N],:] .+ x_centre                 # Select and move to existing centre
-    Y = Y[I[1:N],:] .+ y_centre                 # Select and move to existing centre
+    I = findall(sqrt.(X .^2 .+ Y .^2) .<= r)        # Check which are within radius
+    X = X[I[1:N],:] .+ x_centre                     # Select and move to existing centre
+    Y = Y[I[1:N],:] .+ y_centre                     # Select and move to existing centre
 
     X = reshape(X, 1, :)
     Y = reshape(Y, 1, :)
-
-    # Alternative: This generates only points that are already in the circle, no need to check the distance.
-    # radius = r * sqrt(rand(N,1))
-    # theta = 2 * pi * rand(N,1)
-    # X = radius .* cos(theta) + x_centre
-    # Y = radius .* sin(theta) + y_centre
     return X, Y
 end
 
@@ -74,7 +68,7 @@ end
 
 function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange, constants_float)
     """
-    This function creates several microcolonies over the available grid. 
+    This function creates several microcolonies over the available domain. 
     It does so by calling the blue_noise_circle function to create a cluster 
     of microbial cells at every starting point.
 
@@ -86,7 +80,7 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
     yrange:             Minimum and maximum y-coordinate allowed
 
     Returns
-    x, y                Vectors [nColonies*nBacPerCol] containing all x and y coordinates, 
+    x, y                Vectors [nColonies*nBacPerCol,] containing all x and y coordinates, 
                         respectively, of the bacteria
     """
     # Estimate how many colonies per axis and create equally spaced locations for the colonies
@@ -120,8 +114,9 @@ function distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrang
         temp_x2 = transpose(temp_x1)
         temp_y2 = transpose(temp_y1)
         dist = sqrt.((temp_x1 .- temp_x2).^2 .+ (temp_y1 .- temp_y2).^2) # Distances between all the points
-        dist[dist .== 0.0] .= Inf                                        # Distance from self to Inf
+        dist[dist .== 0.0] .= Inf                                        # Set distance from self to Inf
         min_distance = minimum(dist)
+
         if min_distance > constants_float.max_granule_radius * 2
             break
         end
@@ -159,9 +154,10 @@ function AMXinside(bac_vecfloat, grid_float, grid_int, constants_vecstring)
     This function is called in case of a mature granule and is Nitrospira specific.
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
-    constants:          A "General" struct containing all the simulation constants
+    bac_vecfloat:           A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    grid_float:             A "Float" struct containing grid parameters of type Float64
+    grid_int:               A "Int" struct containing grid parameters of type Int
+    constants_vecstring:    A "VectorString" struct containing simulation constants of type Vector{String}
 
     Returns
     species:            A vector (nBac,) containing a number, representing the species of the organism
@@ -188,16 +184,17 @@ end
 
 function shoving_loop(bac_vecfloat, grid_float, grid_int, constants_float, n)
     """
-    This function calls the bacteria_shove multiple thermodynamic_parameters
+    This function calls the bacteria_shove multiple times
     
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
-    constants:          A "General" struct containing all the simulation constants
-    n:                  Amount of times the shoving algorithm is called
+    bac_vecfloat:           A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    grid_float:             A "Float" struct containing grid parameters of type Float64
+    grid_int:               A "Int" struct containing grid parameters of type Int
+    constants_float:        A "Float" struct containing simulation constants of type Float64
+    n:                      Amount of times the shoving algorithm is called
 
     Returns
-    bac:                Bac struct with updates x and y coordinates
+    bac_vecfloat:           A "VectorFloat" struct containing bacterial parameters of type Vector{Float64} with updated x- and y-coordinates
     """
     for gg in 1:n
         bac_vecfloat = bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants_float)
@@ -209,25 +206,20 @@ function create_mat(filename, simulation_number)
     """
     This function reads an excel file and extracts all pre-set parameters from it.
     It stores these parameters in structs, which can be used later in the simulation.
-    Simulation_number guides how this function is used. The normal use case is a call
-    with a simulation number from 1 to 9999. This will create a .jld2 file with the variables saved.
-    The user has to call IbM(simulation_number) themselves. 
-    When 0 is used as simulation_number, create_mat will
-    still save everything, but will call IbM(0) directly. This use case is for starting up and
-    should only be called with the file (start_up.xlsx).
-    When a negative number is supplied, this function will not save the variables but will
-    return them. This is useful when testing as saving might not be desired then.
+    The normal use case is a call with a simulation number from 1 to 9999. This will create a .jld2 file with the variables saved.
+    When the function is called with a negative number, this function will not save the variables but will
+    return them. This is useful during testing as saving might not be desired then.
 
-    Arguments:
-    filename:           An excel file containing all parameters
-    simulation_number   The number the user wants this simulation stored under.
+    Arguments
+    filename:           The location of an excel file containing all parameters
+    simulation_number   The number the user wants this simulation stored as.
 
     Returns
-    grid:               A "General" struct containing all parameters related to the grid
-    bac:                A "General" struct containing all parameters related to the bacteria
-    constants:          A "General" struct containing all the simulation constants
-    settings:           A "General" struct containing all the settings of the simulation
-    init_params:        A "General" struct containing the parameters values at the start of the simulation
+    grid_XYZ:           A struct containing grid parameters
+    bac_init_XYZ:       A struct containing parameters needed for the initialisation of bacteria
+    constants_XYZ:      A struct containing simulation constants
+    settings_XYZ:       A struct containing simulation settings
+    init_params:        A "VectorFloat" struct containing initial parameters of type Vector{Float64}
     """
 
     println(">>>>>>>>>>>>>>>>>> LOADING EXCEL FILE")
@@ -240,6 +232,7 @@ function create_mat(filename, simulation_number)
 
     println(">>>>>>>>>>>>>>>> INITIALISING BACTERIA")
 
+    # Initialise bacterial structs
     bac_vecint = VectorInt_struct()
     bac_vecfloat = VectorFloat_struct()
     bac_vecbool = VectorBool_struct()
@@ -254,19 +247,19 @@ function create_mat(filename, simulation_number)
 
     elseif settings_string.model_type in ("suspension",)
 
-        margin = 0.2 * grid_float.dx * grid_int.nx                # 20% of simulation domain as margin for letting suspensions growth (empirical)
+        margin = 0.2 * grid_float.dx * grid_int.nx   # 20% of simulation domain as margin for letting suspensions growth (empirical)
         xrange = [margin, grid_float.dx * grid_int.nx - margin]
-        yrange = xrange                                 # assume square domain
+        yrange = xrange  # assume square domain
 
         # Create several colonies with some bacteria each
-        r_colony = (bac_init_int.start_nBacPerColony * radius * constants_float.kDist) / 5 # Empirical, 1/10 * diameter if all cell next to each other.
+        r_colony = (bac_init_int.start_nBacPerColony * radius * constants_float.kDist) / 5 # Empirical
         bac_vecfloat.x, bac_vecfloat.y, bac_vecfloat.centres_x, bac_vecfloat.centres_y, bac_vecint.colony_nums = distribute_microcolonies(bac_init_int.start_nColonies, bac_init_int.start_nBacPerColony, r_colony, xrange, yrange, constants_float) # Generate all coordinates
     end
 
     # Set parameters for every of the bacteria
-    bac_vecfloat.molarMass = ones(length(bac_vecfloat.x)) .* molarMass         # [mol]
-    bac_vecfloat.radius = ones(length(bac_vecfloat.x)) .* radius               # [m]
-    bac_vecbool.active = BitArray(ones(size(bac_vecfloat.x)))                # Binary/Boolean
+    bac_vecfloat.molarMass = ones(length(bac_vecfloat.x)) .* molarMass          # [mol]
+    bac_vecfloat.radius = ones(length(bac_vecfloat.x)) .* radius                # [m]
+    bac_vecbool.active = BitArray(ones(size(bac_vecfloat.x)))                   # Binary/Boolean
 
     # Shove bacteria to prevent overlapping at the start. The 5 is arbritrary.
     bac_vecfloat = shoving_loop(bac_vecfloat, grid_float, grid_int, constants_float, 5)

@@ -1,7 +1,7 @@
 """
-This file contains the definition of the General struct
-This struct is used to store variables and be able to 
-dynamically add or change its properties 
+This file contains the definitions of all custom structs
+These structs are used to store variables and be able to 
+dynamically add or change its properties. For each of the possible types, there is a separate struct
 """
 
 struct General

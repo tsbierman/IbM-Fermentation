@@ -3,7 +3,7 @@ function computeRoot(Tx, Ty, Fdet, dx)
     This function solves the quadratic equation for the gradient (approximation) of detachment front
 
     Arguments    
-    Tx, Ty:         Time of detachment value of neighbouring gridcel in the x and y directions respectively
+    Tx, Ty:         Time of detachment value of neighbouring gridcell in the x- and y-directions respectively
     Fdet:           The speed of detachment at the specific gridcell
     dx:             The discretization resolution
 

@@ -1,16 +1,17 @@
 function bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants_float)
     """
     This function calls a Java function that shoves bacteria such that minimal overlap occurs.
-    The Java function is used as it can use the QuadTree dstructure, which prevents that all
+    The Java function is used as it can use the QuadTree structure, which prevents that all
     bacteria are checked for distance and overlap.
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
-    constants:          A "General" struct containing all the simulation constants
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    grid_float:         A "Float" struct containing grid parameters of type Float64
+    grid_int:           An "Int" struct containing grid parameters of type Int
+    constants_float:    A "Float" struct containing simulation constants of type Float64
 
     Returns
-    bac:                A bac struct with updates bacterial coordinates
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64} with updated bacterial coordinates
     """
 
     # Import classes required
@@ -27,17 +28,3 @@ function bacteria_shove!(bac_vecfloat, grid_float, grid_int, constants_float)
     bac_vecfloat.y = JavaCall.jfield(r, "bac_y", Array{jdouble,1})
     return bac_vecfloat
 end
-
-# ----------------------- START VISUALISATION -----------------------------
-# If some quick visualisation is desired, uncomment the following:
-# using JavaCall
-# BMQT_class = JavaCall.@jimport(shoving.BiomassQuadtree)
-# Results_class = JavaCall.@jimport(shoving.Results)
-# qt = BMQT_class((jdouble, jdouble, jdouble, jdouble), 0.0, grid_float.dx*grid_int.nx, 0.0, grid_float.dy*grid_int.ny)
-# println(typeof(bac.x))
-# r = jcall(qt, "pushing2D", Results_class, (jint, Array{jdouble,1}, Array{jdouble,1}, Array{jdouble,1}, jdouble, jdouble, jdouble), length(bac.x), bac.x, bac.y, bac.radius, 0.1, constants.bac_max_radius * 2, constants.kDist)
-# bac_y = JavaCall.jfield(r, "bac_y", Array{jdouble,1})
-
-# using Plots
-# plot(bac.x, bac.y, seriestype=:scatter)
-# ----------------------- START VISUALISATION -----------------------------

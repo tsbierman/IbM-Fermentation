@@ -2,11 +2,11 @@ function plot_bulk_concentrations(sim_number, compound_indices)
     """ 
     This function plots bulk concentration for a single simulation. Each compound gets its own graph
 
-    Arguments:
+    Arguments
     sim_number:             The simulation number
     coumpound_indecies:     A vector or the indices that need to be plotted (based on how they are stored)
 
-    Returns:
+    Returns
     A lineplot (and saves it)
     """
 
@@ -45,11 +45,11 @@ function plot_bulk_concentrations_multiple(sim_numbers, compound_indices)
     This function plots bulk concentrations for multiple simulation in the same figure.
     All compounds end up in the same figure.
 
-    Arguments:
+    Arguments
     sim_numbers:                A vector with the simulation number_of_bacs
     compound_indices:           A vector with the compound indices (based on how they are stored)
 
-    Returns:
+    Returns
     A lineplot (and saves it)
     """
 

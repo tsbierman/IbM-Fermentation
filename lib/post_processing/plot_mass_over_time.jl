@@ -2,10 +2,10 @@ function plot_mass_over_time(sim_number)
     """
     This function plots the active mass (in moles) of the organisms over time. Additionally, it plots their fractions.
 
-    Arguments:
+    Arguments
     sim_number:             The simulation number
 
-    Returns:
+    Returns
     Two lineplots (and saves them)
     """
 
@@ -73,10 +73,10 @@ function plot_mass_over_time_multiple(sim_numbers)
     This function plots the active mass (in moles) of the organisms over time. Additionally, it plots their fractions.
     It plots the several simulation in a single graph with different linestyles.
 
-    Arguments:
+    Arguments
     sim_numbers:             A vector with the simulation numbers
 
-    Returns:
+    Returns
     Two lineplots (and saves them)
     """
 

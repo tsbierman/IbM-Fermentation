@@ -4,19 +4,21 @@ function bacteria_inactivate!(bac_vecfloat, bac_vecbool, constants_float)
     When bacteria are not active but have positive growth, they have a 10 % change to become active again
     
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    constants:          A "General" struct containing all the simulation constants  
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    bac_vecbool:        A "VectorBool" struct containing bacterial parameters of type Vector{Bool}
+    constants_float:    A "Float" struct containing simulation constants of type Float64
 
     Returns
-    bac:                A bac struct with updates activation status
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64} with updated activity status
     """
-    mask_tooSmall = bac_vecfloat.molarMass .* constants_float.bac_MW .< constants_float.min_bac_mass_grams    # marks too small bacteria
+
+    mask_tooSmall = bac_vecfloat.molarMass .* constants_float.bac_MW .< constants_float.min_bac_mass_grams      # Marks too small bacteria
     mask_positiveGrowthRate = bac_vecfloat.mu .> 0
-    mask_possible_reactivation = .!bac_vecbool.active .& mask_positiveGrowthRate                # These bacteria were inactive but have a positive growth rate
+    mask_possible_reactivation = .!bac_vecbool.active .& mask_positiveGrowthRate                                # These bacteria were inactive but have a positive growth rate
 
-    bac_vecbool.active[mask_tooSmall .& bac_vecbool.active] .= 0                                        # active but too small --> inactivates
+    bac_vecbool.active[mask_tooSmall .& bac_vecbool.active] .= 0                                                # Active but too small --> inactivates
 
-    # When possible 10% change of reactivation
+    # When possible, 10% change of reactivation
     activation_chance = rand(sum(mask_possible_reactivation))
     random_reactivation = activation_chance .< 0.1 
     bac_vecbool.active[mask_possible_reactivation] = random_reactivation

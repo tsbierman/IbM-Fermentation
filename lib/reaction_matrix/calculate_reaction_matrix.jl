@@ -1,22 +1,22 @@
 function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_vecint, bac_vecbool, diffRegion, conc, constants_float, constants_vecfloat, constants_vecint, constants_matfloat, pH, chunks, nChunks_dir, settings_bool)
     """
-    This function calculates how much of each compound is consumed per gridcell due to bacterial activity. 
+    This function calculates change per compound per gridcell due to bacterial activity. 
     It also updates the growth rate of the respective bacteria.
     This function mainly orchestrates the creation of the reaction_matrix. It sets up the parallelization if that is desired as well.
     The actual calculation is done by rMatrix_section.jl
 
     Arguments
-    grid2bac:           A matrix (ny, nx, ?) which contains for each gridcell which bacteria is located
+    grid2bac:           A matrix (ny, nx, 9) which contains for each gridcell which bacteria is located
                         there. The number corresponds to the index in the bac struct
     grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
-    bac:                A "General" struct containing all parameters related to the bacteria
+    bac_XYZ:            A struct containing bacterial parameters
     diffRegion:         A BitMatrix indicating per gridcell whether that cell is in the diffusion region
     conc:               A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
-    constants:          A "General" struct containing all the simulation constants
+    constants_XYZ:      A struct containing simulation constants
     pH:                 A (ny, nx) matrix containing the pH value per grid cell
-    chunks:             A "General" struct containing the start and end cooridinates of the chunks
+    chunks:             A "MatrixFloat" struct containing the start and end cooridinates of the chunks (type Matrix{Float64})
     nChunks_dir:        The amount of chunks that are generated in each direction
-    settings:           A "General" struct containing all the settings of the simulation
+    settings_bool:      A "Bool" struct containing simulation settings of type Bool
 
     Returns
     reaction_matrix:    A (ny, nx, ncompounds) matrix containing all reaction rates per gridcell and compound [mol/L/h]
@@ -33,15 +33,15 @@ function calculate_reaction_matrix!(grid2bac, grid2nBacs, bac_vecfloat, bac_veci
     end
 
     # Extract variables from parameters
-    Keq = constants_matfloat.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
-    chrM = constants_matfloat.chrM                               # A (ncompounds, 5) matrix with charge values
-    Vg = constants_float.Vg                                   # The grid cell volume [L]
+    Keq = constants_matfloat.Keq                                    # A (ncompounds, 4) matrix with the equilibrium constants
+    chrM = constants_matfloat.chrM                                  # A (ncompounds, 5) matrix with charge values
+    Vg = constants_float.Vg                                         # The grid cell volume [L]
     # compoundNames = constants_vecstring.compoundNames             # A (ncompounds,) vector with the compound names (without H2O or H) COuld be needed for parallelization
-    reactive_indices = constants_vecint.reactive_indices       # The indices that indicate where the reactive specie is located in the matrix
-    Ks = constants_matfloat.Ks                                   # A (nSpecies, ncompounds) matrix with Ks values
-    Ki = constants_matfloat.Ki                                   # A (nSpecies, ncompounds) matrix with Ki values
-    mMetabolism = constants_matfloat.MatrixMet                   # A (nCompounds, nSpecies) matrix with metabolism coefficients
-    mDecay = constants_matfloat.MatrixDecay                      # A (nCompounds, nSpecies) matrix with decay coefficients
+    reactive_indices = constants_vecint.reactive_indices            # The indices that indicate where the reactive specie is located in the matrix
+    Ks = constants_matfloat.Ks                                      # A (nSpecies, ncompounds) matrix with Ks values
+    Ki = constants_matfloat.Ki                                      # A (nSpecies, ncompounds) matrix with Ki values
+    mMetabolism = constants_matfloat.MatrixMet                      # A (nCompounds, nSpecies) matrix with metabolism coefficients
+    mDecay = constants_matfloat.MatrixDecay                         # A (nCompounds, nSpecies) matrix with decay coefficients
 
     # Set up storage
     reaction_matrix = zeros(size(conc))

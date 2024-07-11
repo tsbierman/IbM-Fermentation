@@ -3,12 +3,12 @@ function plot_concentration_domain(sim_number, time_index, compound_indices)
     This function plots a heatmap of the specified compounds. Each compound is plotted in their own figure.
     This function only works when a 2-Dimensional map is stored during the simulation.
 
-    Arguments:
+    Arguments
     sim_number:         The simulation number
     time_index:         The index of the stored data to be plotted. If time_index = -1, it uses the most recent timepoint.
     compound_indices:   A vector of the indices of the compounds that need to be plotted (based on the order they are saved in)
 
-    Returns:
+    Returns
     A heatmap (and saves it)
     """
 

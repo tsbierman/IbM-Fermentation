@@ -1,7 +1,7 @@
 function circleShape(h, k, r)
     """
     Function to plot the bacteria as circles
-    Arguments:
+    Arguments
     h,k,r:      x, y and radius
     """
 
@@ -29,11 +29,11 @@ function thermo_restricted(sim_number, finished)
     """
     A function to plot which grid cells contain organisms that do or do not follow laws of thermodyanmic, but still grow
 
-    Arguments:
+    Arguments
     sim_number:             The simulation number
-    finished:               A boolean indicating whether the simulation has been completed
+    finished:               A Boolean indicating whether the simulation has been completed
 
-    Returns:
+    Returns
     A heatmap per specie
     """
 

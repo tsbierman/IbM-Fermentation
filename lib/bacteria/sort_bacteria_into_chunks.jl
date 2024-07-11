@@ -1,24 +1,24 @@
 function sort_bacteria_into_chunks!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float, chunks_int, focus_region, nChunks_dir)
     """
-    This function reorganises the indices in the bac for easier access in parallel computing
+    This function reorganises the bacteria (indices) in the structs for easier access in parallel computing.
     Bacteria in the same chunk are next to each other
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
-    chunks:             A "General" struct containing the start and end cooridinates of the chunks
-    focus_region:       A "General" struct containing the x and y coordinates of the focus_region (diffusion region)
-    nChunks_dir:        The amount of chunks that are generated in each direction
+    bac_XYZ:            A struct containing bacterial parameters
+    grid_float:         A "Float" struct containing grid parameters of type Float
+    chunks_int:         An "Int" struct containing the dx and dy of a chunk
+    focus_region:       An "Int" struct containing the x and y coordinates of the focus_region (diffusion region)
+    nChunks_dir:        An Integer, indicating the amount of chunks that are generated in each direction
     
     Returns
-    bac:                A reordened bac struct   
+    bac_XYZ:            A struct containing bacterial parameters
     """
 
-    # Calculate which gridcell each bacteria is in
+    # Calculate in which gridcell each bacteria is
     ix = ceil.(bac_vecfloat.x ./ grid_float.dx)
     iy = ceil.(bac_vecfloat.y ./ grid_float.dy)
 
-    # Calculate which chunk each bacteria is in
+    # Calculate in which chunk each bacteria is
     ixChunk = ceil.((ix - focus_region.x0) / chunks_int.dx_chunk)
     iyChunk = ceil.((iy - focus_region.y0) / chunks_int.dy_chunk)
 
@@ -39,5 +39,4 @@ function sort_bacteria_into_chunks!(bac_vecfloat, bac_vecint, bac_vecbool, grid_
     bac_vecint.colony_nums = bac_vecint.colony_nums[sortChunkIndex]
 
     return bac_vecfloat, bac_vecint, bac_vecbool
-
 end
