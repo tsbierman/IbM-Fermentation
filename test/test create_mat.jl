@@ -25,14 +25,14 @@ end
 
 @testset "distribute_microcolonies" begin
     nColonies, nBacPerCol, r_colony, xrange, yrange = 8, 13, 1.2, [30, 220], [30, 220]
-    x, y = distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange)
+    x, y = distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange, constants_float)
     @test size(x) == size(y) == (nColonies * nBacPerCol, ) # Test size of Vectors
     @test typeof(x) == typeof(y) == Vector{Float64} # Test type of returned Vectors
     @test all(xrange[1]-30 .<= x .<= xrange[2]+30) == true # Cannot test exactly due to noise, thus check whether on grid.
     @test all(yrange[1]-30 .<= y .<= yrange[2]+30) == true
 
     nColonies, nBacPerCol, r_colony, xrange, yrange = 1, 13, 1.2, [30, 220], [30,220]
-    x, y = distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange)
+    x, y = distribute_microcolonies(nColonies, nBacPerCol, r_colony, xrange, yrange, constants_float)
     @test all(sqrt.((x .- x[1]) .^2 + (y .- y[1]) .^2) .<= r_colony ) == true # Check all points within radius
 end
 

@@ -1,21 +1,21 @@
 function slow_convergence(iRES, RESvalues, constants_float, constants_vecint)
     """
-    This function detects whether convergence of the diffusion is slow after a certain
+    This function checks whether convergence of the diffusion is slow after a certain
     number of diffusion iterations in the steady-state cycle.
 
     Arguments
     iRES:               The number of steady state checks since last bacterial advancement (dt_bac change)
-    RESvalues:          The RESisdual values of this steady state
-    constants:          A "General" struct containing all the simulation constants
+    RESvalues:          The RESidual values of this steady state
+    constants_float:    A "Float" struct containing simulation constants of type Float64
+    constants_vecint:   A "VectorInt" struct containing simulation constants of type Vector{Int}
 
     Returns
     slow:               A Boolean indicating whether the convergence is low
     """
 
-    at_cycle_time = mod(iRES, ceil(constants_vecint.nItersCycle[1]/constants_vecint.nDiffusion_per_SScheck[1])) == 0                                                  # only at nCycle iterations
+    at_cycle_time = mod(iRES, ceil(constants_vecint.nItersCycle[1]/constants_vecint.nDiffusion_per_SScheck[1])) == 0  # only at nCycle iterations
     if at_cycle_time
-
-        no_conv = non_convergent(iRES, RESvalues, constants_float.tolerance_no_convergence)                                                             # Checks whether no_convergent applies, if so --> no convergence at all
+        no_conv = non_convergent(iRES, RESvalues, constants_float.tolerance_no_convergence)  # Checks whether no_convergent applies, if so --> no convergence at all
         direction_of_conv = maximum(RESvalues[:,iRES-1]) - maximum(RESvalues[:,iRES]) > 0 && maximum(RESvalues[:,iRES-2]) - maximum(RESvalues[:,iRES]) > 0  # Checks for convergence, if both true, RES decreases, so convergence
         little_conv = maximum(RESvalues[:,iRES-1]) - maximum(RESvalues[:,iRES]) < 1e-3 && maximum(RESvalues[:,iRES-2]) - maximum(RESvalues[:,iRES]) < 2e-3  # Checks magnitude of convergence, too much --> not slow convergece
         slow = !no_conv && direction_of_conv && little_conv

@@ -1,14 +1,15 @@
 function update_bacterial_mass!(bac_vecfloat, bac_vecbool, dT)
     """
-    This function integrates bacterial growth during the dT and updates the mass of each bacteria accordingly
+    This function integrates bacterial growth over time dT and updates the mass of each bacteria accordingly.
     Depending on the growth rate (mu), the mass increases or decreases
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float}
+    bac_vecbool:        A "VectorBool" struct containing bacterial parameters of type Vector{Bool}
     dT:                 The timestep over which has to be integrated
 
     Returns
-    bac:                A bac struct with updated bacterial mass
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float} with updated bacterial mass
     """
     
     increase_index = bac_vecfloat.mu .>= 0 .& bac_vecbool.active # Increase mass when mu positive and active bacteria

@@ -4,11 +4,12 @@ function determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
     are located in each gridcell
 
     Arguments
-    grid:               A "General" struct containing all parameters related to the grid
-    bac:                A "General" struct containing all parameters related to the bacteria
+    grid_float:         A "Float" struct containing grid parameters of type Float64
+    grid_int            An "Int" struct containing grid parameters of type Int
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
 
     Returns
-    grid2bac:           A matrix (ny, nx, ?) which contains for each gridcell which bacteria is located
+    grid2bac:           A matrix (ny, nx, 9) which contains for each gridcell which bacteria is located
                         there. The number corresponds to the index in the bac struct
     grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
     """
@@ -20,8 +21,8 @@ function determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
     bac_grid = hcat(index_x, index_y)
 
     # Generate matrices
-    grid2nBacs = zeros(UInt16, grid_int.ny, grid_int.nx) # UInt8 for reduced storage requirements (previously exceeded 255 bac per cell, therefor UInt8 not enough)
-    grid2bac = zeros(UInt32, grid_int.ny, grid_int.nx, maxBacPerGrid) # UInt32 for reduced storage requirements --> lower storage requirements than sparse matrix (nBacs * nGridcells)
+    grid2nBacs = zeros(UInt16, grid_int.ny, grid_int.nx)                # UInt16 for reduced storage requirements (previously exceeded 255 bac per cell, therefor UInt8 not enough)
+    grid2bac = zeros(UInt32, grid_int.ny, grid_int.nx, maxBacPerGrid)   # UInt32 for reduced storage requirements --> lower storage requirements than sparse matrix (nBacs * nGridcells)
 
     # Fill matrices
     for i in axes(bac_grid)[1]

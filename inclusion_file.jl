@@ -1,4 +1,5 @@
 # pre_processing files
+include("lib\\pre_processing\\initialiseJVM.jl") # Disable this line during testing and development
 include("lib\\pre_processing\\create_mat.jl")
 include("lib\\pre_processing\\loadPresetFile.jl")
 println(">>>>>>>>>>>>>>INCLUDED PRE_PROCESSING FILES")
@@ -19,6 +20,10 @@ include("lib\\integTime.jl")
 include("lib\\set_concentrations.jl")
 include("lib\\Struct_Module.jl")
 println(">>>>>>>>>>>>>>INCLUDED LIB FILES")
+
+# ADM1
+include("lib\\ADM1\\run_ADM1.jl")
+println(">>>>>>>>>>>>>>INCLUDED ADM1")
 
 # Bacteria files
 include("lib\\bacteria\\bacteria_detachment.jl")
@@ -65,11 +70,17 @@ include("lib\\dynamic_dT\\upward_trend.jl")
 println(">>>>>>>>>>>>>>INCLUDED DYNAMIC_DT FILES")
 
 # Post_processing files
+include("lib\\post_processing\\plot_active_mass_fractions.jl")
+include("lib\\post_processing\\plot_bulk_concentrations.jl")
+include("lib\\post_processing\\plot_concentration_domain.jl")
+include("lib\\post_processing\\plot_growth_rate_heatmap.jl")
+include("lib\\post_processing\\plot_mass_over_time.jl")
+include("lib\\post_processing\\plotBacs.jl")
 include("lib\\post_processing\\save_backup.jl")
 include("lib\\post_processing\\save_profile.jl")
 include("lib\\post_processing\\save_profiling.jl")
 include("lib\\post_processing\\save_slice.jl")
-include("lib\\post_processing\\plotBacs.jl")
+include("lib\\post_processing\\thermo_restricted.jl")
 println(">>>>>>>>>>>>>>INCLUDED POST_PROCESSING FILES")
 
 # Reaction_matrix files

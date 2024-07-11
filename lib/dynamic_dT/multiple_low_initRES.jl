@@ -5,8 +5,9 @@ function multiple_low_initRES(iProf, maxInitRES, Time, constants_float, constant
     Arguments
     iProf:              A Profiling Index (+1 for each simulated dT_bac)
     maxInitRES:         The maximum RES value of this RES iterations
-    Time:               A "General" struct containing all time-related parameters
-    constants:          A "General" struct containing all the simulation constants
+    Time:               A "Float" struct containing time-related parameters of type Float64
+    constants_float:    A "Float" struct containing simulation constants of type Float64
+    constants_vecint:   A "VectorInt" struct containing simulation constants of type Vector{Int}
 
     Returns 
     multiple_low:       Boolean indicating whether the previous initial RES values were below threshold

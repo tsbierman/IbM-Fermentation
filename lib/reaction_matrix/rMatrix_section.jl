@@ -2,19 +2,19 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
     grouped_bac, nBacs, bacOffset,
     reactive_indices, Ks, Ki, Keq, chrM, mMetabolism, mDecay, constants, kinetics)
     """
-    This function calculates the reaction matrix, mu and pH in a specific part of the simulation
+    This function calculates the reaction matrix, mu and pH in the selected part of the simulation
 
     Arguments
     pH:                 A (ny, nx) matrix containing the pH value per grid cell
     conc:               A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
-    grid2bac:           A matrix (ny, nx, ?) which contains for each gridcell which bacteria is located
-                        there. The number corresponds to the index in the bac struct    
+    grid2bac:           A matrix (ny, nx, 9) which contains for each gridcell which bacteria is located
+                        there. The number corresponds to the index in the bac structs    
     grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
     diffRegion:         A BitMatrix indicating per gridcell whether that cell is in the diffusion region
-    grouped_bac:        A (nBacs, 3) matrix containing the bacterial species, molarMass and binary activity for each bacteria
-    nBacs:              The number of bacteria present
-    bacOffset:          The offset of bacteria due to dividing them in chunks (=0 in sequential calculations)
-    reactive_indices:   The indices that indicate where the reactive specie is located in the matrix
+    grouped_bac:        A (nBacs, 3) matrix containing the bacterial species, molarMass and (binary) activity for each bacteria
+    nBacs:              The number of bacteria currently present
+    bacOffset:          The offset of bacteria due to dividing them in chunks (= 0 in sequential calculations)
+    reactive_indices:   The indices that indicate which chemical specie is the reactive specie
     Ks, Ki:             (nSpecies, ncompounds) Matrices with Ks and Ki values
     Keq:                A (ncompounds, 4) matrix with the equilibrium constants
     chrM:               A (ncompounds, 5) matrix indicating the charge per specie
@@ -51,26 +51,26 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
     # for each gridcell
     for x_index in axes(conc,2)
         for y_index in axes(conc, 1)
-            if .!diffRegion[y_index, x_index]                       # If in bulk
+            if .!diffRegion[y_index, x_index] # If in bulk
                 pH_new[y_index, x_index] = pH_bulk
                 # No bacteria in bulk, so no mu or reaction_matrix update
 
-            else                                                    # In diffusion layer, so pH calculation needs to be performed
+            else # In diffusion layer, so pH calculation needs to be performed
                 # Calculate pH & speciation
                 if Bool(speciation)
                     Sh_old = 10^(-pH[y_index, x_index])
 
                     # In the following line, Concentration is a 1D vector (nComp,), if problems, turn into 3D matrix (reshape(A, :, 1, 1))
                     spcM, Sh = solve_pH(Sh_old, [reshape(conc[y_index, x_index, :], :); 1; 0], Keq, chrM, pHincluded, pHtolerance) # Calculate speciation and proton concentration
-                    pH_new[y_index, x_index] = -log10(Sh)           # Get new pH
+                    pH_new[y_index, x_index] = -log10(Sh) # Get new pH
 
                 else # No speciation
                     pH_new[y_index, x_index] = pH_bulk
                     Sh = 10^(-pH[y_index, x_index])
-                    spcM = reshape(conc[y_index, x_index, :], :)    # 1D, could be converted to a 3D matrix if necessary                
+                    spcM = reshape(conc[y_index, x_index, :], :) # 1D, could be converted to a 3D matrix if necessary                
                 end
 
-                if grid2nBacs[y_index, x_index] > 0                 # If cells are also found in this gridcell, update reaction matrix
+                if grid2nBacs[y_index, x_index] > 0 # If cells are also found in this gridcell, update reaction matrix
 
                     # Get which bacteria are in this grid cell
                     iBacs = reshape(grid2bac[y_index, x_index, 1:grid2nBacs[y_index,x_index]], :) # 1D vector, could be 2D matrix
@@ -78,8 +78,8 @@ function rMatrix_section(pH, conc, grid2bac, grid2nBacs, diffRegion,
                     # Correct for chunk indexing
                     iBacs = iBacs .- bacOffset
 
-                    speciesGrid = bac_species[iBacs]                # Species for present bacteria
-                    unique_species = unique(speciesGrid)            # Which species are present
+                    speciesGrid = bac_species[iBacs]     # Species for present bacteria
+                    unique_species = unique(speciesGrid) # Which species are present
     
                     for curr_species in Int.(unique_species)
                         if isnan(mu_max_list[1]) # if not given as input, calculate

@@ -4,18 +4,18 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
     None, SBR:          No bacteria are removed
     Naive:              Bacteria are removed if there are too far from the centre of the granule
     Mechanistic:        Bacteria are removed if the time of detachment at their gridcell is smaller than the timestep
-    Suspension:         Bacteria are removed if they grow slower than the Dilution rate
+    Suspension:         Bacteria are removed if they grow slower than the Dilution Rate
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
-    constants:          A "General" struct containing all the simulation constants
-    settings:           A "General" struct containing all the settings of the simulation
+    bac_XYZ:            A struct containing bacterial parameters
+    grid_XYZ:           A struct containing grid parameters
+    constants_XYZ:      A struct containing simulation constants
+    settings_XYZ:       A struct containing simulation settings
     timestep:           The timestep for bacteria (dT_bac)
     invHRT:             The inverse of the HRT, so the Dilution rate
 
     Returns
-    bac:                A bac struct where bacteria have been removed
+    bac_XYZ:            A struct containing bacterial parameters
     """
 
     if settings_string.detachment in ("none", "SBR")
@@ -30,7 +30,6 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
             bac_distance_from_centre[bac_index] = sqrt.((bac_vecfloat.x[bac_index] .- bac_vecfloat.centres_x[index]).^2 .+ (bac_vecfloat.y[bac_index] .- bac_vecfloat.centres_y[index]).^2)
         end
 
-        # bac_distance_from_centre = sqrt.((bac_vecfloat.x .- grid_float.dx .* grid_int.nx ./ 2) .^2 .+ (bac_vecfloat.y .- grid_float.dy .* grid_int.ny ./ 2) .^2)
         bac_detach = bac_distance_from_centre .> constants_float.max_granule_radius
         nCellsDetach = sum(bac_detach)
 
@@ -40,9 +39,10 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
 
     elseif settings_string.detachment == "mechanistic"
         # Detachment based on detachment time and timestep (and size)
+        # Currently only works with a single aggregate
 
-        # grid2bac is a (nx * ny * ?) matrix containing the bacteria in each grid cell (indices)
-        # grid2nBacs is a (nx * ny) matrix containing the number of bacteria in each grid cell
+        # grid2bac is a (ny * nx * 9) matrix containing the bacteria in each grid cell (indices)
+        # grid2nBacs is a (ny * nx) matrix containing the number of bacteria in each grid cell
         # An update of these matrices is required as a division has occurred 
         grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, bac_vecfloat)
         T = calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBacs, constants_float)
@@ -57,7 +57,7 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
             x_index = erosion_index[k][2]
             r = ratio[erosion_index[k]]
             grid_position = findall(grid2bac[y_index, x_index, :] .!= 0) # Finds which indices in the third dimension are filled
-            # iBacs selects the actual values in the third dimension, these values are the bacterial indices in the bac struct
+            # Next statement selects the actual values in the third dimension, these values are the bacterial indices in the bac structs
             iBacs = grid2bac[y_index, x_index, grid_position]
 
             for bac_index in iBacs
@@ -69,12 +69,13 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
         # If timestep higher than detachment time --> detachment
         detachment_index = findall(1 .<= ratio .< Inf)
         bac_detach = zeros(length(detachment_index) * size(grid2bac, 3)) # Space for when all those grid cells are maximal occupied
-        nDetach = 0 # Number so far
+        nDetach = 0
+
         for k in eachindex(detachment_index)
             y_index = detachment_index[k][1]
             x_index = detachment_index[k][2]
             grid_position = findall(grid2bac[y_index, x_index, :] .!= 0) # Finds which indices in the third dimension are filled
-            # iBacs selects the actual values in the third dimension, these values are the bacterial indices in the bac struct
+            # Next statement selects the actual values in the third dimension, these values are the bacterial indices in the bac structs
             iBacs = grid2bac[y_index, x_index, grid_position]
             n_temp = length(iBacs) # Number found this round
             bac_detach[nDetach + 1 : nDetach + n_temp] = iBacs # Store the indices in corresponding location
@@ -90,10 +91,10 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
 
         # Due to erosion, some bacteria on the outside are way too small 
         # Only factor 2 smaller than inactive bacteria should be reached
-        # cells within the granule will not be removed
+        # Cells within the granule will not be removed
         mask_tooSmall = bac_vecfloat.molarMass .* constants_float.bac_MW .< constants_float.min_bac_mass_grams ./ 2
-        xcentre = mean(bac_vecfloat.x[bac.active])
-        ycentre = mean(bac_vecfloat.y[bac.active])
+        xcentre = mean(bac_vecfloat.x[bac_vecbool.active])
+        ycentre = mean(bac_vecfloat.y[bac_vecbool.active])
         dist = sqrt.((bac_vecfloat.x .- xcentre) .^2 .+ (bac_vecfloat.y .- ycentre) .^2)
 
         # A cell is considered on the "outside" when the difference in distance to the centre
@@ -107,7 +108,6 @@ function bacteria_detachment!(bac_vecfloat, bac_vecint, bac_vecbool, grid_float,
             bac_vecfloat, bac_vecint, bac_vecbool = killBacs!(bac_vecfloat, bac_vecint, bac_vecbool, mask_outsideCellRemoval)
             nCellsDetach = nCellsDetach + nCellsRemoved
         end
-
 
     elseif settings_string.detachment == "suspension"
         # Remove cells when they grow slower than dilution rate

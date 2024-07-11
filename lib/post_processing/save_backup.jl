@@ -1,15 +1,15 @@
 function save_backup(bac_vecfloat, bac_vecint, bac_vecbool, bulk_concs, invHRT, conc, reaction_matrix, pH, directory)
     """
-    This function saves important variables required for restart at this point in time
+    This function saves important variables required for a restart at this point in time
     It will overwrite the last backup in order to always have the latest file
     
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    conc:               A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
+    bac_XYZ:            A struct containing bacterial parameters
     bulk_concs:         A (ncompounds,) vector of the bulk liquid concentrations of all compounds
-    pH:                 A (ny, nx) matrix containing the pH value per grid cell
-    invHRT:             The current 1/HRT value [1/h]
+    invHRT:             The inverse of the HRT [1/h]
+    conc:               A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
     reaction_matrix:    A (ny, nx, ncompounds) matrix containing all reaction rates per gridcell and compound [mol/L/h]
+    pH:                 A (ny, nx) matrix containing the pH value per grid cell
     directory:          The directory where results are to be stored in
     """
 

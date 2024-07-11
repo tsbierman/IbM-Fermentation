@@ -4,9 +4,9 @@ function calculate_slice_sphere_conversion(bac_vecfloat, bac_vecbool, constants_
     the slice to the volume of the sphere
     
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    constants:          A "General" struct containing all the simulation constants
-    settings:           A "General" struct containing all the settings of the simulation
+    bac_XYZ             A struct containing bacterial parameters
+    constants_float:    A "Float" struct containing simulation constants of type Float64
+    settings_string:    A "String" struct containing simulation settings
 
     Returns
     f:                  The conversion factor from the volume of a slice to the volume of a sphere
@@ -95,8 +95,8 @@ function controlpH(Keq, chrM, compoundNames, pH, conc)
     Sh = 10 ^(-pH)                                              # Concentration of protons
 
     while abs(Tp) > Tol
-        u[findall(compoundNames .== "Na")] .= NaHCO3            # "Add" NaHCO3 from previous iteration to the system
-        u[findall(compoundNames .== "CO2")] .= CO2_concentration           # "Add" NaHCO3 from previous iteration to the system
+        u[findall(compoundNames .== "Na")] .= NaHCO3                        # "Add" NaHCO3 from previous iteration to the system
+        u[findall(compoundNames .== "CO2")] .= CO2_concentration            # "Add" NaHCO3 from previous iteration to the system
 
         Denm = (1 .+ Keq[:, 1]) .* Sh^3 .+ Keq[:, 2] .* Sh^2 .+ Keq[:, 2] .* Keq[:, 3] .* Sh .+ Keq[:, 2] .* Keq[:, 3] .* Keq[:, 4] # Common denominator for all equations
 
@@ -132,23 +132,23 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
     supply/concentration of compounds.
 
     Arguments
-    bac:                    A "General" struct containing all parameters related to the bacteria
-    constants:              A "General" struct containing all the simulation constants
+    bac_XYZ:                A struct containing bacterial parameters
+    constants_XYZ:          A struct containing simulation constants
     prev_conc:              A (ncompounds,) vector with the previous bulk concentrations
-    invHRT:                 1 / HRT
+    invHRT:                 The inverse of the HRT
     reaction_matrix:        A (ny, nx, ncompounds) matrix containing all reaction rates per gridcell and compound [mol/L/h]
     dT:                     The timestep of diffusion
-    settings:               A "General" struct containing all the settings of the simulation
+    settings_XYZ:           A struct containing simulation settings
 
     Returns
     bulk_concentrations:    A (ncompounds,) vector with the new bulk concentration
-    invHRT:                 The new 1 / HRT [h-1]
+    invHRT:                 The updated inverse of the HRT [h-1]
     """
 
     # Inner helper function
     function massbal(bulk_conc, p, t)
         """
-        This function describes the differential Equation for the mass balance over the entire reactor
+        This function describes the Differential Equation for the mass balance over the entire reactor
         It will modify the HRT to match the setpoint of NH3 if the outflow concentration is larger
         than the setpoint.
     
@@ -164,7 +164,17 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
             Gas_k:                      A (nCompounds,) vector of intergers indicating whether and in what way compounds are involved in the gasphase
             structure_model:            A Boolean indicating whether a structure model is used
             structure_type:             A string indicating which structure type is used
-            invHRT:                     1/HRT
+            T:                          The temperature of the reactor [K]
+            R:                          The gas constant [L bar/(K mol)]
+            Kh:                         A (nGasCompounds,) vector with the Henry constants [mol/L/bar]
+            kla:                        The kla of the reactor [h-1]
+            Pgas:                       Pressure of the gas phase [bar]
+            Vr:                         The representative volume of reactor that is modelled [L]
+            Vgas:                       The gas volume [L]
+            compoundNames:              A (nCompounds) vector with the compound names
+            Keq:                        A (ncompounds, 4) matrix with the equilibrium constants
+            pH:                         The pH of the bulk liquid
+            invHRT:                     The inverse of the HRT
     
         Returns
         dy:                             derivative of bulk concentration
@@ -253,19 +263,19 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
             end
 
             # First calculate the Fully protonated CO2 concentration, as that is the one that has to be used for the transfer
-            CO2_index = findall(compoundNames .== "CO2")[1]                           # Integer, select CO2 index
-            Sh = 10^(-pH)                                                             # Proton concentration
+            CO2_index = findall(compoundNames .== "CO2")[1]                             # Integer, select CO2 index
+            Sh = 10^(-pH)                                                               # Proton concentration
             Denm = (1 .+ Keq[CO2_index, 1]) .* Sh^3 .+ Keq[CO2_index, 2] .* Sh^2 .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Sh .+ Keq[CO2_index, 2] .* Keq[CO2_index, 3] .* Keq[CO2_index, 4]
-            CO2_conc = (bulk_conc[CO2_index] .* Sh^3) ./ Denm                         # Fully protonated IC concentration (taken from spcM calculations)
+            CO2_conc = (bulk_conc[CO2_index] .* Sh^3) ./ Denm                           # Fully protonated IC concentration (taken from spcM calculations)
 
             copybulk_conc = copy(bulk_conc)                                             # Make copy of bulk concentrations
             copybulk_conc[CO2_index] = CO2_conc                                         # Replace IC concentration with CO2 (fully protonated) concentrations
 
             # Calculations required for the gas-liquid transfer
-            p_h2o = 0.0313 * exp(43980/(R*100) * (1/298 - 1/T))                      # Vapor pressure
-            solubilities = Kh[Gas_k .== 1] .* bulk_conc[Gas_k .== 1] .* R .* T       # Same units as prev_conc (as long as R and Kh are in the same units [mol/L]
-            gas_transfer_rates = kla .* (copybulk_conc[Gas_k .== -1] .- solubilities) # [mol/L/h]
-            Qgas = R * T / (Pgas - p_h2o) * Vr * sum(gas_transfer_rates)        # [L/h]
+            p_h2o = 0.0313 * exp(43980/(R*100) * (1/298 - 1/T))                         # Vapor pressure
+            solubilities = Kh[Gas_k .== 1] .* bulk_conc[Gas_k .== 1] .* R .* T          # Same units as prev_conc (as long as R and Kh are in the same units [mol/L]
+            gas_transfer_rates = kla .* (copybulk_conc[Gas_k .== -1] .- solubilities)   # [mol/L/h]
+            Qgas = R * T / (Pgas - p_h2o) * Vr * sum(gas_transfer_rates)                # [L/h]
     
             # Always calculate the change of non-dirichlet bulk concentrations
             change_liquid = .!Dir_k .& (Gas_k .!= 1)
@@ -285,22 +295,22 @@ function calculate_bulk_concentrations(bac_vecfloat, bac_vecbool, constants_floa
     end
 
     # For easy use: unpack constants
-    Keq = constants_matfloat.Keq                                 # A (ncompounds, 4) matrix with the equilibrium constants
-    Kh = constants_vecfloat.Kh                                   # Henry constants [mol/L/bar]
-    chrM = constants_matfloat.chrM                               # A (ncompounds, 5) matrix with charge values
+    Keq = constants_matfloat.Keq                                    # A (ncompounds, 4) matrix with the equilibrium constants
+    Kh = constants_vecfloat.Kh                                      # Henry constants [mol/L/bar]
+    chrM = constants_matfloat.chrM                                  # A (ncompounds, 5) matrix with charge values
     compoundNames = constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1]             # A (ncompounds,) vector with the compound names (without H2O or H)
-    pH = constants_float.pHsetpoint                           # The pH setpoint
-    T = constants_float.T                                     # Temperature in Kelvin
-    R = constants_float.R * 10                              # Gas constant [L bar/(K mol)]
-    Pgas = constants_float.Pgas                             # Gas pressure [bar]
-    kla = constants_float.kla                               # kla [h-1]
-    Vr = constants_float.Vr                                   # The representative volume of reactor that is modelled [L]
-    Vg = constants_float.Vg                                   # The volume of a grid cell [L]
+    pH = constants_float.pHsetpoint                                 # The pH setpoint
+    T = constants_float.T                                           # Temperature in Kelvin
+    R = constants_float.R * 10                                      # Gas constant [L bar/(K mol)]
+    Pgas = constants_float.Pgas                                     # Gas pressure [bar]
+    kla = constants_float.kla                                       # kla [h-1]
+    Vr = constants_float.Vr                                         # The representative volume of reactor that is modelled [L]
+    Vg = constants_float.Vg                                         # The volume of a grid cell [L]
     Vgas = constants_float.Vgas
-    Dir_k = constants_vecbool.Dir_k                             # A (nCompounds,) vector of booleans whether compounds follow Dirichlet boundary condition
-    Gas_k = constants_vecint.Gas_k                           # A (nCompounds,) vector of intergers indicating whether and in what way compounds are involved in the gasphase
-    influent = constants_vecfloat.influent_concentrations        # A (nCompounds,) vector with the influent concentrations [mol/L]
-    variableHRT = settings_bool.variableHRT                  # A boolean whether HRT is variable
+    Dir_k = constants_vecbool.Dir_k                                 # A (nCompounds,) vector of booleans whether compounds follow Dirichlet boundary condition
+    Gas_k = constants_vecint.Gas_k                                  # A (nCompounds,) vector of intergers indicating whether and in what way compounds are involved in the gasphase
+    influent = constants_vecfloat.influent_concentrations           # A (nCompounds,) vector with the influent concentrations [mol/L]
+    variableHRT = settings_bool.variableHRT                         # A boolean whether HRT is variable
 
     if variableHRT
         bulk_setpoint = constants_float.bulk_setpoint

@@ -3,8 +3,9 @@ function getDiffusionNodes(bac_vecfloat, grid_float, grid_int)
     This function determines in both X and Y direction which nodes are potentially in the diffusion region
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    grid_float:         A "Float" struct containing grid parameters of type Float64
+    grid_int            An "Int" struct containing grid parameters of type Int
 
     Returns
     diffusionNodesX:    A (nx,) vector indicating which columns are potentially in the diffusion region
@@ -62,7 +63,7 @@ function determine_focus_region(diffRegion)
     diffRegion:                 A BitMatrix indicating per gridcell whether that cell is in the diffusion region
 
     Returns
-    extraction_region:          A "General" struct containing the start and end coordinates of the region of interest
+    extraction_region:          An "Int" struct containing the start and end coordinates of the region of interest (type Int)
     """
 
     # Struct to save
@@ -97,14 +98,6 @@ function determine_focus_region(diffRegion)
     extraction_region.y0 = first_y
     extraction_region.y1 = last_y
 
-    # DEBUG
-    # if any(diffRegion[:, [1,end]] .== 1) || any(diffRegion[[1,end], :] .== 1)
-    #     xRange = first_x:last_x
-    #     yRange = first_y:last_y
-    #     display(diffRegion[yRange, xRange])
-    # end
-    # END DEBUG
-
     return extraction_region
 end
 
@@ -118,12 +111,13 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_flo
     grid2bac:           A matrix (ny, nx, ?) which contains for each gridcell which bacteria is located
                         there. The number corresponds to the index in the bac struct
     grid2nBacs:         A (ny, nx) matrix which contains for each gridcell how many bacteria are located there
-    bac:                A "General" struct containing all parameters related to the bacteria
-    grid:               A "General" struct containing all parameters related to the grid
+    bac_vecfloat:       A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    grid_float:         A "Float" struct containing grid parameters of type Float64
+    grid_int            An "Int" struct containing grid parameters of type Int
     
     Returns
     diffusion_region:   A BitMatrix indicating per gridcell whether that cell is in the diffusion region
-    focus_region:       A "General" struct containing the start and end coordinates of the region of interest
+    focus_region:       An "Int" struct containing the start and end coordinates of the region of interest (type Int)
     """
     
     # Initialise
@@ -135,8 +129,7 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_flo
     # In the diffusion region, apply convolution to find the boundary of gridcells with bacteria
     kernel = ones(3,3) ./ -8
     kernel[2,2] = 1
-    hasBac = grid2nBacs[diffNodesY, diffNodesX] .> 0                # A BitArray of only estimated diffusion region
-    # isBacBoundary = conv(hasBac, kernel)[2:end-1,2:end-1] .> 1e-15  # Some numbers end up very small, but technically larger than 0 (1e-17)
+    hasBac = grid2nBacs[diffNodesY, diffNodesX] .> 0   # A BitArray of only estimated diffusion region
     isBacBoundary = imfilter(hasBac, reflect(centered(kernel)), Fill(0)) .> 1e-15  # Some numbers end up very small, but technically larger than 0 (1e-17)
 
     # For the boundary of bacterial grid cells, compute for the neighbouring grid cells whether
@@ -149,18 +142,18 @@ function determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_flo
     cart_indices = findall(isBacBoundary)                                       # Array of Cartesian indices
     isDiffRegion = deepcopy(hasBac)
 
-    for index in cart_indices                                       # For every boundary cell
-        for di in -maxOffsetX:maxOffsetX                            # Check X-direction
-            for dj in -maxOffsetY:maxOffsetY                        # Check Y-direction
-                if isDiffRegion[Int(index[1] + dj), Int(index[2] + di)] != 0  # Check whether already in diffusion
-                    continue                                        # Skip if already in diffusion
+    for index in cart_indices                                                   # For every boundary cell
+        for di in -maxOffsetX:maxOffsetX                                        # Check X-direction
+            for dj in -maxOffsetY:maxOffsetY                                    # Check Y-direction
+                if isDiffRegion[Int(index[1] + dj), Int(index[2] + di)] != 0    # Check whether already in diffusion
+                    continue                                                    # Skip if already in diffusion
                 else
                     # perform actual check
                     bac_indices = findall(grid2bac[index[1] + dy, index[2] + dx, :] .!= 0)  # Find how many bacteria spots are occupied in the grid2bac and by which
                     bacs = grid2bac[index[1] + dy, index[2] + dx, bac_indices]              # Get bacterial indices (greater picture)
                     gridcell_centre = [grid_float.dx * (dx + di + index[2]) - grid_float.dx/2, grid_float.dy * (dy + dj + index[1]) - grid_float.dy/2]  # Calculate centre of desired grid
 
-                    for iBac in bacs                                # For every of the bacteria
+                    for iBac in bacs                                            # For every of the bacteria
                         if isWithinBoundaryLayer(bac_vecfloat.x[iBac], bac_vecfloat.y[iBac], gridcell_centre, grid_float.blayer_thickness)              # Check whether the grid cell is within reach
                             isDiffRegion[Int(index[1] + dj), Int(index[2] + di)] = 1
                             break

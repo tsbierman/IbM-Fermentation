@@ -3,11 +3,11 @@ function bacteria_die!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float)
     This function tests which bacteria are too small and sents them to the function killBacs!()
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    constants:          A "General" struct containing all the simulation constants
+    bac_XYZ:            A struct containing bacterial parameters
+    constants_float:    A "Float" struct containing simulation constants of type Float64
 
     Returns
-    bac:                A bac struct without the bacteria that had to die
+    bac_XYZ:            A struct containing bacterial parameters without the bacteria that had to die
     """
 
     # Test whether the mass of bacteria is below minimum mass

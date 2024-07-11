@@ -1,13 +1,13 @@
 function update_bacterial_radius!(bac_vecfloat, constants_float)
     """
-    This function updates the bacterial radius based on their masses.
+    This function updates all bacterial radii based on their masses.
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    constants:          A "General" struct containing all the simulation constants
+    bac_vecfloat:           A "VectorFloat" struct containing bacterial parameters of type Vector{Float64}
+    constants_float:        A "Float" struct containing simulation constants of type Float64
 
     Returns
-    bac:                A bac struct with updated radius
+    bac_vecfloat:           A "VectorFloat" struct containing bacterial parameters of type Vector{Float64} with updated radius
     """
     
     # Determine radius based on the mass and spherical cell

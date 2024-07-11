@@ -3,19 +3,19 @@ function initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, 
     This function initialises values from preset parameters for later initialisation of Time struct
 
     Arguments
-    grid:               A "General" struct containing all parameters related to the grid
-    bac:                A "General" struct containing all parameters related to the bacteria
-    init_params:        A "General" struct containing the parameters values at the start of the simulation
-    constants:          A "General" struct containing all the simulation constants
-    settings:           A "General" struct containing all the settings of the simulation
+    grid_XYZ:           A struct containing grid parameters
+    bac_XYZ:            A struct containing bacterial parameters
+    init_params:        A "VectorFloat" struct containing initial parameters of type Vector{Float64}
+    constants_XYZ:      A struct containing simulation constants
+    settings_XYZ:       A struct containing simulation settings
 
     Returns
     conc:               A (ny, nx, ncompounds) matrix containing all concentrations per gridcell
     bulk_concs          A (ncompounds,) vector with the new bulk concentration
-    invHRT              1 / HRT
+    invHRT              The inverse of the HRT
     reaction_matrix:    A (ny, nx, ncompounds) matrix containing all reaction rates per gridcell and compound [mol/L/h]
     pH:                 A (ny, nx) matrix containing the pH value per grid cell
-    bac:                A "General" struct containing all parameters related to the bacteria, updated with mu-values
+    bac_XYZ:                A "General" struct containing all parameters related to the bacteria, updated with mu-values
     """
 
     # Calculate boundary conditions
@@ -31,10 +31,6 @@ function initTime!(grid_float, grid_int, bac_vecfloat, bac_vecint, bac_vecbool, 
     diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, bac_vecfloat, grid_float, grid_int)
     xRange = focus_region.x0:focus_region.x1
     yRange = focus_region.y0:focus_region.y1
-
-    # if constants.debug.plotDiffRegion
-    #     plotDiffRegion(grid_float, bac, diffusion_region, true)
-    # end
 
     # Initialise concentrations and pH
     conc = zeros(grid_int.ny, grid_int.nx, length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1])) # Only liquid compounds for the concentration matrix

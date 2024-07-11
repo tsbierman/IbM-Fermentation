@@ -3,14 +3,14 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float
     This function divides bacteria that are above the mass threshold. It splits the
     mass randomly between 45% and 55% and updates the radius.
     This is done in a while loop to make sure that even the already divided bacteria are not 
-    above the threshold. If this is the case, then the timestep is too large.
+    above the threshold. If this is the case, the timestep is too large.
 
     Arguments
-    bac:                A "General" struct containing all parameters related to the bacteria
-    constants:          A "General" struct containing all the simulation constants
+    bac_XYZ:            A struct containing bacterial parameters
+    constants_float:    A "Float" struct containing simulation constants of type Float64
 
     Returns
-    bac:                A bac struct where every bacteria is below the maximum mass threshold.
+    bac_XYZ:            A struct containing bacterial parameters
     cycle:              The amount of cycles that had to be done to get every bacteria below the mass threshold
     """
 
@@ -35,22 +35,22 @@ function bacteria_divide!(bac_vecfloat, bac_vecint, bac_vecbool, constants_float
         new_colony_nums = bac_vecint.colony_nums[mask_tooBig]
 
         # Split mass over parent and child
-        new_molarMass = bac_vecfloat.molarMass[mask_tooBig] .* (0.45 .+ 0.1 .* rand(nCellsTooBig))        # Mass of new cell is somewhere random between 0.45 and 0.55 of old mass
-        bac_vecfloat.molarMass[mask_tooBig] = bac_vecfloat.molarMass[mask_tooBig] .- new_molarMass                 # Parent cell keeps remaining part
+        new_molarMass = bac_vecfloat.molarMass[mask_tooBig] .* (0.45 .+ 0.1 .* rand(nCellsTooBig))        # Mass of new cell is somewhere random between 45% and 55% of old mass
+        bac_vecfloat.molarMass[mask_tooBig] = bac_vecfloat.molarMass[mask_tooBig] .- new_molarMass        # Parent cell keeps remaining part
 
         # Update radius of both
         new_radius = ((new_molarMass .* constants_float.bac_MW ./ constants_float.bac_rho) .* (3 ./ (4 .* pi))) .^ (1 ./ 3)
         bac_vecfloat.radius[mask_tooBig] = ((bac_vecfloat.molarMass[mask_tooBig] .* constants_float.bac_MW ./ constants_float.bac_rho) .* (3 ./ (4 .* pi))) .^ (1 ./ 3)
 
         # Update values
-        bac_vecfloat.x = [bac_vecfloat.x; new_x]                                      # [-]
-        bac_vecfloat.y = [bac_vecfloat.y; new_y]                                      # [-]
-        bac_vecint.species = [bac_vecint.species; new_species]                    # [-]
-        bac_vecfloat.molarMass = [bac_vecfloat.molarMass; new_molarMass]              # [mol]
-        bac_vecfloat.radius = [bac_vecfloat.radius; new_radius]                       # [m]
-        bac_vecfloat.mu = [bac_vecfloat.mu; new_mu]                                   # [h-1]
+        bac_vecfloat.x = [bac_vecfloat.x; new_x]                                    # [-]
+        bac_vecfloat.y = [bac_vecfloat.y; new_y]                                    # [-]
+        bac_vecint.species = [bac_vecint.species; new_species]                      # [-]
+        bac_vecfloat.molarMass = [bac_vecfloat.molarMass; new_molarMass]            # [mol]
+        bac_vecfloat.radius = [bac_vecfloat.radius; new_radius]                     # [m]
+        bac_vecfloat.mu = [bac_vecfloat.mu; new_mu]                                 # [h-1]
         bac_vecbool.active = [bac_vecbool.active; new_active]                       # [Boolean]
-        bac_vecint.colony_nums = [bac_vecint.colony_nums; new_colony_nums]
+        bac_vecint.colony_nums = [bac_vecint.colony_nums; new_colony_nums]          # [-]
     end
 
     return bac_vecfloat, bac_vecint, bac_vecbool, cycle

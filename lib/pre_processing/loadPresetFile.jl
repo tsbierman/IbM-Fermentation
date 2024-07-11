@@ -1,16 +1,16 @@
 function loadPresetFile(filename)
     """
-    This function reads the excel and stores the parameters in structs
+    This function reads the Excel and stores the parameters in structs
 
     Arguments
     filename:           The excel file that will be read
 
     Returns
-    grid:               A "General" struct containing all parameters related to the grid
-    bac_init:           A "General" struct containing parameters need for initialisation of bacteria
-    constants:          A "General" struct containing all the simulation constants
-    settings:           A "General" struct containing all the settings of the simulation
-    init_params:        A "General" struct containing the parameters values at the start of the simulation
+    grid_XYZ:           A struct containing grid parameters
+    bac_init_XYZ:       A struct containing parameters needed for the initialisation of bacteria
+    constants_XYZ:      A struct containing simulation constants
+    settings_XYZ:       A struct containing simulation settings
+    init_params:        A "VectorFloat" struct containing initial parameters of type Vector{Float64}
     """
     # Initialisation of the structs
     grid_float = Float_struct()
@@ -32,35 +32,35 @@ function loadPresetFile(filename)
 
     # initialise grid
     names_discr, values_discr = collect(skipmissing(file["Discretization"][:,1])), collect(skipmissing(file["Discretization"][:,2]))
-    grid_float.dx = values_discr[names_discr .== "dx"][1]                                         # [m]
-    grid_float.dy = values_discr[names_discr .== "dy"][1]                                         # [m]
-    grid_float.dz = values_discr[names_discr .== "dz"][1]                                         # [m]
+    grid_float.dx = values_discr[names_discr .== "dx"][1]                                       # [m]
+    grid_float.dy = values_discr[names_discr .== "dy"][1]                                       # [m]
+    grid_float.dz = values_discr[names_discr .== "dz"][1]                                       # [m]
     grid_int.nx = values_discr[names_discr .== "nx"][1]                                         # [-]
     grid_int.ny = values_discr[names_discr .== "ny"][1]                                         # [-]
-    grid_float.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"][1]     # [m]
+    grid_float.blayer_thickness = values_discr[names_discr .== "Boundary layer thickness"][1]   # [m]
 
-    constants_float.Vg = (grid_float.dx ^ 3) * 1000                                                     # [L] Conversion m3 --> L
-    constants_float.max_granule_radius = ((grid_int.nx - 4) * grid_float.dx) / 2                            # [m]
+    constants_float.Vg = (grid_float.dx ^ 3) * 1000                                             # [L] Conversion m3 --> L
+    constants_float.max_granule_radius = ((grid_int.nx - 4) * grid_float.dx) / 2                # [m]
 
     # initialise constants (Time)
-    constants_float.simulation_end = values_discr[names_discr .== "Simulation end"][1]            # [h]
-    constants_float.dT = values_discr[names_discr .== "Initial dT diffusion"][1]                  # [h]
-    constants_float.dT_bac = values_discr[names_discr .== "Initial dT bacteria"][1]               # [h]
-    constants_float.dT_save = values_discr[names_discr .== "dT save"][1]                          # [h]
-    constants_float.dT_analyse = values_discr[names_discr .== "dT analyse"][1]                    # [h]
-    constants_float.dT_backup = values_discr[names_discr .== "dT backup"][1]                      # [h]
+    constants_float.simulation_end = values_discr[names_discr .== "Simulation end"][1]          # [h]
+    constants_float.dT = values_discr[names_discr .== "Initial dT diffusion"][1]                # [h]
+    constants_float.dT_bac = values_discr[names_discr .== "Initial dT bacteria"][1]             # [h]
+    constants_float.dT_save = values_discr[names_discr .== "dT save"][1]                        # [h]
+    constants_float.dT_analyse = values_discr[names_discr .== "dT analyse"][1]                  # [h]
+    constants_float.dT_backup = values_discr[names_discr .== "dT backup"][1]                    # [h]
 
-    settings_bool.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                      # [Bool]
+    settings_bool.dynamicDT = values_discr[names_discr .== "Dynamic dT"][1]                     # [Bool]
 
     # Only if dynamic time stepping is enabled
     if settings_bool.dynamicDT
-        constants_vecint.nIterThreshold = values_discr[names_discr .== "nIterThreshold"]                            # [-]
-        constants_vecint.iterThresholdDecrease = values_discr[names_discr .== "iterThresholdDecrease"]              # [-]
-        constants_vecint.iterThresholdIncrease = values_discr[names_discr .== "iterThresholdIncrease"]              # [-]
-        constants_float.initRESThresholdIncrease = values_discr[names_discr .== "initial RES threshold increase"][1]  # [mol/L/h]
-        constants_vecint.nItersCycle = values_discr[names_discr .== "nIters per cycle"]                             # [-]
-        constants_float.tolerance_no_convergence = values_discr[names_discr .== "tolerance no-convergence"][1]        # [mol/L/h]
-        constants_float.maxRelDiffBulkConc = values_discr[names_discr .== "maximum relative bulk conc change"][1]     # [-]
+        constants_vecint.nIterThreshold = values_discr[names_discr .== "nIterThreshold"]                                # [-]
+        constants_vecint.iterThresholdDecrease = values_discr[names_discr .== "iterThresholdDecrease"]                  # [-]
+        constants_vecint.iterThresholdIncrease = values_discr[names_discr .== "iterThresholdIncrease"]                  # [-]
+        constants_float.initRESThresholdIncrease = values_discr[names_discr .== "initial RES threshold increase"][1]    # [mol/L/h]
+        constants_vecint.nItersCycle = values_discr[names_discr .== "nIters per cycle"]                                 # [-]
+        constants_float.tolerance_no_convergence = values_discr[names_discr .== "tolerance no-convergence"][1]          # [mol/L/h]
+        constants_float.maxRelDiffBulkConc = values_discr[names_discr .== "maximum relative bulk conc change"][1]       # [-]
         
         constants_float.maxDT = values_discr[names_discr .== "Maximum dT diffusion"][1]          # [h]
         constants_float.minDT = values_discr[names_discr .== "Minimum dT diffusion"][1]          # [h]
@@ -68,7 +68,7 @@ function loadPresetFile(filename)
         constants_float.minDT_bac = values_discr[names_discr .== "Minimum dT bacteria"][1]       # [h]
     end
 
-    # Get Henry Constants and position of 
+    # Get Henry Constants and position of the liquid compounds
     kh_file = file["Kh"]
     constants_vecfloat.Kh = collect(skipmissing(kh_file[:,2]))
     constants_vecint.Gas_k = collect(skipmissing(kh_file[:,4]))
@@ -77,6 +77,7 @@ function loadPresetFile(filename)
     constants_vecstring.compoundNames = names_henry
     nLiquidCompounds = length(constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1])
 
+    # Check whether input makes sense
     if any(constants_vecfloat.Kh[constants_vecint.Gas_k .!= 0] .== 0.0)
         throw(ErrorException("Species that participate in gas-liquid transfer need an Henry constant, please check sheet Kh"))
     end
@@ -94,69 +95,68 @@ function loadPresetFile(filename)
 
     # Constants (Operational parameters)
     names_para, values_para = collect(skipmissing(file["Parameters"][:,1])), collect(skipmissing(file["Parameters"][:,2])) # It takes some extra empty rows, this removes that
-    constants_float.pHsetpoint = values_para[names_para .== "pH setpoint"][1]                     # [-]
-    constants_float.T = values_para[names_para .== "Temperature (K)"][1]                          # [K]
-    constants_float.kla = values_para[names_para .== "kLa"][1]                                    # [h-1]
-    constants_float.Pgas = values_para[names_para .== "Gas pressure"][1]                          # [bar]
-    constants_float.R = values_para[names_para .== "Gas constant"][1]                             # [kJ/mol*K]
-    constants_float.Vr = values_para[names_para .== "Representative volume"][1] * 1000            # [L]
-    constants_float.Vgas = values_para[names_para .== "Representative gas volume"][1] * 1000      # [L]
-    constants_float.reactor_density = values_para[names_para .== "Density reactor"][1]            # [g/L]
+    constants_float.pHsetpoint = values_para[names_para .== "pH setpoint"][1]                       # [-]
+    constants_float.T = values_para[names_para .== "Temperature (K)"][1]                            # [K]
+    constants_float.kla = values_para[names_para .== "kLa"][1]                                      # [h-1]
+    constants_float.Pgas = values_para[names_para .== "Gas pressure"][1]                            # [bar]
+    constants_float.R = values_para[names_para .== "Gas constant"][1]                               # [kJ/mol*K]
+    constants_float.Vr = values_para[names_para .== "Representative volume"][1] * 1000              # [L]
+    constants_float.Vgas = values_para[names_para .== "Representative gas volume"][1] * 1000        # [L]
+    constants_float.reactor_density = values_para[names_para .== "Density reactor"][1]              # [g/L]
 
-    settings_bool.variableHRT = values_para[names_para .== "Variable HRT"][1]                    # [Bool]
-    init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                              # [1/h]
+    settings_bool.variableHRT = values_para[names_para .== "Variable HRT"][1]                       # [Bool]
+    init_params.invHRT = 1 ./ values_para[names_para .== "HRT"]                                     # [1/h]
 
     # Only if variable HRT is enabled
     if settings_bool.variableHRT
-        constants_float.bulk_setpoint = values_para[names_para .== "Setpoint"][1]              # [mol/L]
+        constants_float.bulk_setpoint = values_para[names_para .== "Setpoint"][1]                   # [mol/L]
         compound_name = values_para[names_para .== "Compound setpoint"][1] 
-        constants_vecint.setpoint_index = findall(constants_vecstring.compoundNames .== compound_name) # [Vec(Int)]
+        constants_vecint.setpoint_index = findall(constants_vecstring.compoundNames .== compound_name) # [Vec{Int}]
     end
 
     # Constants (Bacteria)
     names_bac, values_bac = collect(skipmissing(file["Bacteria"][:,1])), collect(skipmissing(file["Bacteria"][:,2]))  # It takes some extra empty rows, this removes that
-    constants_float.bac_MW = values_bac[names_bac .== "Molecular weight bacterium"][1]            # [g/mol]
-    constants_float.bac_rho = values_bac[names_bac .== "Density bacterium"][1]                    # [g/m3]
-    constants_vecint.max_nBac = values_bac[names_bac .== "Maximum nBacteria"]                   # [-] Maybe find better way of calculating this
-    constants_vecbool.inactivationEnabled = values_bac[names_bac .== "Inactivation enabled"]     # [Bool]
-    constants_float.min_bac_mass_grams = values_bac[names_bac .== "Minimum mass bacterium"][1]    # [g]
-    constants_float.max_bac_mass_grams = values_bac[names_bac .== "Maximum mass bacterium"][1]    # [g]
-    constants_float.bac_max_radius = values_bac[names_bac .== "Maximum radius bacterium"][1]      # [m]
-    constants_float.kDist = values_bac[names_bac .== "kDist"][1]                                  # [-]
+    constants_float.bac_MW = values_bac[names_bac .== "Molecular weight bacterium"][1]              # [g/mol]
+    constants_float.bac_rho = values_bac[names_bac .== "Density bacterium"][1]                      # [g/m3]
+    constants_vecint.max_nBac = values_bac[names_bac .== "Maximum nBacteria"]                       # [-]
+    constants_vecbool.inactivationEnabled = values_bac[names_bac .== "Inactivation enabled"]        # [Bool]
+    constants_float.min_bac_mass_grams = values_bac[names_bac .== "Minimum mass bacterium"][1]      # [g]
+    constants_float.max_bac_mass_grams = values_bac[names_bac .== "Maximum mass bacterium"][1]      # [g]
+    constants_float.bac_max_radius = values_bac[names_bac .== "Maximum radius bacterium"][1]        # [m]
+    constants_float.kDist = values_bac[names_bac .== "kDist"][1]                                    # [-]
     constants_float.max_granule_radius = min(constants_float.max_granule_radius, values_bac[names_bac .== "Maximum granule radius"][1]) # [m] Either based on grid size or set value
-    constants_float.kDet = values_bac[names_bac .== "Detachment constant"][1]                     # [1/m2.h]
-    settings_string.detachment = values_bac[names_bac .== "Detachment method"][1]                  # [mechanistic, naive, none]
-
+    constants_float.kDet = values_bac[names_bac .== "Detachment constant"][1]                       # [1/m2.h]
+    settings_string.detachment = values_bac[names_bac .== "Detachment method"][1]                   # [mechanistic, naive, none]
 
     # Constants (Solver)
     names_solv, values_solv = collect(skipmissing(file["Solver"][:,1])), collect(skipmissing(file["Solver"][:,2]))
-    constants_float.diffusion_accuracy = values_solv[names_solv .== "Diffusion tolerance"][1]                 # [-]
-    constants_float.steadystate_tolerance = values_solv[names_solv .== "Steady state RES threshold"][1]       # [mol/L/h]
-    tol_abs = values_solv[names_solv .== "Concentration tolerance"][1]                                  # [mol/L]
-    constants_float.correction_concentration_steady_state = tol_abs / constants_float.steadystate_tolerance         # Not really used anymore
-    constants_vecstring.RESmethod = values_solv[names_solv .== "RES determination method"]                     # [max, mean, norm]
+    constants_float.diffusion_accuracy = values_solv[names_solv .== "Diffusion tolerance"][1]                   # [-]
+    constants_float.steadystate_tolerance = values_solv[names_solv .== "Steady state RES threshold"][1]         # [mol/L/h]
+    tol_abs = values_solv[names_solv .== "Concentration tolerance"][1]                                          # [mol/L]
+    constants_float.correction_concentration_steady_state = tol_abs / constants_float.steadystate_tolerance     # Not really used anymore
+    constants_vecstring.RESmethod = values_solv[names_solv .== "RES determination method"]                      # [max, mean, norm]
 
-    constants_vecint.nDiffusion_per_SScheck = values_solv[names_solv .== "nIters diffusion per SS check"]   # [-]
+    constants_vecint.nDiffusion_per_SScheck = values_solv[names_solv .== "nIters diffusion per SS check"]       # [-]
 
-    settings_bool.pHbulkCorrection = values_solv[names_solv .== "pH bulk concentration corrected"][1]        # Boolean
-    settings_bool.pHincluded = values_solv[names_solv .== "pH solving included"][1]                          # Boolean
+    settings_bool.pHbulkCorrection = values_solv[names_solv .== "pH bulk concentration corrected"][1]           # [Bool]
+    settings_bool.pHincluded = values_solv[names_solv .== "pH solving included"][1]                             # [Bool]
     # Speciation is always included if pH is included, else, read Boolean from excel
-    settings_bool.speciation = values_solv[names_solv .== "Speciation included"][1] || settings_bool.pHincluded   # Boolean
+    settings_bool.speciation = values_solv[names_solv .== "Speciation included"][1] || settings_bool.pHincluded # [Bool]
 
     if settings_bool.pHincluded
-        constants_float.pHtolerance = values_solv[names_solv .== "pH solver tolerance"][1]                    # [-]
+        constants_float.pHtolerance = values_solv[names_solv .== "pH solver tolerance"][1]                      # [-]
     else
         constants_float.pHtolerance = NaN
     end
 
-    settings_bool.structure_model = values_solv[names_solv .== "Structure model"][1]                         # Boolean
+    settings_bool.structure_model = values_solv[names_solv .== "Structure model"][1]                            # [Bool]
     if settings_bool.structure_model
-        settings_string.type = values_solv[names_solv .== "Structure model type"][1]                           # [Neut, Comm, Comp, Copr]
+        settings_string.type = values_solv[names_solv .== "Structure model type"][1]                            # [Neut, Comm, Comp, Copr]
     else
         settings_string.type = "None"
     end
 
-    settings_bool.parallelized = values_solv[names_solv .== "Parallelisation"][1]                            # Boolean
+    settings_bool.parallelized = values_solv[names_solv .== "Parallelisation"][1]                               # [Bool]
 
     # Constants (influent)
     names_temp, values_temp, condition_type_temp = file["Influent"][:,1], file["Influent"][:,2], file["Influent"][:,4] 
@@ -167,7 +167,7 @@ function loadPresetFile(filename)
     end
 
     constants_vecbool.Dir_k = condition_type .== "D"
-    constants_vecfloat.influent_concentrations = values_infl                                  # [mol/L]
+    constants_vecfloat.influent_concentrations = values_infl # [mol/L]
 
     # Constants (initial conditions)
     names_init, values_init = collect(skipmissing(file["Initial condition"][:,1])), collect(skipmissing(file["Initial condition"][:,2]))
@@ -177,14 +177,14 @@ function loadPresetFile(filename)
     end
 
     # For the species with a Dirichlet, the influent concentration is taken as the bulk concentration
-    init_params.init_concs = copy(values_init[constants_vecint.Gas_k .!= 1])             # [mol/L], Only Liquid compounds
-    init_params.init_bulk_conc = copy(values_init)                                        # [mol/L]  All compounds
+    init_params.init_concs = copy(values_init[constants_vecint.Gas_k .!= 1])                # [mol/L], Only Liquid compounds
+    init_params.init_bulk_conc = copy(values_init)                                          # [mol/L]  All compounds
     init_params.init_bulk_conc[constants_vecbool.Dir_k] = constants_vecfloat.influent_concentrations[constants_vecbool.Dir_k]
 
     # Constants (Equilibrium constants & charge matrix)
     thermodynamic_parameters = file["ThermoParam"]
     names_thermo = thermodynamic_parameters[:,1]
-    nColumns = length(file["ThermoParam"][2,:]) - 4             # -4 due to Compound names, preferred subspecies, compound phase and cell with text, bit Hardcoded but should remain the same amount of columns
+    nColumns = length(file["ThermoParam"][2,:]) - 4  # -4 due to Compound names, preferred subspecies, compound phase and cell with text, bit Hardcoded but should remain the same amount of columns every time
 
     # Divide in sections and locate H2O and H indices, only Liquid Compounds for Speciation
     section_starts = findall(names_thermo .== constants_vecstring.compoundNames[constants_vecint.Gas_k .!= 1][1])
@@ -206,7 +206,7 @@ function loadPresetFile(filename)
 
     # Get next section indices
     Keq_start = section_starts[2][1]
-    Keq_end = section_ends[2][1] + 2    # For adding H20 and H    
+    Keq_end = section_ends[2][1] + 2    # +2 For adding H20 and H    
     constants_matfloat.Keq = thermodynamic_parameters[Keq_start:Keq_end, 2:5]
 
     # And the last section indices
@@ -220,7 +220,7 @@ function loadPresetFile(filename)
     end
 
     # Extract charge matrix and substitute everything without charge
-    charge_end = charge_end + 2     # For adding H2O and H
+    charge_end = charge_end + 2     # +2 For adding H2O and H
     temp_chrM = thermodynamic_parameters[charge_start:charge_end, 2:6]
     idx = findall(temp_chrM .== "NA")
     temp_chrM[idx] .= 0
@@ -230,7 +230,7 @@ function loadPresetFile(filename)
     ks_file = file["Ks"]
     ki_file = file["Ki"]
 
-    # Extract and check microbial species Names
+    # Extract and check microbial species names
     constants_vecstring.speciesNames = collect(skipmissing(ks_file[:,1][2:end,1]))
 
     if collect(skipmissing(ki_file[:,1][2:end,1])) != constants_vecstring.speciesNames
@@ -299,7 +299,7 @@ function loadPresetFile(filename)
         println("Maintenance and maximum growth rate are not set, thus calculating dynamically. \nPlease make sure the equations and species match up in the code.\n")
     else
         constants_vecfloat.maintenance = temp_maint
-        constants_vecfloat.mumax = temp_mumax
+        constants_vecfloat.mu_max = temp_mumax
     end
 
     # Constants (ReactionMatrix)

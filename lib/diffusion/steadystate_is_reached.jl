@@ -1,19 +1,19 @@
 function isReached_compound(RES, method, steadystate_tolerance)
     """
-    Determine whether steadystate is reached for one compound
+    This function determines whether a steady state is reached for one compound
 
     Arguments
-    RES:                    A vector that contains the residual of the diffusion-reaction equation for each gridcell
+    RES:                    A matrix that contains the residual of the diffusion-reaction equation for each gridcell
                             in the diffusion region for 1 compound
-    method:                 the method which is used to determine steady state
-    steadystate_tolerance:  The tolerance when it comes to steadystate
+    method:                 The method which is used to determine steady state
+    steadystate_tolerance:  The deviation of steady state that is allowed
 
     Returns
-    SSreached:              A Boolean whether steady state is reached for this compound
+    SSreached:              A Boolean indicating whether steady state is reached for this compound
     """
 
     if method == "mean"
-        # Paraphrased from Chiel: When using suspension mode (little granules), this method is not
+        # Paraphrased from Chiel (MATLAB code): When using suspension mode (little granules), this method is not
         # meaningful anymore as the bulk layer has by definition a RES of 0. As the domain in this mode
         # is not shrunk down, a lot of bulk liquid points will be taken, thus lowering the mean. Now
         # instead only the mean of non-zero entries is taken.
@@ -24,7 +24,7 @@ function isReached_compound(RES, method, steadystate_tolerance)
 
     elseif method == "norm"
         SSdif = sqrt(sum(RES .^2)) # Calculates as Root-Sum-Squares (RSS)
-        # C:in testing this was too harsh of a constraint, because all
+        # MATLAB code: in testing, this was too harsh of a constraint, because all
         # little errors accumulate and make it so that it takes
         # (figuratively) a million iterations before steady state...
 
@@ -47,20 +47,20 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
     dx:                     The size of a grid cell
     bulk_concentrations:    A (ncompounds,) vector containing the bulk concentrations
     diffRegion:             A (ny, nx) BitMatrix indicating whether each gridcell is in the diffusion region.
-    constants:              A "General" struct containing all the simulation constants
+    constants_XYZ:          A struct containing simulation constants
 
     Returns
     isReached:              A Boolean indicating whether steadystate is reached
     max_RES_value:          A (ncompounds) vector that contains the maximum residual value per compound
     """
 
-    steadystate_tolerance = constants_float.steadystate_tolerance     # [mol/L/h]
-    method = constants_vecstring.RESmethod[1]                                # mean, max or norm
+    steadystate_tolerance = constants_float.steadystate_tolerance       # [mol/L/h]
+    method = constants_vecstring.RESmethod[1]                           # mean, max or norm
 
-    L = [0 1 0; 1 -4 1; 0 1 0]                                  # 2D Laplacian stencil base
+    L = [0 1 0; 1 -4 1; 0 1 0]                                          # 2D Laplacian stencil base
     nCompounds = length(constants_vecfloat.diffusion_rates)
-    characteristic_time = dx^2 ./ constants_vecfloat.diffusion_rates     # [h]
-    compound_steadystate = BitArray(zeros(nCompounds))          # Binary storage system
+    characteristic_time = dx^2 ./ constants_vecfloat.diffusion_rates    # [h]
+    compound_steadystate = BitArray(zeros(nCompounds))                  # Binary storage system
 
     max_RES_value = zeros(nCompounds)
 
@@ -73,7 +73,7 @@ function steadystate_is_reached(conc, reaction_matrix, dx, bulk_concentrations, 
         # Use convolution to calculate the diffusion, but only keep the original matrix shape
         RES = conv(padded_conc, L)[3:end-2,3:end-2]                                             # [mol/L]
         # RES = imfilter(padded_conc, reflect(centered(L)), Inner())
-        RES = RES ./ characteristic_time[index] .+ reaction_matrix[:,:,index]                    # [mol/L/h]
+        RES = RES ./ characteristic_time[index] .+ reaction_matrix[:,:,index]                   # [mol/L/h]
 
         # Only look at RES value in the diffusion region, RES of bulk layer has by definition 0 RES.
         compound_steadystate[index] = isReached_compound(RES[diffRegion], method, steadystate_tolerance)

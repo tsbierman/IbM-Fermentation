@@ -1,12 +1,18 @@
 function circleShape(h, k, r)
     """
-    Function to plot circles
+    Function to plot the bacteria as circles
+    Arguments
+    h,k,r:      x, y and radius
     """
+
     thet = LinRange(0, 2*pi, 500)
     return h .+ r * sin.(thet), k .+ r*cos.(thet)
 end
 
 function HEX2RGB(c)
+    """
+    Hexcode to RGB converter
+    """
 
     rC, gC, bC = zeros(length(c)), zeros(length(c)), zeros(length(c))
     for idx in eachindex(c)
@@ -21,7 +27,14 @@ end
 
 function thermo_restricted(sim_number, finished)
     """
-    Shows which gridcells do not follow thermodynamic restrictions but do reaction nontheless
+    A function to plot which grid cells contain organisms that do or do not follow laws of thermodyanmic, but still grow
+
+    Arguments
+    sim_number:             The simulation number
+    finished:               A Boolean indicating whether the simulation has been completed
+
+    Returns
+    A heatmap per specie
     """
 
     # Get directory and simulation_file
@@ -52,6 +65,7 @@ function thermo_restricted(sim_number, finished)
     concentrations = conc_saved[lastnonzero, :, :, :]
     grid_float.blayer_thickness = grid_float.dx
 
+    # Determine bacterial location
     grid2bac, grid2nBacs = determine_where_bacteria_in_grid(grid_float, grid_int, short_bac_vecfloat)
     diffusion_region, focus_region = determine_diffusion_region(grid2bac, grid2nBacs, short_bac_vecfloat, grid_float, grid_int)
 
@@ -118,7 +132,7 @@ function thermo_restricted(sim_number, finished)
                     # If G1 is positive, but active growth has been observed --> place a 1 in the matrix for that specie
                     if G1 >= 0 && mu_s[bac_index] > 0
                         thermo_checks[iy, ix, bac_specie] = 1
-                        # println(current_concs)
+
                     # If G1 is negative OR positive, but with negative growth, this specie adheres to thermodynamics, place a -1
                     elseif G1 < 0 || (G1 >=0 && mu_s[bac_index] < 0)
                         thermo_checks[iy, ix, bac_specie] = -1
@@ -135,6 +149,7 @@ function thermo_restricted(sim_number, finished)
         end
     end
 
+    # Names for Anaerobic Fermentation
     names = ["BO", "AM", "HM", "Total"]
 
     red_r, red_g, red_b = HEX2RGB(["#E74F4E"])
@@ -143,39 +158,32 @@ function thermo_restricted(sim_number, finished)
     my_green = RGB(green_r[1]/255, green_g[1]/255, green_b[1]/255)
     
     for name_index in eachindex(names)
+        # Create clean plot
         plot(aspect_ratio = 1)
         for ix in axes(grid2nBacs, 2)
             for iy in axes(grid2nBacs, 1)
-                # x_coor = (ix * grid_float.dx - 0.5 * grid_float.dx) * 1e6
-                # y_coor = (iy * grid_float.dy - 0.5 * grid_float.dy) * 1e6
-
-                # if thermo_checks[iy, ix, name_index] .== 0 && grid2nBacs[iy, ix] > 0
-                #     plot!(circleShape(x_coor, y_coor, 0.5 * grid_float.dx * 1e6), seriestype =[:shape], aspect_rate=1, c = my_green, linewidth = 0.1, legend = false, 
-                #                       xlabel="Position along x-axis [µm]", ylabel="Position along y-axis [µm]")
-                # elseif thermo_checks[iy, ix, name_index] .== 1
-                #     plot!(circleShape(x_coor, y_coor, 0.5 * grid_float.dx * 1e6), seriestype =[:shape], aspect_rate=1, c = my_red, linewidth = 0.1, legend = false,
-                #                       xlabel="Position along x-axis [µm]", ylabel="Position along y-axis [µm]")
-
+                # Get coordinates of of corners
                 x_coor_left = ((ix-1) * grid_float.dx) * 1e6
                 x_coor_right = (ix * grid_float.dx) * 1e6
                 y_coor_bottom = ((iy-1) * grid_float.dy) * 1e6
                 y_coor_up = (iy * grid_float.dy) * 1e6
                 
-                if thermo_checks[iy, ix, name_index] .== -1
+                if thermo_checks[iy, ix, name_index] .== -1 # Follows thermodynamics
                     plot!(Shape([(x_coor_right, y_coor_up), (x_coor_right, y_coor_bottom), (x_coor_left, y_coor_bottom), (x_coor_left, y_coor_up)]),
                     seriestype =[:shape], aspect_rate=1, c = my_green, linewidth = 0.1, legend = false, 
                                       xlabel="Position along x-axis [µm]", ylabel="Position along y-axis [µm]")
-                elseif thermo_checks[iy, ix, name_index] .== 1
+                elseif thermo_checks[iy, ix, name_index] .== 1  # Does not follow thermodyanmics
                     plot!(Shape([(x_coor_right, y_coor_up), (x_coor_right, y_coor_bottom), (x_coor_left, y_coor_bottom), (x_coor_left, y_coor_up)]), 
                     seriestype =[:shape], aspect_rate=1, c = my_red, linewidth = 0.1, legend = false,
                                       xlabel="Position along x-axis [µm]", ylabel="Position along y-axis [µm]")
-                elseif thermo_checks[iy, ix, name_index] .== 2
+                elseif thermo_checks[iy, ix, name_index] .== 2 # No individuals of this specie in the grid cell
                     plot!(Shape([(x_coor_right, y_coor_up), (x_coor_right, y_coor_bottom), (x_coor_left, y_coor_bottom), (x_coor_left, y_coor_up)]),
                     seriestype =[:shape], aspect_rate=1, c = :grey, linewidth = 0.1, legend = false, 
                                       xlabel="Position along x-axis [µm]", ylabel="Position along y-axis [µm]")
                 end
             end
         end
+        # Save image
         save_loc = string(pwd(), @sprintf("\\results\\%04d", sim_number))
         savefig("$(save_loc)\\$(names[name_index]).png")
     end

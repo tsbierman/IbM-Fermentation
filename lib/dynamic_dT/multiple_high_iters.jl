@@ -7,8 +7,8 @@ function multiple_high_iters(iDiffusion, iProf, nDiffIters, Time, constants_veci
     iDiffusion:         The number of cycles of diffusion (for this dT_bac)
     iProf:              The Profiling Index (+1 for each simulated dT_bac)
     nDiffIters:         A large storage for the number of diffusion iterations to reach steady state for each dT_bac
-    Time:               A "General" struct containing all time-related parameters
-    constants:          A "General" struct containing all the simulation constants
+    Time:               A "Float" struct containing time-related parameters of type Float64
+    constants_vecint:   A "VectorInt" struct containing simulation constants of type Vector{Int}
 
     Returns
     multiple_high:      A Boolean indicating whether the previous steady state have been reached with high numbers of diffusion iterations

@@ -4,10 +4,10 @@ function create_chunks(nChunks_dir, focus_region)
 
     Arguments
     nChunks_dir:        The amount of chunks that are generated in each direction
-    focus_region:       A "General" struct containing the start and end coordinates of the region of interest
+    focus_region:       An "Int" struct containing the start and end coordinates of the region of interest (type Int)
 
     Returns
-    chunks:             A "General" struct containing the start and end cooridinates of the chunks
+    chunks_XYZ:         A struct containing the information about the chunks
     """
 
     dx = focus_region.x1 - focus_region.x0 + 1              # amount of grid cells

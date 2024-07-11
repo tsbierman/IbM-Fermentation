@@ -1,6 +1,6 @@
 function restriction(res_fine, L_restriction)
     """
-    This function converts a matrix to a coarser grid, based on full weighting restriction
+    This function transfers a matrix to a coarser grid, based on full weighted restriction
 
     Arguments
     res_fine:           A (n, m) matrix with the residual values
@@ -10,7 +10,6 @@ function restriction(res_fine, L_restriction)
     res_coarse:         A ((n+1)/2, (m+1)/2) matrix with the restriced residual values
     """
     
-    # res_coarse = conv(res_fine, L_restriction)[2:end-1,2:end-1]
     res_coarse = imfilter(res_fine, reflect(centered(L_restriction)), Fill(0))
     res_coarse = res_coarse[1:2:end, 1:2:end]
     return res_coarse

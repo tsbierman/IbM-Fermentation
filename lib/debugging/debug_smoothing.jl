@@ -1,6 +1,9 @@
 include(string(pwd(), "\\lib\\diffusion\\smoothing.jl"))
 using BenchmarkTools
+using DSP
+using ImageFiltering
 
+# Short set-up for testing speed options
 # L = [0 1 0; 1 -4 1; 0 1 0]
 # # alpha = dT * diff_coef / (2 * dx^2)
 # alpha = 2.65e-7 * 3.6e-6 / (2 * (2e-6)^2)
@@ -14,10 +17,10 @@ using BenchmarkTools
 #     smoothing(phi, rhs, L_lhs)
 # end
 
-using DSP
-using ImageFiltering
+# Comparison of conv(), imfilter() and @view conv()
 a = [1 1 1 1; 1 2 2 1; 1 2 2 1; 1 1 1 1]
 b = [0 1 0; 1 -4 1; 0 1 0]
+
 @btime conv(a, b)[2:end-1, 2:end-1]
 display(conv(a, b)[2:end-1, 2:end-1])
 @btime @view conv(a, b)[2:end-1, 2:end-1]
