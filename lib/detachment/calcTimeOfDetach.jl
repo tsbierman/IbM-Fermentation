@@ -86,7 +86,7 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     biofilm = aggregate .> 0
 
     # ---------------------------------- START DEBUG ------------------------------------
-    # return plotLogicalGrid(detachment_grid, aggregate)    # Plot test for aggregate
+    # return plotLogicalGrid(detachment_grid_float, detachment_grid_int, aggregate)    # Plot test for aggregate
     # ----------------------------------- END DEBUG -------------------------------------
 
     # Create matrices
@@ -94,7 +94,7 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     Visited = .!biofilm               # Everything not-biofilm will not have to be calculated and thus is already "Visited"
 
     # ---------------------------------- START DEBUG ------------------------------------
-    # return plotLogicalGrid(detachment_grid, Visited)      # Plot test for Visited
+    # return plotLogicalGrid(detachment_grid_float, detachment_grid_int, Visited)      # Plot test for Visited
     # ----------------------------------- END DEBUG -------------------------------------
 
     # Make kernel to find narrow band (edge-finder kernel)
@@ -107,14 +107,14 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     Narrow_band = imfilter(biofilm, reflect(centered(kernel)), Fill(0)) .> 1e-15      # Some numbers are very small, but should be 0
 
     # ---------------------------------- START DEBUG ------------------------------------
-    # return plotLogicalGrid(detachment_grid, Narrow_band)  # Plot test for Narrow_band
+    # return plotLogicalGrid(detachment_grid_float, detachment_grid_int, Narrow_band)  # Plot test for Narrow_band
     # ----------------------------------- END DEBUG -------------------------------------
 
     # "Far" is the inner part of the aggregate
     Far = biofilm .& .!Narrow_band
 
     # ---------------------------------- START DEBUG ------------------------------------
-    # return plotLogicalGrid(detachment_grid, Far)          # Plot test for Far
+    # return plotLogicalGrid(detachment_grid_float, detachment_grid_int, Far)          # Plot test for Far
     # ----------------------------------- END DEBUG -------------------------------------
 
     # Inside of aggregate set to T infinity
@@ -189,8 +189,8 @@ function calcTimeOfDetach(bac_vecfloat, grid_float, grid_int, grid2bac, grid2nBa
     # -------------------------------- END Fast Marching algorithm ----------------------------------------
 
     # ---------------------------------- START DEBUG ------------------------------------
-    # return plotLogicalGrid(detachment_grid, Visited)      # Plot test for all Visited
-    # return plotLogicalGrid(detachment_grid, Far)          # Plot test for Far
+    # return plotLogicalGrid(detachment_grid_float, detachment_grid_int, Visited)      # Plot test for all Visited
+    # return plotLogicalGrid(detachment_grid_float, detachment_grid_int, Far)          # Plot test for Far
     # ----------------------------------- END DEBUG -------------------------------------
 
     return T

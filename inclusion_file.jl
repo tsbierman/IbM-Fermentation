@@ -1,5 +1,5 @@
 # pre_processing files
-include("lib\\pre_processing\\initialiseJVM.jl")
+include("lib\\pre_processing\\initialiseJVM.jl") # Disable this line during testing and development
 include("lib\\pre_processing\\create_mat.jl")
 include("lib\\pre_processing\\loadPresetFile.jl")
 println(">>>>>>>>>>>>>>INCLUDED PRE_PROCESSING FILES")

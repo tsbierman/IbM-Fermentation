@@ -6,16 +6,16 @@ function circleShape(h, k, r)
     return h .+ r * sin.(thet), k .+ r*cos.(thet)
 end
 
-function plotLogicalGrid(grid, logicalGrid)
+function plotLogicalGrid(grid_float, grid_int, logicalGrid)
     """
     Plots logical grid
     """
     # Plot all grid points
-    nodeEndCoordinatesX = (1:grid.nx) * grid.dx
-    nodeEndCoordinatesY = (1:grid.ny) * grid.dy
+    nodeEndCoordinatesX = (1:grid_int.nx) * grid_float.dx
+    nodeEndCoordinatesY = (1:grid_int.ny) * grid_float.dy
     # Makes Centered
-    nodeMidCoordinatesX = nodeEndCoordinatesX .- grid.dx/2
-    nodeMidCoordinatesY = nodeEndCoordinatesY .- grid.dy/2
+    nodeMidCoordinatesX = nodeEndCoordinatesX .- grid_float.dx/2
+    nodeMidCoordinatesY = nodeEndCoordinatesY .- grid_float.dy/2
     # Make all coordination possible
     plot_centre_X = repeat(nodeMidCoordinatesX, length(nodeMidCoordinatesY))
     plot_centre_Y = repeat(nodeMidCoordinatesY, inner=length(nodeMidCoordinatesX))
@@ -33,7 +33,7 @@ function plotLogicalGrid(grid, logicalGrid)
     end
 
     for index in eachindex(bac.x)
-        plot!(circleShape(bac.x[index], bac.y[index], grid.blayer_thickness), seriestype = [:shape,], 
+        plot!(circleShape(bac.x[index], bac.y[index], grid_float.blayer_thickness), seriestype = [:shape,], 
         legend = false, aspect_ratio=1, fillalpha=0.1, linealpha=0.1)
     end
     

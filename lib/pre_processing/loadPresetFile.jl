@@ -299,7 +299,7 @@ function loadPresetFile(filename)
         println("Maintenance and maximum growth rate are not set, thus calculating dynamically. \nPlease make sure the equations and species match up in the code.\n")
     else
         constants_vecfloat.maintenance = temp_maint
-        constants_vecfloat.mumax = temp_mumax
+        constants_vecfloat.mu_max = temp_mumax
     end
 
     # Constants (ReactionMatrix)

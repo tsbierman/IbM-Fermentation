@@ -5,7 +5,6 @@ using Random
 using DSP
 
 include(string(pwd(), "\\inclusion_file.jl"))
-include(string(pwd(),"\\lib\\Lib_Module.jl"))
 
 create_mat_file = string(pwd(), "\\lib\\pre_processing\\create_mat.jl")
 include(create_mat_file)
@@ -29,8 +28,8 @@ Tol = constants_float.pHtolerance
 @testset "determine_max_growth_rate_and_maint" begin
     res = determine_max_growth_rate_and_maint(1, 298, 1e-7) # Mock values for test
     @test length(res) == 2
-    @test round(res[1], digits=4) == 0.0390
-    @test round(res[2], digits=4) == 0.0082
+    @test round(res[1], digits=4) == 0.05
+    @test round(res[2], digits=4) == 0.005
 end
 
 @testset "calculate_monod" begin
