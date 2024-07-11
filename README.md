@@ -40,6 +40,7 @@ IbM-Fermentation is build in Julia. Thus, Julia must be installed on your comput
     - ImageFiltering
 
 **:warning: Some of these are quick, others might take a while :warning:**
+
 5. Create a map `results` in the **Code folder<sup>1</sup>**.
 <br><sup><sup>1</sup> Code folder: folder with `IbM.jl` file. </sup><br>
 
